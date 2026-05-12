@@ -1,0 +1,939 @@
+
+<h2 class="sr-only">Dashboard quản lý kho Goma Carpet</h2>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --teal:#00C896;--teal-dim:rgba(0,200,150,.12);
+  --amber:#F5A623;--amber-dim:rgba(245,166,35,.12);
+  --red:#F04E4E;--red-dim:rgba(240,78,78,.12);
+  --blue:#4A9EFF;--blue-dim:rgba(74,158,255,.12);
+  --purple:#A064FF;--purple-dim:rgba(160,100,255,.12);
+  --green:#4ADE80;
+  --bg:#0F1117;--surface:#171B25;--surface2:#1E2330;--surface3:#252B3A;
+  --border:rgba(255,255,255,.07);--border2:rgba(255,255,255,.13);
+  --text:#E8EAF0;--text2:#8B90A0;--text3:#555B6E;
+  --font:'Be Vietnam Pro',sans-serif;--mono:'JetBrains Mono',monospace;
+  --r:8px;--rl:12px;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13px}
+.hd{padding:1rem 0 .75rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;border-bottom:1px solid var(--border);margin-bottom:.75rem}
+.hd-logo{display:flex;align-items:center;gap:10px}
+.hd-dot{width:8px;height:8px;border-radius:50%;background:var(--teal);box-shadow:0 0 8px var(--teal);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.hd-title{font-size:16px;font-weight:700;letter-spacing:-.3px}
+.hd-sub{font-size:11px;color:var(--text2);font-family:var(--mono)}
+.load-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:.75rem 1rem;margin-bottom:.75rem}
+.lbl-grp{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px}
+.lrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px}
+.lrow:last-child{margin-bottom:0}
+.lrow label{font-size:11px;color:var(--text2);min-width:140px;flex-shrink:0}
+.url-display{flex:1;font-size:10px;font-family:var(--mono);color:var(--text3);background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:4px 8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.badge{font-size:10px;padding:2px 8px;border-radius:20px;font-weight:600;flex-shrink:0}
+.badge-g{background:rgba(0,200,150,.15);color:var(--teal);border:1px solid rgba(0,200,150,.3)}
+.badge-b{background:rgba(74,158,255,.15);color:var(--blue);border:1px solid rgba(74,158,255,.3)}
+.badge-p{background:rgba(160,100,255,.15);color:var(--purple);border:1px solid rgba(160,100,255,.3)}
+.btn-row{display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap}
+.btn{padding:6px 16px;font-size:12px;font-weight:600;cursor:pointer;border-radius:var(--r);border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-family:var(--font);transition:all .15s}
+.btn:hover{background:var(--surface3)}
+.btn-primary{background:var(--teal);color:#0F1117;border-color:var(--teal)}
+.btn-primary:hover{background:#00e0a8;box-shadow:0 0 16px rgba(0,200,150,.3)}
+#load-status{font-size:11px;color:var(--text2);font-family:var(--mono)}
+.tabs{display:flex;gap:2px;margin:.5rem 0 .75rem;background:var(--surface);border-radius:var(--r);padding:3px;width:fit-content;flex-wrap:wrap}
+.tab{padding:5px 14px;font-size:12px;font-weight:500;cursor:pointer;border:none;background:none;color:var(--text2);border-radius:6px;transition:all .15s;font-family:var(--font)}
+.tab.active{background:var(--surface3);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.4)}
+.panel{display:none}.panel.active{display:block}
+.mgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:1rem}
+.mc{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:14px 16px;position:relative;overflow:hidden;transition:border-color .15s}
+.mc:hover{border-color:var(--border2)}
+.mc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.mc.c-teal::before{background:linear-gradient(90deg,var(--teal),transparent)}
+.mc.c-blue::before{background:linear-gradient(90deg,var(--blue),transparent)}
+.mc.c-amber::before{background:linear-gradient(90deg,var(--amber),transparent)}
+.mc.c-red::before{background:linear-gradient(90deg,var(--red),transparent)}
+.mc.c-purple::before{background:linear-gradient(90deg,var(--purple),transparent)}
+.mc.c-green::before{background:linear-gradient(90deg,var(--green),transparent)}
+.mc .lbl{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
+.mc .val{font-size:22px;font-weight:700;line-height:1;font-family:var(--mono)}
+.mc .sub{font-size:10px;color:var(--text3);margin-top:4px}
+.val.teal{color:var(--teal)}.val.amber{color:var(--amber)}.val.red{color:var(--red)}.val.blue{color:var(--blue)}.val.purple{color:var(--purple)}
+.sec{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin:.9rem 0 .5rem;display:flex;align-items:center;gap:8px}
+.sec::after{content:'';flex:1;height:1px;background:var(--border)}
+.chart-wrap{position:relative;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:16px;margin-bottom:.75rem}
+.tbl-wrap{overflow-x:auto;margin-bottom:.9rem;border-radius:var(--rl);border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;padding:8px 12px;background:var(--surface2);color:var(--text2);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:8px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--surface2)}
+.pill{display:inline-block;font-size:10px;padding:2px 8px;border-radius:20px;font-weight:600;white-space:nowrap}
+.pr{background:var(--red-dim);color:var(--red);border:1px solid rgba(240,78,78,.25)}
+.pa{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(245,166,35,.25)}
+.pg{background:var(--teal-dim);color:var(--teal);border:1px solid rgba(0,200,150,.25)}
+.pb{background:var(--blue-dim);color:var(--blue);border:1px solid rgba(74,158,255,.25)}
+.pp{background:var(--purple-dim);color:var(--purple);border:1px solid rgba(160,100,255,.25)}
+.pna{background:var(--surface3);color:var(--text3);border:1px solid var(--border2)}
+.alert-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:var(--r);margin-bottom:5px;font-size:12px;flex-wrap:wrap}
+.alert-red{background:var(--red-dim);border-left:3px solid var(--red)}
+.alert-amber{background:var(--amber-dim);border-left:3px solid var(--amber)}
+.alert-green{background:var(--teal-dim);border-left:3px solid var(--teal)}
+.alert-blue{background:var(--blue-dim);border-left:3px solid var(--blue)}
+.progress-bg{background:var(--surface3);border-radius:4px;height:5px;overflow:hidden;flex:1;min-width:50px}
+.progress-fill{height:100%;border-radius:4px}
+.flex-row{display:flex;align-items:center;gap:8px}
+.frow{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:.7rem}
+.frow select,.frow input{font-size:12px;padding:5px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--surface2);color:var(--text);font-family:var(--font)}
+.note{font-size:11px;color:var(--text3);padding:.5rem .75rem;background:var(--surface);border-radius:var(--r);margin-bottom:.6rem;border-left:2px solid var(--border2)}
+.mono{font-family:var(--mono);font-size:11px}
+.trend-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;gap:12px;transition:border-color .15s}
+.trend-card:hover{border-color:var(--border2)}
+.trend-icon{font-size:18px;flex-shrink:0;width:32px;text-align:center}
+.trend-info{flex:1;min-width:0}
+.trend-name{font-weight:600;font-family:var(--mono);font-size:12px;margin-bottom:2px}
+.trend-desc{font-size:11px;color:var(--text2)}
+.trend-val{font-family:var(--mono);font-size:13px;font-weight:700;flex-shrink:0}
+/* Hàng thanh lý */
+.tl-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:14px 16px;margin-bottom:.75rem}
+.tl-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px}
+.tl-title{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.1em}
+.tl-grid{display:flex;flex-wrap:wrap;gap:6px;max-height:200px;overflow-y:auto;padding-right:4px}
+.tl-grid::-webkit-scrollbar{width:4px}.tl-grid::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+.tl-chip{display:flex;align-items:center;gap:5px;padding:4px 10px 4px 10px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--border2);background:var(--surface2);color:var(--text2);font-family:var(--mono);transition:all .15s;user-select:none}
+.tl-chip:hover{border-color:var(--amber);color:var(--amber)}
+.tl-chip.checked{background:rgba(240,78,78,.12);border-color:rgba(240,78,78,.4);color:var(--red)}
+.tl-chip.checked::before{content:'✕ ';font-size:10px}
+.tl-empty{font-size:11px;color:var(--text3);padding:.5rem 0}
+.tl-badge{display:inline-flex;align-items:center;gap:5px;font-size:10px;padding:2px 10px;border-radius:20px;font-weight:600;background:rgba(240,78,78,.1);color:var(--red);border:1px solid rgba(240,78,78,.25)}
+.alert-gray{background:rgba(255,255,255,.04);border-left:3px solid #555B6E}
+.tl-section{background:rgba(240,78,78,.05);border:1px dashed rgba(240,78,78,.25);border-radius:var(--rl);padding:12px 14px;margin-bottom:.75rem}
+.tl-section-title{font-size:10px;font-weight:600;color:var(--red);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+/* Mã ngừng nhập */
+.ng-banner{background:rgba(245,166,35,.08);border:1px solid rgba(245,166,35,.25);border-radius:var(--rl);padding:10px 14px;margin-bottom:.75rem}
+.ng-banner-title{font-size:10px;font-weight:600;color:var(--amber);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.ng-chip{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:10px;font-weight:600;font-family:var(--mono);background:rgba(245,166,35,.12);color:var(--amber);border:1px solid rgba(245,166,35,.3)}
+.pill-ng{background:rgba(245,166,35,.12);color:var(--amber);border:1px solid rgba(245,166,35,.3)}
+.pill-ngf{background:rgba(240,78,78,.12);color:var(--red);border:1px solid rgba(240,78,78,.3)}
+.ng-row-bg td{background:rgba(245,166,35,.04)!important;opacity:.75}
+.ng-row-bg:hover td{background:rgba(245,166,35,.08)!important}
+.ng-toggle-btn{font-size:11px;padding:3px 12px;background:rgba(245,166,35,.1);border:1px solid rgba(245,166,35,.3);color:var(--amber);border-radius:var(--r);cursor:pointer;font-family:var(--font);transition:all .15s}
+.ng-toggle-btn:hover{background:rgba(245,166,35,.2)}
+.ng-warn{background:rgba(245,166,35,.08);border-left:3px solid var(--amber)}
+</style>
+
+<div class="hd">
+  <div class="hd-logo">
+    <div class="hd-dot"></div>
+    <div><div class="hd-title">Goma Carpet</div><div class="hd-sub">Warehouse Intelligence Dashboard</div></div>
+  </div>
+  <div class="hd-sub" id="status">Chưa có dữ liệu</div>
+</div>
+
+<div class="load-box">
+  <div class="lbl-grp">Nguồn dữ liệu</div>
+  <div class="lrow"><label>Tồn kho</label><div class="url-display">…AKfycbyWaf2nCoKQ9Y5V3n3MYlAUcX10S…</div><span class="badge badge-g">Tồn kho</span></div>
+  <div class="lrow"><label>Đơn hàng — năm nay</label><div class="url-display">…AUkAhnT9JmqwwN565TkXrsVS4UsLBvWco…</div><span class="badge badge-b">Năm nay</span></div>
+  <div class="lrow"><label>Đơn hàng — năm ngoái</label><div class="url-display">…AUkAhnSil2D03LeABTkpdsaR4WV8zYHrd…</div><span class="badge badge-p">Năm ngoái</span></div>
+  <div class="btn-row">
+    <button class="btn btn-primary" onclick="loadAll()">↻ Tải dữ liệu</button>
+    <button class="btn" onclick="clearCache()">Xóa cache</button>
+    <span id="load-status"></span>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('tq')">Tổng quan</button>
+  <button class="tab" onclick="switchTab('tk')">Tồn kho</button>
+  <button class="tab" onclick="switchTab('ds')">Doanh số</button>
+  <button class="tab" onclick="switchTab('cb')">Cảnh báo nhập</button>
+  <button class="tab" onclick="switchTab('xh')">Xu hướng</button>
+</div>
+
+<div id="panel-tq" class="panel active">
+  <div class="mgrid">
+    <div class="mc c-teal"><div class="lbl">Nhóm mã</div><div class="val teal" id="m-tong">—</div><div class="sub">SKU nhóm</div></div>
+    <div class="mc c-blue"><div class="lbl">Tổng tồn kho</div><div class="val blue" id="m-ton">—</div><div class="sub">tấm / m²</div></div>
+    <div class="mc c-green"><div class="lbl">Đơn hoàn thành</div><div class="val" id="m-don">—</div><div class="sub">cả 2 năm</div></div>
+    <div class="mc c-purple"><div class="lbl">Tổng m² bán</div><div class="val purple" id="m-m2">—</div><div class="sub">cả 2 năm</div></div>
+    <div class="mc c-red"><div class="lbl">Nhóm thiếu hàng</div><div class="val red" id="m-het">—</div><div class="sub">dưới định mức</div></div>
+    <div class="mc c-amber"><div class="lbl">Bán chạy nhất</div><div class="val amber" id="m-chay" style="font-size:14px">—</div><div class="sub">theo m²</div></div>
+  </div>
+  <div class="sec">Top 10 nhóm mã bán nhiều nhất (m²)</div>
+  <div class="chart-wrap" style="height:260px"><canvas id="chart-top"></canvas></div>
+  <div class="sec">Tỷ trọng doanh số theo loại hàng</div>
+  <div class="chart-wrap" style="height:240px"><canvas id="chart-loai"></canvas></div>
+</div>
+
+<div id="panel-tk" class="panel">
+  <div class="frow">
+    <select id="f-loai" onchange="renderTK()"><option value="">Tất cả loại</option></select>
+    <select id="f-nhom" onchange="renderTK()"><option value="">Tất cả nhóm</option></select>
+    <input type="text" id="f-ma" placeholder="Tìm mã…" oninput="renderTK()" style="width:130px">
+    <select id="f-sort" onchange="renderTK()">
+      <option value="pct-asc">% định mức thấp → cao</option>
+      <option value="ton-asc">Tồn ít → nhiều</option>
+      <option value="ton-desc">Tồn nhiều → ít</option>
+      <option value="ma-asc">Mã A → Z</option>
+    </select>
+    <select id="f-tt" onchange="renderTK()">
+      <option value="">Tất cả</option>
+      <option value="thieu">Thiếu hàng</option>
+      <option value="sap">Sắp hết</option>
+      <option value="du">Đủ hàng</option>
+      <option value="na">Không có ĐM</option>
+    </select>
+    <button id="btn-show-ng" class="ng-toggle-btn" onclick="toggleShowNG()" title="Hiện/ẩn mã ngừng nhập">🚫 Ẩn mã ngừng</button>
+  </div>
+  <!-- Banner mã ngừng nhập -->
+  <div class="ng-banner" id="ng-banner-tk">
+    <div class="ng-banner-title">
+      <span>🚫 Mã ngừng nhập hàng — đang còn tồn, theo dõi để thanh lý dần</span>
+      <span id="ng-banner-tk-count" style="font-size:11px;font-weight:400;color:var(--text3)"></span>
+    </div>
+    <div id="ng-banner-tk-list" style="display:flex;flex-wrap:wrap;gap:5px;margin-top:4px"></div>
+  </div>
+  <div class="tbl-wrap">
+    <table><thead><tr><th>Loại hàng</th><th>Nhóm hàng</th><th>Nhóm mã</th><th>Tồn gộp</th><th>ĐM tối thiểu</th><th>ĐM lý tưởng</th><th>% Đạt</th><th>Trạng thái</th></tr></thead>
+    <tbody id="tbody-tk"><tr><td colspan="8" style="text-align:center;color:var(--text3);padding:2.5rem">Nhấn Tải dữ liệu để bắt đầu</td></tr></tbody></table>
+  </div>
+  <div class="note">ĐM tối thiểu & lý tưởng riêng từng nhóm mã. Mã chưa có trong sitemap hiển thị "—" ở nhóm hàng và dùng ĐM mặc định 500/1500.</div>
+</div>
+
+<div id="panel-ds" class="panel">
+  <div class="frow">
+    <select id="ds-nam" onchange="renderDS()"><option value="">Tất cả năm</option><option value="nn">Năm nay</option><option value="ng">Năm ngoái</option></select>
+    <select id="ds-loai" onchange="renderDS()"><option value="">Tất cả loại mẫu</option></select>
+    <select id="ds-xe" onchange="renderDS()"><option value="">Tất cả loại xe</option></select>
+    <input type="date" id="ds-tu" onchange="renderDS()">
+    <span style="color:var(--text3)">→</span>
+    <input type="date" id="ds-den" onchange="renderDS()">
+  </div>
+  <div class="mgrid">
+    <div class="mc c-blue"><div class="lbl">Tổng đơn</div><div class="val blue" id="ds-don">—</div></div>
+    <div class="mc c-teal"><div class="lbl">Tổng m²</div><div class="val teal" id="ds-m2">—</div></div>
+    <div class="mc c-green"><div class="lbl">Freeship</div><div class="val" id="ds-free">—</div></div>
+    <div class="mc c-amber"><div class="lbl">Tổng phí ship</div><div class="val amber" id="ds-ship" style="font-size:14px">—</div></div>
+  </div>
+  <div class="sec">M² theo nhóm mã — top 15</div>
+  <div class="chart-wrap" style="height:300px"><canvas id="chart-ds"></canvas></div>
+  <div class="sec">Chi tiết đơn hàng</div>
+  <div class="tbl-wrap">
+    <table><thead><tr><th>Nguồn</th><th>Ngày</th><th>Đại lý</th><th>Mã 1</th><th>M²</th><th>Mã 2</th><th>M² 2</th><th>Loại xe</th><th>Phí ship</th><th>Trạng thái</th></tr></thead>
+    <tbody id="tbody-ds"><tr><td colspan="10" style="text-align:center;color:var(--text3);padding:2.5rem">Chưa có dữ liệu</td></tr></tbody></table>
+  </div>
+</div>
+
+<div id="panel-cb" class="panel">
+  <!-- Quản lý hàng thanh lý -->
+  <div class="tl-panel">
+    <div class="tl-header">
+      <div class="tl-title">🏷 Đánh dấu hàng thanh lý — bỏ khỏi cảnh báo nhập</div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span id="tl-count-badge" style="display:none" class="tl-badge">0 mã thanh lý</span>
+        <button class="btn" style="font-size:11px;padding:4px 12px" onclick="tlClearAll()">Bỏ chọn tất cả</button>
+      </div>
+    </div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:10px">Tích vào mã hàng để đưa vào diện thanh lý. Danh sách được lưu tự động, giữ nguyên khi đóng/mở lại trình duyệt.</div>
+    <div class="tl-grid" id="tl-grid">
+      <div class="tl-empty">Tải dữ liệu trước để hiển thị danh sách mã hàng</div>
+    </div>
+  </div>
+
+  <!-- Nhóm cần nhập -->
+  <div style="display:flex;align-items:center;gap:10px;margin:.9rem 0 .5rem">
+    <div class="sec" style="margin:0;flex:1">Nhóm cần nhập ngay (dưới ĐM tối thiểu)</div>
+    <button class="btn" style="font-size:11px;padding:4px 14px;flex-shrink:0" onclick="exportNhapNgay()">⬇ Xuất Excel</button>
+  </div>
+  <div id="alert-do"></div>
+  <div class="sec" style="margin-top:.75rem">Nhóm sắp đến định mức (dưới 120%)</div>
+  <div id="alert-am"></div>
+  <div class="sec" style="margin-top:.75rem">Bảng đề xuất nhập hàng</div>
+  <div class="tbl-wrap">
+    <table><thead><tr><th>Nhóm mã</th><th>Nhóm hàng</th><th>Tồn gộp</th><th>ĐM tối thiểu</th><th>ĐM lý tưởng</th><th>Thiếu</th><th>Đề xuất nhập</th><th>Mức độ</th></tr></thead>
+    <tbody id="tbody-cb"><tr><td colspan="8" style="text-align:center;color:var(--text3);padding:2.5rem">Chưa có dữ liệu</td></tr></tbody></table>
+  </div>
+
+  <!-- Hàng thanh lý -->
+  <div class="tl-section" id="tl-section" style="display:none">
+    <div class="tl-section-title">🏷 Hàng thanh lý <span id="tl-section-count" style="color:var(--text3)"></span></div>
+    <div id="tl-section-list"></div>
+  </div>
+  <!-- Mã ngừng nhập còn tồn kho -->
+  <div id="ng-section-cb" style="display:none">
+    <div style="display:flex;align-items:center;gap:10px;margin:.9rem 0 .5rem">
+      <div class="sec" style="margin:0;flex:1">⚠️ Mã ngừng nhập — đang còn tồn kho</div>
+    </div>
+    <div id="ng-list-cb"></div>
+  </div>
+</div>
+
+<div id="panel-xh" class="panel">
+  <div class="mgrid">
+    <div class="mc c-teal"><div class="lbl">Tháng có dữ liệu</div><div class="val teal" id="xh-thang">—</div><div class="sub">tháng</div></div>
+    <div class="mc c-green"><div class="lbl">TB m²/tháng</div><div class="val" id="xh-tb">—</div><div class="sub">trung bình</div></div>
+    <div class="mc c-blue"><div class="lbl">Tháng tốt nhất</div><div class="val blue" id="xh-best" style="font-size:14px">—</div><div class="sub">m² cao nhất</div></div>
+    <div class="mc c-amber"><div class="lbl">Xu hướng gần đây</div><div class="val amber" id="xh-trend" style="font-size:14px">—</div><div class="sub">3 tháng vs 3 tháng trước</div></div>
+  </div>
+  <div class="sec">Doanh số m² theo tháng</div>
+  <div class="chart-wrap" style="height:280px"><canvas id="chart-monthly"></canvas></div>
+  <div class="sec">Nhóm mã tăng trưởng mạnh (tháng gần nhất vs TB)</div>
+  <div id="trend-up-list"></div>
+  <div class="sec" style="margin-top:.75rem">Nhóm mã giảm sút</div>
+  <div id="trend-down-list"></div>
+  <div class="sec" style="margin-top:.75rem">Xu hướng top 5 nhóm mã theo tháng</div>
+  <div class="frow">
+    <select id="xh-filter-loai" onchange="renderXH()"><option value="">Tất cả loại hàng</option></select>
+  </div>
+  <div class="chart-wrap" style="height:320px"><canvas id="chart-trend-nhom"></canvas></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const URL_TON  = 'https://script.google.com/macros/s/AKfycbyWaf2nCoKQ9Y5V3n3MYlAUcX10S__R2jorfvUcQcMHEy4EmGOd9gpfXhTZfD2WrzEa/exec';
+const URL_DON1 = 'https://script.googleusercontent.com/macros/echo?user_content_key=AUkAhnT9JmqwwN565TkXrsVS4UsLBvWcoCMvVyXJ485eIARQ5IXSRH5bSEerJozXC5oF-NYDhokOCwqE-MD9Gn8vSb2n_4gix3aNQWbSMalkz2HbL4Rfzz1JSaaRwJhm-iO5D6ohsCAwF7flEmmNkp1VshQefHGSDpRKQQzZIaVZtG-0egkUrjObRxU3FNdyVqbKZd1p4g4HGOyDXbHErEyKjdL7I-aM3-rTkACGxY1QBAG8FpeMYKAQ7xg6Rs9Y3ebg2YR2wnObJpg04QwFyoEI7tWgqNiDAw&lib=MnHnOociZW0tOC37JiEFzcYyCk3cQEqvu';
+const URL_DON2 = 'https://script.googleusercontent.com/macros/echo?user_content_key=AUkAhnSil2D03LeABTkpdsaR4WV8zYHrd3aY6ktMySu2U7rLxV29_He4S-sqxOR3_dG3QW0Na0v2uzm2Q1geWBCW6BxLYuuo5mK6-lcfMre0jPmFOrX8F9-W3a9Gl2Vn-tLOgC2n_0c4L9argvdfFfuJTt0r9wSOO-6E8rLhQmenuWVxY2OtiuibNc_H0EQIGpViNlAewAZVYubtJalZB-OdtxaNXYXWaOJVwleqFZzrys-qNfdN_icDh5q4FcGyWWArNSzSHOhFAs-dy_9DbGoPAY7MV2ZIMQ&lib=Mlro26z7f2zR0AGCwOj-nyjfh1wH_X2xT';
+
+// ── ĐỊNH MỨC ─────────────────────────────────────────────────────────────────
+// Thảm mỹ thuật: 2x3 → [3,6], 16x23 → [6,12]
+// Hàm getDinhMuc xử lý riêng thảm mỹ thuật dựa trên tên nhóm mã
+function getDinhMuc(nhomMa, loai){
+  // Thảm mỹ thuật — dựa vào suffix kích thước
+  if(loai&&loai.toLowerCase().includes('mỹ thuật')){
+    const nm=nhomMa.toLowerCase();
+    if(nm.includes('2x3')||nm.includes('2*3')) return [3,6];
+    if(nm.includes('16x23')||nm.includes('1.6x2.3')) return [6,12];
+    return [3,6]; // fallback mỹ thuật
+  }
+  // Tra bảng định mức
+  if(DINHMUC[nhomMa]) return DINHMUC[nhomMa];
+  const nk=nhomMa.replace(/[\s\-_]/g,'').toLowerCase();
+  for(const k in DINHMUC){
+    if(k.replace(/[\s\-_]/g,'').toLowerCase()===nk) return DINHMUC[k];
+  }
+  return null; // không có định mức
+}
+
+// ── MÃ NGỪNG NHẬP HÀNG ───────────────────────────────────────────────────────
+// Cập nhật theo chiến lược tồn kho 05/2026
+// KEY = nhomMa trong SITEMAP | VALUE = lý do / ghi chú
+const NGUNG = {
+  // Diamond — chỉ giữ D09, D12, D16
+  'D01':'Diamond — ngừng nhập (chỉ giữ D09/D12/D16)',
+  'D05':'Diamond — ngừng nhập (chỉ giữ D09/D12/D16)',
+  'D06':'Diamond — ngừng nhập (chỉ giữ D09/D12/D16)',
+  'D07':'Diamond — ngừng nhập (chỉ giữ D09/D12/D16)',
+  'D08':'Diamond — ngừng nhập (chỉ giữ D09/D12/D16)',
+  'D10':'Diamond — ngừng nhập (chỉ giữ D09/D12/D16)',
+  'D14':'Diamond — ngừng nhập (chỉ giữ D09/D12/D16)',
+  'D15':'Diamond — ngừng nhập (chỉ giữ D09/D12/D16)',
+  'D17':'Diamond — ngừng nhập (chỉ giữ D09/D12/D16)',
+  'D18':'Diamond — ngừng nhập (chỉ giữ D09/D12/D16)',
+  // Manila — giảm 50%, chỉ giữ top 4
+  'M1983A2':'Manila — ngừng nhập (chờ hết tồn hoặc có đơn)',
+  'M1984A2':'Manila — ngừng nhập (chờ hết tồn hoặc có đơn)',
+  'Sea1981A1':'Manila — ngừng nhập (chờ hết tồn hoặc có đơn)',
+  'Sea1984A':'Manila — ngừng nhập (chờ hết tồn hoặc có đơn)',
+  'Sunset1873':'Manila — ngừng nhập (chờ hết tồn hoặc có đơn)',
+  'Sunset1885A':'Manila — ngừng nhập (chờ hết tồn hoặc có đơn)',
+  'Sunset1908A6':'Manila — ngừng nhập (chờ hết tồn hoặc có đơn)',
+  // Sky — ngừng 100%
+  'Sky QD':'SKY — ngừng hoàn toàn (không đặt mới)',
+  'Sky BG':'SKY — ngừng hoàn toàn (không đặt mới)',
+  'Sky JZ':'SKY — ngừng hoàn toàn (không đặt mới)',
+  'Sky T':'SKY — ngừng hoàn toàn (không đặt mới)',
+  'Sky CL':'SKY — ngừng hoàn toàn (CL-P2043A/B giữ tồn hiện tại)',
+  // ThaiSilk — SHR-04 ngừng
+  'SHR04':'ThaiSilk — ngừng nhập (chờ hết tồn)',
+  // Thảm mỹ thuật — toàn bộ ngừng
+  'Thảm mỹ thuật 01':'Thảm mỹ thuật — không đặt thêm',
+  'Thảm mỹ thuật 02':'Thảm mỹ thuật — không đặt thêm',
+  'Thảm mỹ thuật 03':'Thảm mỹ thuật — không đặt thêm',
+  'Thảm mỹ thuật 04':'Thảm mỹ thuật — không đặt thêm',
+};
+// Set nhomMa để tra nhanh O(1)
+const NGUNG_SET = new Set(Object.keys(NGUNG));
+function isNgung(nhomMa){ return NGUNG_SET.has(nhomMa); }
+function ngungNote(nhomMa){ return NGUNG[nhomMa]||''; }
+
+const DINHMUC = {
+  'D01':[500,1500],'D05':[900,2700],'D06':[450,1350],'D07':[450,1350],'D08':[450,1350],
+  'D09':[900,2700],'D10':[450,1350],'D12':[900,2700],'D14':[450,1350],'D15':[550,1650],
+  'D16':[1200,3600],'D17':[450,1350],'D18':[550,1650],
+  'M1975A3':[1100,3300],'M1980A2':[1100,3300],'M1983A2':[800,2400],'M1984A2':[800,2400],
+  'Sea1959':[1100,3300],'Sea1981A1':[800,2400],'Sea1984A':[800,2400],
+  'Sunset1830D6':[1000,3000],'Sunset1873':[1000,3000],'Sunset1885A':[1000,3000],'Sunset1908A6':[1000,3000],
+  'C1':[100,200],'C2':[2000,6000],'C3':[2000,6000],'C4':[2000,6000],'C5':[2000,6000],'C6':[2000,6000],
+  'DK01':[2000,6000],'DK02':[2000,6000],'DK03':[2000,6000],'DK04':[2000,6000],
+  'FOREST01':[2000,6000],'FOREST02':[2000,6000],'FOREST03':[2000,6000],'FOREST04':[2000,6000],'FOREST05':[2000,6000],
+  'X01':[1000,3000],'X02':[1000,3000],'X05':[2000,6000],'X09':[2000,6000],
+  '866-01':[1200,3600],'866-02':[1200,3600],'866-03':[1200,3600],'866-04':[1000,3000],'866-05':[1000,3000],'866-09':[1200,3600],
+  'C101':[1000,3000],'C102':[1000,3000],'C103':[150,300],'C104':[150,300],'C105':[150,300],'C106':[150,300],
+  'C201':[900,2700],'C202':[900,2700],'C203':[900,2700],'C204':[900,2700],'C205':[700,2100],'C206':[700,2100],'C207':[700,2100],
+  'PT03':[700,2100],'PT04':[700,2100],'PT05':[700,2100],'PT06':[700,2100],'PT08':[1400,4200],
+  'C01':[2000,6000],'C02':[2000,6000],'C05':[2000,6000],'C09':[2000,6000],'C10':[2000,6000],'C11':[2000,6000],
+  'AL01':[2000,6000],'AL02':[2000,6000],'AL03':[2000,6000],'AL04':[2000,6000],'AL05':[2000,6000],
+  'KN01':[1500,4500],'KN02':[1500,4500],'KN03':[1500,4500],'KN04':[1500,4500],'KN05':[1500,4500],'KN06':[1500,4500],
+  'SHR01':[400,1200],'SHR02':[400,1200],'SHR03':[400,1200],'SHR04':[300,900],
+  'RP669R':[900,2700],'RP07805B':[900,2700],'RP9498M':[400,1200],'RP1769R':[400,1200],'RP00548M':[400,1200],
+  'VG5425R':[400,1200],'VG6425BE':[400,1200],
+  'Underlay 5mm':[1700,5100],'Underlay 8mm':[1000,3000],'Underlay 10mm':[900,2700],
+  'Nẹp đinh':[150,450],'Băng keo':[300,900],'Kích thảm':[6,18],
+  'Bàn là băng keo':[3,9],'Con lăn thảm 15cm':[3,9],'Lưỡi Răng Kích Thảm':[3,9],
+  'BG26':[0,0],'BG36':[0,0],'BG50':[0,0],'BG55':[0,0],
+  'QD26':[0,0],'QD36':[0,0],'QD50':[0,0],'QD55':[0,0],
+  'JZ26':[0,0],'JZ36':[0,0],'JZ50':[0,0],'JZ55':[0,0],
+  'T22':[0,0],'T32':[0,0],'T52':[0,0],'T62':[0,0],
+  'CLP2043A':[1000,3000],'CLP2043B':[1000,3000],'CLP602A':[0,0],'CLP603A':[0,0],
+};
+
+// ── SITEMAP ───────────────────────────────────────────────────────────────────
+const SM={
+  "thảm tấm":{"Sapphire":["C01","C02","C05","C09","C10","C11"],"Melody C":["C1","C2","C3","C4","C5","C6"],"Melody X":["X01","X02","X05","X09"],"Melody DK":["DK01","DK02","DK03","DK04"],"Melody FOREST":["FOREST01","FOREST02","FOREST03","FOREST04","FOREST05"],"Shining AL":["AL01","AL02","AL03","AL04","AL05"],"Shining KN":["KN01","KN02","KN03","KN04","KN05","KN06"]},
+  "thảm cuộn":{"Rainbow C":["C101","C201","C102","C202","C103","C203","C104","C204","C105","C205","C106","C206","C207"],"Rainbow 866":["866-01","866-02","866-03","866-04","866-05","866-09"],"Rainbow PT":["PT03","PT04","PT05","PT06","PT08"],"Manila":["Sunset1908A6","Sunset1885A","Sunset1873","Sunset1830D6","Sea1984A","Sea1981A1","Sea1961A8","Sea1959","M1984A2","M1983A2","M1980A2","M1975A3"],"ThaiSilk Line":["SHR01","SHR02","SHR03","SHR04"],"Diamond":["D01","D05","D06","D07","D08","D09","D10","D12","D14","D15","D16","D17","D18"],"Sky QD":["QD26","QD36","QD50","QD55"],"Sky BG":["BG26","BG36","BG50","BG55"],"Sky CL":["CLP2043A","CLP2043B","CLP602A","CLP603A"],"Sky JZ":["JZ26","JZ36","JZ50","JZ55"],"Sky T":["T22","T32","T52","T62"],"Wilton":["RP669R","RP07805B","VG6425BE","VG5425R","RP9498M","RP1769R","RP00548M"]},
+  "thảm mỹ thuật":{"Thảm mỹ thuật 01":["MS17","MS13","MS11","MS10","MS07","SN19","SN09","SN05","SN03","SN01","LY20","LY10","LY07","LY02"],"Thảm mỹ thuật 02":["J3422","L2707IV","H3113","E6781","H3533BE","L2051Y"],"Thảm mỹ thuật 03":["E2203","E2244IV","EB3687BE","E7718IV","E7293MS","E7290MS"],"Thảm mỹ thuật 04":["N9304BE","H3293","H3493C","N8704IV","O1915CY","N2330RO"]},
+  "phụ kiện thảm":{"Phụ kiện":["Underlay 5mm","Underlay 8mm","Underlay 10mm","Kích thảm","Con lăn thảm 15cm","Lưỡi Răng Kích Thảm","Bàn là băng keo","Băng keo","Nẹp đinh"]}
+};
+const LOOKUP=[];
+for(const loai in SM) for(const nhom in SM[loai]) for(const nhomMa of SM[loai][nhom]){
+  LOOKUP.push({loai,nhom,nhomMa,nk:nhomMa.replace(/[\s\-_]/g,'').toLowerCase()});
+}
+LOOKUP.sort((a,b)=>b.nk.length-a.nk.length);
+
+// Strip tất cả tiền tố năm có thể có:
+// SG22, SG24, SG25, SG26, 22, 23, 24, 25, 26 ở đầu
+// AI-XXXXXXXXXX- ở đầu
+// Sau đó strip hậu tố số thứ tự: -1, -2, -3 ... ở cuối (chỉ với thảm cuộn)
+function stripPrefix(s){
+  return String(s)
+    .replace(/^AI-\d{8,12}-/i,'')
+    .replace(/^AI-/i,'')
+    .replace(/^SG2[0-9]/i,'')   // SG22, SG24, SG625...
+    .replace(/^SG6?2[0-9]/i,'') // SG622, SG624
+    .replace(/^2[0-9]/,'');     // 22, 23, 24, 25, 26
+}
+
+// Strip hậu tố thứ tự cây: -1 -2 -3 ... -20 ở cuối (chỉ nếu là số nguyên)
+function stripSuffix(s){
+  return s.replace(/-\d+([A-Z]?)$/i, (m,letter)=> letter?'-'+letter:'');
+}
+
+function normMa(s){
+  const stripped = stripPrefix(s);
+  const noSuffix = stripSuffix(stripped);
+  return noSuffix.replace(/[\s\-_]/g,'').toLowerCase();
+}
+
+function findNhom(maRaw){
+  if(!maRaw||!String(maRaw).trim()) return null;
+  const n=normMa(maRaw);
+  for(const e of LOOKUP) if(n.startsWith(e.nk)||n===e.nk) return e;
+  for(const e of LOOKUP) if(n.includes(e.nk)&&e.nk.length>=3) return e;
+  return null;
+}
+
+function parseTon(v){
+  if(v===null||v===undefined||v==='') return 0;
+  if(typeof v==='number') return v;
+  const s=String(v).trim().replace(/\s/g,'');
+  const parts=s.split(',');
+  if(parts.length>=2){const last=parts[parts.length-1];if(last.length===2) return parseFloat(parts.slice(0,-1).join('')+'.'+last)||0;return parseFloat(s.replace(/,/g,''))||0;}
+  return parseFloat(s)||0;
+}
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+const CK_T='gv8_ton',CK_D1='gv8_d1',CK_D2='gv8_d2',CK_TS='gv8_ts';
+let rawTon=[],don1=[],don2=[],grouped={};
+let cTop,cLoai,cDs,cMonthly,cTrendNhom;
+let showNG = false; // ẩn mã ngừng nhập trong bảng TK mặc định
+
+function toggleShowNG(){
+  showNG = !showNG;
+  const btn = document.getElementById('btn-show-ng');
+  btn.textContent = showNG ? '🚫 Hiện mã ngừng' : '🚫 Ẩn mã ngừng';
+  renderTK();
+}
+
+function switchTab(id){
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',['tq','tk','ds','cb','xh'][i]===id));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  if(id==='xh') renderXH();
+}
+async function safeFetch(url){const r=await fetch(url,{redirect:'follow'});if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}
+async function loadAll(){
+  const st=document.getElementById('load-status');
+  document.getElementById('status').textContent='Đang tải...';st.textContent='⟳ Kết nối...';
+  try{
+    const [rT,rD1,rD2]=await Promise.all([safeFetch(URL_TON),safeFetch(URL_DON1),safeFetch(URL_DON2)]);
+    rawTon=toObjs(rT);don1=parseDon(toObjs(rD1),'Năm nay');don2=parseDon(toObjs(rD2),'Năm ngoái');
+    grouped=buildGrouped(rawTon);
+    const ts=new Date().toLocaleTimeString('vi-VN');
+    sessionStorage.setItem(CK_T,JSON.stringify(rawTon));sessionStorage.setItem(CK_D1,JSON.stringify(don1));
+    sessionStorage.setItem(CK_D2,JSON.stringify(don2));sessionStorage.setItem(CK_TS,ts);
+    afterLoad(ts);
+  }catch(e){document.getElementById('load-status').textContent='⚠ '+e.message;document.getElementById('status').textContent='Lỗi';}
+}
+function toObjs(raw){
+  const arr=Array.isArray(raw)?raw:(raw&&raw.data?raw.data:[]);
+  if(!arr.length) return [];
+  if(Array.isArray(arr[0])){const h=arr[0].map(x=>String(x||'').trim());return arr.slice(1).map(row=>{const o={};h.forEach((k,i)=>o[k]=row[i]??'');return o;});}
+  return arr;
+}
+function parseDon(arr,source){
+  return arr.map(r=>({source,trangthai:String(r['TRẠNG THÁI']||''),stt:r['STT']||'',ngay:r['NGÀY']||'',daily:r['ĐẠI LÝ']||'',loaiMau:r['Loại Mẫu In']||'',
+    ma1:String(r['MÃ HÀNG']||''),m2_1:parseFloat(r['M2']||0)||0,
+    ma2:String(r['MÃ HÀNG 2']||''),m2_2:parseFloat(r['M2 2']||0)||0,
+    ma3:String(r['MÃ HÀNG 3']||''),m2_3:parseFloat(r['M2 3']||0)||0,
+    ma4:String(r['MÃ HÀNG 4']||''),m2_4:parseFloat(r['M2 4']||0)||0,
+    loaixe:r['Loại xe']||'',phiShip:parseFloat(r['phí ship']||0)||0}));
+}
+function buildGrouped(rows){
+  const g={};
+  for(const r of rows){
+    const ma=String(r['Mã hàng tồn kho']||'').trim();if(!ma) continue;
+    const ton=parseTon(r['Tồn cuối kỳ']);
+    const dvt=String(r['Đơn vị tính']||'');
+    const loaiRaw=String(r['Loại hàng']||'');
+    const ni=findNhom(ma);
+    const k=ni?ni.nhomMa:'~'+ma;
+    if(!g[k]) g[k]={loai:ni?ni.loai:loaiRaw||'Khác',nhom:ni?ni.nhom:'—',nhomMa:ni?ni.nhomMa:ma,ton:0,dvt,maList:[]};
+    g[k].ton+=ton;g[k].maList.push({ma,ton});
+  }
+  return g;
+}
+function allDon(){return [...don1,...don2];}
+function afterLoad(ts){
+  document.getElementById('status').textContent='Live · '+ts;
+  const mapped=Object.keys(grouped).filter(k=>!k.startsWith('~')).length;
+  const unmapped=Object.keys(grouped).filter(k=>k.startsWith('~')).length;
+  document.getElementById('load-status').textContent=`✓ ${rawTon.length} dòng → ${mapped} nhóm${unmapped?' +'+unmapped+' chưa map':''} | ${don1.length}+${don2.length} đơn`;
+  populateFilters();renderAll();
+}
+function tryLoadCache(){
+  const ts=sessionStorage.getItem(CK_TS),a=sessionStorage.getItem(CK_T),b=sessionStorage.getItem(CK_D1),c=sessionStorage.getItem(CK_D2);
+  if(a&&b){rawTon=JSON.parse(a);don1=JSON.parse(b);don2=c?JSON.parse(c):[];grouped=buildGrouped(rawTon);afterLoad(ts);}
+}
+function clearCache(){
+  [CK_T,CK_D1,CK_D2,CK_TS].forEach(k=>sessionStorage.removeItem(k));
+  rawTon=[];don1=[];don2=[];grouped={};
+  document.getElementById('load-status').textContent='Cache đã xóa';
+  document.getElementById('status').textContent='Chưa có dữ liệu';
+}
+function populateFilters(){
+  const vals=Object.values(grouped);
+  ['f-loai','f-nhom'].forEach(id=>{document.getElementById(id).options.length=1;});
+  [...new Set(vals.map(r=>r.loai))].sort().forEach(l=>document.getElementById('f-loai').add(new Option(l,l)));
+  [...new Set(vals.map(r=>r.nhom))].sort().forEach(l=>document.getElementById('f-nhom').add(new Option(l,l)));
+  const don=allDon();
+  document.getElementById('ds-loai').innerHTML='<option value="">Tất cả loại mẫu</option>'+[...new Set(don.map(r=>r.loaiMau).filter(Boolean))].map(l=>`<option>${l}</option>`).join('');
+  document.getElementById('ds-xe').innerHTML='<option value="">Tất cả loại xe</option>'+[...new Set(don.map(r=>r.loaixe).filter(Boolean))].map(l=>`<option>${l}</option>`).join('');
+  const loaiSet=[...new Set(vals.map(r=>r.loai))].sort();
+  document.getElementById('xh-filter-loai').innerHTML='<option value="">Tất cả loại hàng</option>'+loaiSet.map(l=>`<option>${l}</option>`).join('');
+}
+function getNhomM2(rows){
+  const m={};
+  rows.forEach(r=>[[r.ma1,r.m2_1],[r.ma2,r.m2_2],[r.ma3,r.m2_3],[r.ma4,r.m2_4]].forEach(([ma,m2])=>{
+    if(!ma||!m2) return;const ni=findNhom(ma);const k=ni?ni.nhomMa:ma;m[k]=(m[k]||0)+m2;
+  }));
+  return m;
+}
+function getMonthlyM2(rows){
+  const m={};
+  rows.forEach(r=>{
+    const ngay=r.ngay?new Date(r.ngay):null;if(!ngay||isNaN(ngay)) return;
+    const key=`${ngay.getFullYear()}-${String(ngay.getMonth()+1).padStart(2,'0')}`;
+    m[key]=(m[key]||0)+r.m2_1+r.m2_2+r.m2_3+r.m2_4;
+  });
+  return m;
+}
+function getMonthlyNhomM2(rows){
+  const m={};
+  rows.forEach(r=>{
+    const ngay=r.ngay?new Date(r.ngay):null;if(!ngay||isNaN(ngay)) return;
+    const mk=`${ngay.getFullYear()}-${String(ngay.getMonth()+1).padStart(2,'0')}`;
+    [[r.ma1,r.m2_1],[r.ma2,r.m2_2],[r.ma3,r.m2_3],[r.ma4,r.m2_4]].forEach(([ma,m2])=>{
+      if(!ma||!m2) return;const ni=findNhom(ma);const nhom=ni?ni.nhomMa:ma;
+      if(!m[nhom]) m[nhom]={};m[nhom][mk]=(m[nhom][mk]||0)+m2;
+    });
+  });
+  return m;
+}
+const GRID='rgba(255,255,255,.05)',TICK='#555B6E';
+const COLORS=['#00C896','#4A9EFF','#F5A623','#F04E4E','#A064FF','#4ADE80','#F472B6','#38BDF8','#FB923C','#A78BFA'];
+function renderAll(){renderMetrics();renderCharts();renderTK();renderDS();renderCB();}
+function renderMetrics(){
+  const don=allDon(),vals=Object.values(grouped);
+  const withDM=vals.filter(r=>{const dm=getDinhMuc(r.nhomMa,r.loai);return dm&&dm[0]>0;});
+  document.getElementById('m-tong').textContent=vals.length;
+  document.getElementById('m-ton').textContent=vals.reduce((s,r)=>s+r.ton,0).toLocaleString('vi-VN',{maximumFractionDigits:0});
+  document.getElementById('m-don').textContent=don.filter(r=>r.trangthai.toLowerCase().includes('hoàn thành')).length;
+  document.getElementById('m-m2').textContent=don.reduce((s,r)=>s+r.m2_1+r.m2_2+r.m2_3+r.m2_4,0).toFixed(0);
+  document.getElementById('m-het').textContent=withDM.filter(r=>r.ton<getDinhMuc(r.nhomMa,r.loai)[0]).length;
+  const mm=getNhomM2(don);const top=Object.entries(mm).sort((a,b)=>b[1]-a[1])[0];
+  document.getElementById('m-chay').textContent=top?top[0]:'—';
+}
+function renderCharts(){
+  const don=allDon(),mm=getNhomM2(don),s10=Object.entries(mm).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  if(cTop)cTop.destroy();
+  cTop=new Chart(document.getElementById('chart-top'),{type:'bar',
+    data:{labels:s10.map(e=>e[0]),datasets:[{label:'m²',data:s10.map(e=>Math.round(e[1])),backgroundColor:'rgba(0,200,150,.75)',borderColor:'#00C896',borderWidth:1,borderRadius:4}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:TICK,font:{size:11}},grid:{color:GRID}},y:{ticks:{color:TICK,font:{size:11}},grid:{color:GRID}}}}});
+  const loaiM={};
+  don.forEach(r=>[[r.ma1,r.m2_1],[r.ma2,r.m2_2],[r.ma3,r.m2_3],[r.ma4,r.m2_4]].forEach(([ma,m2])=>{
+    if(!ma||!m2) return;const ni=findNhom(ma);loaiM[ni?ni.loai:'Khác']=(loaiM[ni?ni.loai:'Khác']||0)+m2;
+  }));
+  const lk=Object.keys(loaiM);
+  if(cLoai)cLoai.destroy();
+  cLoai=new Chart(document.getElementById('chart-loai'),{type:'doughnut',
+    data:{labels:lk,datasets:[{data:lk.map(k=>Math.round(loaiM[k])),backgroundColor:COLORS.slice(0,lk.length),borderWidth:2,borderColor:'#171B25'}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{color:TICK,font:{size:11},boxWidth:12,padding:12}}}}});
+}
+function renderTK(){
+  const loaiF=document.getElementById('f-loai').value,nhomF=document.getElementById('f-nhom').value;
+  const maF=document.getElementById('f-ma').value.toLowerCase(),sortF=document.getElementById('f-sort').value,ttF=document.getElementById('f-tt').value;
+  let rows=Object.values(grouped).map(r=>{
+    const dm=getDinhMuc(r.nhomMa,r.loai);
+    const dmMin=dm?dm[0]:null,dmLT=dm?dm[1]:null;
+    const pct=dmMin&&dmMin>0?Math.round(r.ton/dmMin*100):null;
+    const ng=isNgung(r.nhomMa)||isNgung(r.nhom);
+    return {...r,dmMin,dmLT,pct,ng};
+  }).filter(r=>{
+    if(loaiF&&r.loai!==loaiF) return false;
+    if(nhomF&&r.nhom!==nhomF) return false;
+    if(maF&&!r.nhomMa.toLowerCase().includes(maF)&&!r.nhom.toLowerCase().includes(maF)) return false;
+    if(ttF==='thieu'&&!(r.dmMin>0&&r.ton<r.dmMin)) return false;
+    if(ttF==='sap'&&!(r.dmMin>0&&r.ton>=r.dmMin&&r.ton<r.dmMin*1.2)) return false;
+    if(ttF==='du'&&!(r.dmMin==null||r.dmMin===0||r.ton>=r.dmMin*1.2)) return false;
+    if(ttF==='na'&&r.dmMin!==null) return false;
+    // Lọc ẩn mã ngừng khi showNG=false (trừ khi user đang tìm kiếm cụ thể)
+    if(!showNG && r.ng && !maF) return false;
+    return true;
+  });
+  rows.sort((a,b)=>{
+    if(sortF==='pct-asc'){const pa=a.pct??999,pb=b.pct??999;return pa-pb;}
+    if(sortF==='ton-desc') return b.ton-a.ton;
+    if(sortF==='ton-asc') return a.ton-b.ton;
+    return a.nhomMa.localeCompare(b.nhomMa);
+  });
+
+  // --- Render banner mã ngừng còn tồn ---
+  const ngBanner = document.getElementById('ng-banner-tk');
+  const ngBannerList = document.getElementById('ng-banner-tk-list');
+  const ngBannerCount = document.getElementById('ng-banner-tk-count');
+  const ngRows = Object.values(grouped).filter(r=>(isNgung(r.nhomMa)||isNgung(r.nhom))&&r.ton>0);
+  if(ngRows.length){
+    ngBanner.style.display='block';
+    ngBannerCount.textContent=`${ngRows.length} nhóm · tổng ${Math.round(ngRows.reduce((s,r)=>s+r.ton,0)).toLocaleString('vi-VN')} ${ngRows[0]?.dvt||''}`;
+    ngBannerList.innerHTML=ngRows.sort((a,b)=>b.ton-a.ton).map(r=>
+      `<span class="ng-chip" title="${ngungNote(r.nhomMa)||ngungNote(r.nhom)}">🚫 ${r.nhomMa} · ${r.ton.toLocaleString('vi-VN',{maximumFractionDigits:1})}</span>`
+    ).join('');
+  } else {
+    ngBanner.style.display='none';
+  }
+
+  const tbody=document.getElementById('tbody-tk');
+  if(!rows.length){tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:2rem">Không có kết quả</td></tr>';return;}
+  tbody.innerHTML=rows.map(r=>{
+    const pct=r.pct;
+    const barW=pct!=null?Math.min(100,pct):null;
+    const bc=r.dmMin===0?'#4A9EFF':r.dmMin==null?'#555B6E':(r.ton<r.dmMin?'#F04E4E':r.ton<r.dmMin*1.2?'#F5A623':'#00C896');
+    // Trạng thái: nếu là mã ngừng thì override badge
+    let st;
+    if(r.ng){
+      st=r.ton>0
+        ?'<span class="pill pill-ng">🚫 Ngừng nhập</span>'
+        :'<span class="pill pill-ngf">🚫 Ngừng — hết tồn</span>';
+    } else {
+      st=r.dmMin===null?'<span class="pill pna">Không có ĐM</span>'
+        :r.dmMin===0?'<span class="pill pb">Theo dõi</span>'
+        :r.ton<r.dmMin?'<span class="pill pr">Thiếu hàng</span>'
+        :r.ton<r.dmMin*1.2?'<span class="pill pa">Sắp hết</span>'
+        :'<span class="pill pg">Đủ hàng</span>';
+    }
+    const pctStr=pct!=null?pct+'%':'—';
+    const ngNote=r.ng?(ngungNote(r.nhomMa)||ngungNote(r.nhom)):'';
+    return `<tr class="${r.ng?'ng-row-bg':''}">
+      <td style="font-size:11px;color:var(--text3)">${r.loai}</td>
+      <td style="font-size:11px;color:var(--text2)">${r.nhom}</td>
+      <td style="font-weight:600;font-family:var(--mono);font-size:12px">${r.nhomMa}${r.ng?`<div style="font-size:9px;color:var(--amber);margin-top:2px">${ngNote}</div>`:''}</td>
+      <td><div class="flex-row">
+        <span style="min-width:65px;font-weight:600;font-family:var(--mono)">${r.ton.toLocaleString('vi-VN',{maximumFractionDigits:1})}</span>
+        ${barW!=null?`<div class="progress-bg"><div class="progress-fill" style="width:${barW}%;background:${bc}"></div></div>`:''}
+        <span style="font-size:10px;color:var(--text3);min-width:36px">${pctStr}</span>
+      </div></td>
+      <td class="mono" style="color:var(--text2)">${r.dmMin!=null&&r.dmMin>0?r.dmMin.toLocaleString():'—'}</td>
+      <td class="mono" style="color:var(--text3)">${r.dmLT!=null&&r.dmLT>0?r.dmLT.toLocaleString():'—'}</td>
+      <td class="mono" style="color:${bc};font-weight:600">${pctStr}</td>
+      <td>${st}</td>
+    </tr>`;
+  }).join('');
+}
+function renderDS(){
+  const namF=document.getElementById('ds-nam').value,loaiF=document.getElementById('ds-loai').value,xeF=document.getElementById('ds-xe').value;
+  const tuF=document.getElementById('ds-tu').value,denF=document.getElementById('ds-den').value;
+  let rows=(namF==='nn'?don1:namF==='ng'?don2:allDon()).filter(r=>{
+    if(loaiF&&r.loaiMau!==loaiF) return false;if(xeF&&r.loaixe!==xeF) return false;
+    if(tuF&&r.ngay&&r.ngay<tuF) return false;if(denF&&r.ngay&&r.ngay>denF+'\uFFFF') return false;return true;
+  });
+  const tM2=rows.reduce((s,r)=>s+r.m2_1+r.m2_2+r.m2_3+r.m2_4,0);
+  document.getElementById('ds-don').textContent=rows.length;
+  document.getElementById('ds-m2').textContent=tM2.toFixed(1);
+  document.getElementById('ds-free').textContent=rows.filter(r=>r.phiShip===0).length;
+  document.getElementById('ds-ship').textContent=rows.reduce((s,r)=>s+r.phiShip,0).toLocaleString('vi-VN')+'đ';
+  const mm=getNhomM2(rows),s15=Object.entries(mm).sort((a,b)=>b[1]-a[1]).slice(0,15);
+  if(cDs)cDs.destroy();
+  if(s15.length) cDs=new Chart(document.getElementById('chart-ds'),{type:'bar',
+    data:{labels:s15.map(e=>e[0]),datasets:[{label:'m²',data:s15.map(e=>Math.round(e[1])),backgroundColor:'rgba(74,158,255,.75)',borderColor:'#4A9EFF',borderWidth:1,borderRadius:4}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:TICK,font:{size:11}},grid:{color:GRID}},y:{ticks:{color:TICK,font:{size:11}},grid:{color:GRID}}}}});
+  const show=rows.slice(0,100),tbody=document.getElementById('tbody-ds');
+  if(!show.length){tbody.innerHTML='<tr><td colspan="10" style="text-align:center;color:var(--text3);padding:2rem">Không có đơn</td></tr>';return;}
+  tbody.innerHTML=show.map(r=>{
+    const ng=r.ngay?new Date(r.ngay).toLocaleDateString('vi-VN'):'—';
+    const src=r.source==='Năm nay'?'<span class="pill pb">Năm nay</span>':'<span class="pill pp">Năm ngoái</span>';
+    const ts=r.trangthai.toLowerCase().includes('hoàn thành')?'<span class="pill pg">Hoàn thành</span>':'<span class="pill pa">'+r.trangthai+'</span>';
+    return `<tr><td>${src}</td><td class="mono">${ng}</td><td style="font-size:11px">${r.daily||'—'}</td>
+    <td style="font-weight:600;font-family:var(--mono);font-size:11px">${r.ma1||'—'}</td><td class="mono">${r.m2_1||0}</td>
+    <td class="mono" style="color:var(--text2)">${r.ma2||'—'}</td><td class="mono">${r.m2_2||0}</td>
+    <td style="font-size:11px;color:var(--text2)">${r.loaixe||'—'}</td>
+    <td class="mono">${r.phiShip?r.phiShip.toLocaleString()+'đ':'<span style="color:var(--teal)">Free</span>'}</td><td>${ts}</td></tr>`;
+  }).join('');
+  if(rows.length>100) tbody.innerHTML+=`<tr><td colspan="10" style="text-align:center;font-size:11px;color:var(--text3);padding:.5rem">Hiển thị 100/${rows.length} đơn</td></tr>`;
+}
+// ── XUẤT EXCEL: NHÓM CẦN NHẬP NGAY ───────────────────────────────────────────
+function exportNhapNgay() {
+  const rows = Object.values(grouped).map(r => {
+    const dm = getDinhMuc(r.nhomMa, r.loai);
+    const dmMin = dm ? dm[0] : 0, dmLT = dm ? dm[1] : 0;
+    return { ...r, dmMin, dmLT, thieu: Math.max(0, dmMin - r.ton), deXuat: Math.max(0, (dmLT || dmMin * 2) - r.ton) };
+  }).filter(r => r.dmMin > 0 && r.ton < r.dmMin && !tlSet.has(r.nhomMa) && !isNgung(r.nhomMa) && !isNgung(r.nhom))
+    .sort((a, b) => (a.ton / a.dmMin) - (b.ton / b.dmMin));
+
+  if (!rows.length) { alert('Không có nhóm nào dưới định mức tối thiểu.'); return; }
+
+  const now = new Date();
+  const ngay = `${now.getDate().toString().padStart(2,'0')}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getFullYear()}`;
+  const tenFile = `can-nhap-ngay_${now.getFullYear()}${(now.getMonth()+1).toString().padStart(2,'0')}${now.getDate().toString().padStart(2,'0')}.csv`;
+
+  const bom = '\uFEFF'; // UTF-8 BOM để Excel đọc tiếng Việt đúng
+  const header = ['STT','Loại hàng','Nhóm hàng','Nhóm mã','Tồn hiện tại','ĐM tối thiểu','ĐM lý tưởng','Số lượng thiếu','Đề xuất nhập','Mức độ'];
+  const csvRows = rows.map((r, i) => [
+    i + 1,
+    r.loai,
+    r.nhom,
+    r.nhomMa,
+    r.ton.toFixed(1),
+    r.dmMin,
+    r.dmLT > 0 ? r.dmLT : '',
+    r.thieu,
+    r.deXuat,
+    r.ton < r.dmMin * 0.5 ? 'Khẩn cấp' : 'Cần nhập'
+  ]);
+
+  // Thêm dòng tiêu đề và ngày xuất
+  const metaRows = [
+    [`Báo cáo: Nhóm hàng cần nhập ngay — Goma Carpet`],
+    [`Ngày xuất: ${ngay}  |  Tổng ${rows.length} nhóm mã`],
+    []
+  ];
+
+  const allRows = [...metaRows, header, ...csvRows];
+  const csvContent = bom + allRows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = tenFile; a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ── HÀNG THANH LÝ ─────────────────────────────────────────────────────────────
+const TL_KEY = 'goma_thanh_ly_v1';
+let tlSet = new Set(JSON.parse(localStorage.getItem(TL_KEY) || '[]'));
+
+function tlSave() {
+  localStorage.setItem(TL_KEY, JSON.stringify([...tlSet]));
+}
+function tlToggle(nhomMa) {
+  if (tlSet.has(nhomMa)) tlSet.delete(nhomMa);
+  else tlSet.add(nhomMa);
+  tlSave();
+  renderTLGrid();
+  renderCB();
+}
+function tlClearAll() {
+  tlSet.clear(); tlSave();
+  renderTLGrid(); renderCB();
+}
+function renderTLGrid() {
+  const grid = document.getElementById('tl-grid');
+  const badge = document.getElementById('tl-count-badge');
+  // Lấy tất cả nhóm mã có định mức > 0
+  const allMa = Object.values(grouped).filter(r => {
+    const dm = getDinhMuc(r.nhomMa, r.loai);
+    return dm && dm[0] > 0;
+  }).map(r => r.nhomMa).sort();
+  if (!allMa.length) {
+    grid.innerHTML = '<div class="tl-empty">Tải dữ liệu trước để hiển thị danh sách mã hàng</div>';
+    badge.style.display = 'none'; return;
+  }
+  grid.innerHTML = allMa.map(ma => `
+    <div class="tl-chip ${tlSet.has(ma) ? 'checked' : ''}" onclick="tlToggle('${ma}')">${ma}</div>
+  `).join('');
+  const cnt = tlSet.size;
+  badge.style.display = cnt ? 'inline-flex' : 'none';
+  badge.textContent = cnt + ' mã thanh lý';
+}
+
+function renderCB(){
+  const rows=Object.values(grouped).map(r=>{
+    const dm=getDinhMuc(r.nhomMa,r.loai);
+    const dmMin=dm?dm[0]:0,dmLT=dm?dm[1]:0;
+    const ng=isNgung(r.nhomMa)||isNgung(r.nhom);
+    return {...r,dmMin,dmLT,thieu:Math.max(0,dmMin-r.ton),deXuat:Math.max(0,(dmLT||dmMin*2)-r.ton),ng};
+  }).filter(r=>r.dmMin>0).sort((a,b)=>{
+    const pa=a.dmMin>0?a.ton/a.dmMin:999,pb=b.dmMin>0?b.ton/b.dmMin:999;return pa-pb;
+  });
+
+  // Tách hàng thanh lý và mã ngừng
+  const tlRows = rows.filter(r => tlSet.has(r.nhomMa));
+  const activeRows = rows.filter(r => !tlSet.has(r.nhomMa) && !r.ng); // loại cả mã ngừng khỏi cảnh báo nhập
+
+  const doI=activeRows.filter(r=>r.ton<r.dmMin),amI=activeRows.filter(r=>r.ton>=r.dmMin&&r.ton<r.dmMin*1.2);
+  document.getElementById('alert-do').innerHTML=doI.length
+    ?doI.slice(0,15).map(r=>`<div class="alert-item alert-red">
+      <strong style="min-width:90px;font-family:var(--mono)">${r.nhomMa}</strong>
+      <span style="font-size:11px;color:var(--text2)">${r.nhom}</span>
+      <span style="margin-left:auto;color:var(--red);font-family:var(--mono)">Còn ${r.ton.toLocaleString('vi-VN',{maximumFractionDigits:1})} / ĐM ${r.dmMin.toLocaleString()} — thiếu ${r.thieu.toLocaleString()}</span>
+    </div>`).join('')+(doI.length>15?`<div style="font-size:11px;color:var(--text3);padding:.4rem .5rem">...và ${doI.length-15} nhóm khác</div>`:'')
+    :'<div class="alert-item alert-green"><span>✓ Tất cả nhóm đều trên định mức tối thiểu</span></div>';
+  document.getElementById('alert-am').innerHTML=amI.length
+    ?amI.slice(0,8).map(r=>`<div class="alert-item alert-amber">
+      <strong style="min-width:90px;font-family:var(--mono)">${r.nhomMa}</strong>
+      <span style="color:var(--amber);font-family:var(--mono)">Còn ${r.ton.toLocaleString('vi-VN',{maximumFractionDigits:1})} (${Math.round(r.ton/r.dmMin*100)}%)</span>
+    </div>`).join('')
+    :'<div class="alert-item alert-green"><span>✓ Không có nhóm nào sắp đến định mức</span></div>';
+
+  const need=activeRows.filter(r=>r.ton<r.dmMin*1.2&&r.deXuat>0),tbody=document.getElementById('tbody-cb');
+  if(!need.length){tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:2rem">✓ Tồn kho ổn định</td></tr>';}
+  else tbody.innerHTML=need.map(r=>`<tr>
+    <td style="font-weight:600;font-family:var(--mono);font-size:12px">${r.nhomMa}</td>
+    <td style="font-size:11px;color:var(--text2)">${r.nhom}</td>
+    <td class="mono">${r.ton.toLocaleString('vi-VN',{maximumFractionDigits:1})}</td>
+    <td class="mono" style="color:var(--text2)">${r.dmMin.toLocaleString()}</td>
+    <td class="mono" style="color:var(--text3)">${r.dmLT>0?r.dmLT.toLocaleString():'—'}</td>
+    <td class="mono" style="color:var(--red);font-weight:600">${r.thieu>0?r.thieu.toLocaleString():0}</td>
+    <td class="mono" style="color:var(--blue);font-weight:600">${r.deXuat>0?r.deXuat.toLocaleString():'OK'}</td>
+    <td>${r.ton<r.dmMin?'<span class="pill pr">Khẩn cấp</span>':'<span class="pill pa">Theo dõi</span>'}</td>
+  </tr>`).join('');
+
+  // Render khu vực hàng thanh lý
+  const tlSection = document.getElementById('tl-section');
+  const tlList = document.getElementById('tl-section-list');
+  const tlCount = document.getElementById('tl-section-count');
+  if (tlRows.length) {
+    tlSection.style.display = 'block';
+    tlCount.textContent = `— ${tlRows.length} nhóm mã`;
+    tlList.innerHTML = tlRows.map(r => `<div class="alert-item alert-gray" style="opacity:.7">
+      <strong style="min-width:90px;font-family:var(--mono);color:var(--text3)">${r.nhomMa}</strong>
+      <span style="font-size:11px;color:var(--text3)">${r.nhom}</span>
+      <span style="margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--text3)">Tồn ${r.ton.toLocaleString('vi-VN',{maximumFractionDigits:1})} m²</span>
+      <span class="tl-badge" style="cursor:pointer" onclick="tlToggle('${r.nhomMa}')">Bỏ thanh lý</span>
+    </div>`).join('');
+  } else {
+    tlSection.style.display = 'none';
+  }
+
+  // Cập nhật grid chip sau mỗi lần render
+  renderTLGrid();
+
+  // --- Mã ngừng nhập còn tồn kho ---
+  const ngSection = document.getElementById('ng-section-cb');
+  const ngListCb = document.getElementById('ng-list-cb');
+  const ngStillHave = Object.values(grouped).filter(r=>(isNgung(r.nhomMa)||isNgung(r.nhom))&&r.ton>0)
+    .sort((a,b)=>b.ton-a.ton);
+  if(ngStillHave.length){
+    ngSection.style.display='block';
+    ngListCb.innerHTML=ngStillHave.map(r=>{
+      const note=ngungNote(r.nhomMa)||ngungNote(r.nhom);
+      return `<div class="alert-item ng-warn">
+        <strong style="min-width:90px;font-family:var(--mono);color:var(--amber)">${r.nhomMa}</strong>
+        <span style="font-size:11px;color:var(--text2)">${r.nhom}</span>
+        <span style="font-size:11px;color:var(--text3);flex:1">${note}</span>
+        <span style="margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--amber)">Còn ${r.ton.toLocaleString('vi-VN',{maximumFractionDigits:1})} ${r.dvt||''}</span>
+        <span class="ng-chip">🚫 Không nhập thêm</span>
+      </div>`;
+    }).join('');
+  } else {
+    ngSection.style.display='none';
+  }
+}
+function renderXH(){
+  const don=allDon();
+  const loaiF=document.getElementById('xh-filter-loai').value;
+  const donF=loaiF?don.filter(r=>{const allMa=[r.ma1,r.ma2,r.ma3,r.ma4];return allMa.some(ma=>{const ni=findNhom(ma);return ni&&ni.loai===loaiF;});}):don;
+  const monthly=getMonthlyM2(donF);
+  const months=Object.keys(monthly).sort();
+  const vals=months.map(m=>Math.round(monthly[m]));
+  const avg=vals.length?Math.round(vals.reduce((a,b)=>a+b,0)/vals.length):0;
+  const maxM=months[vals.indexOf(Math.max(...(vals.length?vals:[0])))];
+  let trendTxt='—',trendColor='var(--text2)';
+  if(months.length>=4){
+    const last3=vals.slice(-3).reduce((a,b)=>a+b,0)/3;
+    const prev3=vals.slice(-6,-3).reduce((a,b)=>a+b,0)/Math.max(1,vals.slice(-6,-3).length);
+    const diff=prev3>0?Math.round((last3-prev3)/prev3*100):0;
+    trendTxt=(diff>=0?'↑ +':'↓ ')+Math.abs(diff)+'%';
+    trendColor=diff>=0?'var(--teal)':'var(--red)';
+  }
+  document.getElementById('xh-thang').textContent=months.length;
+  document.getElementById('xh-tb').textContent=avg.toLocaleString('vi-VN');
+  document.getElementById('xh-best').textContent=maxM?maxM.replace(/^(\d+)-(\d+)$/,'T$2/$1'):'—';
+  const tEl=document.getElementById('xh-trend');tEl.textContent=trendTxt;tEl.style.color=trendColor;
+  const labels=months.map(m=>m.replace(/^(\d+)-(\d+)$/,'T$2/$1'));
+  if(cMonthly)cMonthly.destroy();
+  cMonthly=new Chart(document.getElementById('chart-monthly'),{type:'bar',
+    data:{labels,datasets:[
+      {type:'bar',label:'m²/tháng',data:vals,backgroundColor:vals.map((v,i)=>i===vals.length-1?'rgba(0,200,150,.8)':'rgba(74,158,255,.6)'),borderColor:vals.map((v,i)=>i===vals.length-1?'#00C896':'#4A9EFF'),borderWidth:1,borderRadius:3},
+      {type:'line',label:'Trung bình',data:Array(vals.length).fill(avg),borderColor:'rgba(245,166,35,.7)',borderWidth:1.5,pointRadius:0,fill:false,borderDash:[4,4]}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:TICK,font:{size:11},boxWidth:12}}},
+      scales:{x:{ticks:{color:TICK,font:{size:11}},grid:{color:GRID}},y:{ticks:{color:TICK,font:{size:11}},grid:{color:GRID}}}}});
+  const nhomMonthly=getMonthlyNhomM2(donF);
+  const lastMonth=months[months.length-1];
+  const trends=Object.entries(nhomMonthly).map(([nhom,mData])=>{
+    const mVals=months.map(m=>mData[m]||0);
+    const nonZero=mVals.filter(v=>v>0);
+    const avgN=nonZero.length?nonZero.reduce((a,b)=>a+b,0)/nonZero.length:0;
+    const lastV=mData[lastMonth]||0;
+    const chg=avgN>0?(lastV-avgN)/avgN*100:0;
+    return {nhom,lastV,avgN,chg};
+  }).filter(r=>r.avgN>5&&r.lastV>0);
+  const upList=trends.filter(r=>r.chg>20).sort((a,b)=>b.chg-a.chg).slice(0,6);
+  const dnList=trends.filter(r=>r.chg<-20).sort((a,b)=>a.chg-b.chg).slice(0,6);
+  document.getElementById('trend-up-list').innerHTML=upList.length
+    ?upList.map(r=>`<div class="trend-card">
+      <div class="trend-icon">🚀</div>
+      <div class="trend-info"><div class="trend-name">${r.nhom}</div>
+      <div class="trend-desc">TB ${Math.round(r.avgN)} m²/tháng → tháng gần nhất <strong>${Math.round(r.lastV)} m²</strong></div></div>
+      <div class="trend-val" style="color:var(--teal)">+${Math.round(r.chg)}%</div>
+    </div>`).join('')
+    :'<div class="alert-item alert-blue"><span>Chưa đủ dữ liệu phát hiện xu hướng tăng rõ rệt</span></div>';
+  document.getElementById('trend-down-list').innerHTML=dnList.length
+    ?dnList.map(r=>`<div class="trend-card">
+      <div class="trend-icon">📉</div>
+      <div class="trend-info"><div class="trend-name">${r.nhom}</div>
+      <div class="trend-desc">TB ${Math.round(r.avgN)} m²/tháng → tháng gần nhất <strong>${Math.round(r.lastV)} m²</strong></div></div>
+      <div class="trend-val" style="color:var(--red)">${Math.round(r.chg)}%</div>
+    </div>`).join('')
+    :'<div class="alert-item alert-green"><span>✓ Không có nhóm nào giảm sút đáng kể</span></div>';
+  const top5=Object.entries(nhomMonthly).map(([nhom,mData])=>({nhom,total:Object.values(mData).reduce((a,b)=>a+b,0)})).sort((a,b)=>b.total-a.total).slice(0,5).map(r=>r.nhom);
+  if(cTrendNhom)cTrendNhom.destroy();
+  cTrendNhom=new Chart(document.getElementById('chart-trend-nhom'),{type:'line',
+    data:{labels,datasets:top5.map((nhom,i)=>({
+      label:nhom,data:months.map(m=>Math.round(nhomMonthly[nhom][m]||0)),
+      borderColor:COLORS[i],backgroundColor:'transparent',borderWidth:2,pointRadius:3,pointHoverRadius:5,tension:.3
+    }))},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'bottom',labels:{color:TICK,font:{size:11},boxWidth:12,padding:10}}},
+      scales:{x:{ticks:{color:TICK,font:{size:11}},grid:{color:GRID}},y:{ticks:{color:TICK,font:{size:11}},grid:{color:GRID}}}}});
+}
+tryLoadCache();
+</script>
