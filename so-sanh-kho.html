@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>So Sánh Phương Án Kho — Goma Carpet 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0f1117; --surface:#181c27; --surface2:#1e2335; --border:#2a3050;
+  --accent:#f0a500; --green:#2ecc8a; --red:#e05c3a; --yellow:#f0a500;
+  --blue:#4a9eff; --purple:#a78bfa; --orange:#fb923c; --teal:#34d399;
+  --text:#e8eaf0; --text-muted:#6b7394; --text-dim:#9aa0bc;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Be Vietnam Pro',sans-serif;min-height:100vh;}
+
+header{padding:40px 40px 28px;border-bottom:1px solid var(--border);position:relative;overflow:hidden;}
+header::before{content:'';position:absolute;top:-80px;right:-80px;width:360px;height:360px;background:radial-gradient(circle,rgba(240,165,0,0.1) 0%,transparent 70%);pointer-events:none;}
+.header-label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--accent);margin-bottom:8px;}
+header h1{font-size:clamp(22px,3.5vw,36px);font-weight:800;letter-spacing:-0.5px;}
+header h1 span{color:var(--accent);}
+.header-sub{margin-top:6px;font-size:13px;color:var(--text-muted);}
+.deadline-badge{display:inline-flex;align-items:center;gap:6px;margin-top:14px;background:rgba(224,92,58,0.15);border:1px solid rgba(224,92,58,0.4);color:var(--red);padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600;}
+
+.tabs{display:flex;padding:0 40px;border-bottom:1px solid var(--border);}
+.tab{padding:14px 28px;font-size:13px;font-weight:600;color:var(--text-muted);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s;}
+.tab:hover{color:var(--text);}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+
+.main{padding:28px 40px 60px;}
+.view{display:none;}
+.view.active{display:block;}
+
+/* CARDS */
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;}
+.kho-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:box-shadow 0.2s;}
+.kho-card:hover{box-shadow:0 8px 32px rgba(0,0,0,0.35);}
+
+.card-top{padding:18px 20px 14px;cursor:pointer;user-select:none;}
+.card-top-row1{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:12px;}
+.card-id{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--text-muted);margin-bottom:3px;}
+.card-name{font-size:15px;font-weight:700;}
+.card-addr{font-size:12px;color:var(--text-muted);margin-top:2px;}
+.price-box{text-align:right;flex-shrink:0;}
+.price-box .price{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:600;color:var(--accent);}
+.price-box .price-sub{font-size:10px;color:var(--text-muted);display:block;margin-top:1px;}
+
+.card-specs-mini{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;}
+.spec{display:flex;flex-direction:column;gap:2px;}
+.spec-l{font-size:9px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;font-family:'JetBrains Mono',monospace;}
+.spec-v{font-size:12px;font-weight:600;}
+.spec-v.g{color:var(--green);}
+.spec-v.b{color:var(--red);}
+.spec-v.w{color:var(--yellow);}
+
+.tags-row{display:flex;flex-wrap:wrap;gap:5px;padding:10px 20px 14px;border-bottom:1px solid var(--border);}
+.tag{font-size:11px;padding:3px 9px;border-radius:5px;font-weight:500;}
+.tag.pro{background:rgba(46,204,138,0.12);color:var(--green);border:1px solid rgba(46,204,138,0.2);}
+.tag.con{background:rgba(224,92,58,0.12);color:var(--red);border:1px solid rgba(224,92,58,0.2);}
+.tag.fatal{background:rgba(224,92,58,0.22);color:#ff7a5a;border:1px solid rgba(224,92,58,0.45);font-weight:700;}
+
+.card-expand-btn{display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;background:var(--surface2);border:none;color:var(--text-muted);font-size:12px;font-weight:600;cursor:pointer;width:100%;transition:color 0.2s,background 0.2s;font-family:'Be Vietnam Pro',sans-serif;letter-spacing:0.3px;}
+.card-expand-btn:hover{color:var(--text);background:#232840;}
+.card-expand-btn .arrow{transition:transform 0.25s;font-size:11px;}
+.card-expand-btn.open .arrow{transform:rotate(180deg);}
+
+.card-panel{display:none;border-top:1px solid var(--border);animation:slideDown 0.25s ease;}
+.card-panel.open{display:block;}
+@keyframes slideDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+
+.score-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--border);border-bottom:1px solid var(--border);}
+.score-cell{background:var(--surface2);padding:10px 12px;display:flex;flex-direction:column;gap:4px;}
+.score-cell-label{font-size:9px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;line-height:1.3;}
+.score-cell-bar{height:4px;background:var(--border);border-radius:2px;overflow:hidden;}
+.score-cell-fill{height:100%;border-radius:2px;}
+.score-cell-num{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;}
+
+.verdict-note{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:flex-start;}
+.verdict-badge{flex-shrink:0;font-size:11px;font-weight:700;padding:4px 10px;border-radius:5px;letter-spacing:0.5px;white-space:nowrap;margin-top:2px;}
+.verdict-badge.strong{background:rgba(46,204,138,0.15);color:var(--green);border:1px solid rgba(46,204,138,0.3);}
+.verdict-badge.medium{background:rgba(240,165,0,0.15);color:var(--yellow);border:1px solid rgba(240,165,0,0.3);}
+.verdict-badge.weak{background:rgba(224,92,58,0.15);color:var(--red);border:1px solid rgba(224,92,58,0.3);}
+.verdict-badge.current{background:rgba(74,158,255,0.15);color:var(--blue);border:1px solid rgba(74,158,255,0.3);}
+.verdict-text{font-size:12px;color:var(--text-dim);line-height:1.6;}
+.verdict-text strong{color:var(--text);}
+
+.media-panel{padding:16px 20px;display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.media-col-title{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1.5px;font-family:'JetBrains Mono',monospace;margin-bottom:8px;}
+.photo-gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:6px;}
+.photo-thumb{aspect-ratio:4/3;border-radius:6px;overflow:hidden;cursor:pointer;border:2px solid transparent;transition:border-color 0.2s,transform 0.15s;background:var(--surface2);}
+.photo-thumb:hover{border-color:var(--accent);transform:scale(1.03);}
+.photo-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+.media-right{display:flex;flex-direction:column;gap:10px;}
+.video-wrap{background:var(--surface2);border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+.video-label{padding:8px 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--text-muted);border-bottom:1px solid var(--border);}
+.video-label::before{content:'▶ ';color:var(--accent);}
+.video-iframe-wrap{position:relative;padding-bottom:56.25%;height:0;}
+.video-iframe-wrap iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:none;}
+.no-video{padding:20px;text-align:center;color:var(--text-muted);font-size:12px;}
+.btn-map{display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 16px;background:rgba(74,158,255,0.12);border:1px solid rgba(74,158,255,0.3);color:var(--blue);border-radius:7px;font-size:13px;font-weight:600;text-decoration:none;transition:background 0.2s;}
+.btn-map:hover{background:rgba(74,158,255,0.22);}
+.btn-map-na{display:flex;align-items:center;justify-content:center;padding:10px;background:var(--surface2);border:1px dashed var(--border);color:var(--text-muted);border-radius:7px;font-size:12px;}
+
+/* TABLE */
+.compare-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:860px;}
+thead th{padding:13px 15px;text-align:left;font-weight:700;font-size:11px;letter-spacing:0.4px;border-bottom:2px solid var(--border);white-space:nowrap;background:var(--bg);position:sticky;top:0;z-index:2;}
+thead th:first-child{color:var(--text-muted);font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;}
+thead th.c0{color:var(--blue);}thead th.c1{color:var(--purple);}thead th.c2{color:var(--accent);}thead th.c3{color:var(--teal);}thead th.c4{color:var(--orange);}
+tbody tr{border-bottom:1px solid var(--border);transition:background 0.15s;}
+tbody tr:hover{background:var(--surface);}
+tbody tr.sec td{padding:9px 15px 5px;font-size:9px;letter-spacing:2.5px;text-transform:uppercase;color:var(--text-muted);font-family:'JetBrains Mono',monospace;background:var(--surface2);border-top:2px solid var(--border);}
+tbody td{padding:10px 15px;vertical-align:middle;color:var(--text-dim);}
+tbody td:first-child{font-weight:600;color:var(--text);font-size:12px;white-space:nowrap;}
+.cg{color:var(--green)!important;font-weight:600;}
+.cb{color:var(--red)!important;font-weight:600;}
+.cw{color:var(--yellow)!important;font-weight:600;}
+.pill{display:inline-flex;align-items:center;padding:3px 8px;border-radius:4px;font-size:11px;font-weight:600;white-space:nowrap;}
+.pill.y{background:rgba(46,204,138,0.15);color:var(--green);}
+.pill.n{background:rgba(224,92,58,0.15);color:var(--red);}
+.pill.p{background:rgba(240,165,0,0.15);color:var(--yellow);}
+
+/* LIGHTBOX */
+.lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.93);z-index:1000;align-items:center;justify-content:center;padding:20px;}
+.lightbox.open{display:flex;}
+.lightbox img{max-width:90vw;max-height:88vh;border-radius:8px;object-fit:contain;}
+.lb-close{position:absolute;top:14px;right:18px;color:white;font-size:28px;cursor:pointer;opacity:0.7;transition:opacity 0.2s;line-height:1;}
+.lb-close:hover{opacity:1;}
+.lb-nav{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.1);border:none;color:white;font-size:26px;padding:10px 14px;border-radius:7px;cursor:pointer;transition:background 0.2s;}
+.lb-nav:hover{background:rgba(255,255,255,0.2);}
+.lb-prev{left:10px;}.lb-next{right:10px;}
+.lb-counter{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);color:rgba(255,255,255,0.5);font-size:11px;font-family:'JetBrains Mono',monospace;}
+
+@media(max-width:680px){
+  header,.main,.tabs{padding-left:16px;padding-right:16px;}
+  .card-specs-mini{grid-template-columns:1fr 1fr;}
+  .score-strip{grid-template-columns:repeat(3,1fr);}
+  .media-panel{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-label">Goma Carpet · Bộ phận Kho Vận · 2026</div>
+  <h1>So Sánh <span>Phương Án Kho</span> Mới</h1>
+  <div class="header-sub">4 ứng viên · so sánh với kho hiện tại tại 326 Nguyễn Thị Tú</div>
+  <div class="deadline-badge">⚠ Deadline bàn giao mặt bằng: Tháng 9/2026</div>
+</header>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(0)">Tổng quan</div>
+  <div class="tab" onclick="switchTab(1)">Bảng so sánh</div>
+</div>
+
+<div class="main">
+
+<!-- ===== TAB 0 ===== -->
+<div class="view active" id="view-0">
+<div class="cards-grid">
+
+<!-- KHO HIỆN TẠI -->
+<div class="kho-card">
+  <div class="card-top" onclick="toggleCard('k0')">
+    <div class="card-top-row1">
+      <div><div class="card-id">KHO HIỆN TẠI · BASELINE</div><div class="card-name">326 Nguyễn Thị Tú</div><div class="card-addr">Bình Chánh, TP.HCM</div></div>
+      <div class="price-box"><div class="price">50tr</div><span class="price-sub">/ tháng · chưa VAT</span></div>
+    </div>
+    <div class="card-specs-mini">
+      <div class="spec"><span class="spec-l">Diện tích</span><span class="spec-v w">~621 m²</span></div>
+      <div class="spec"><span class="spec-l">Trần cao</span><span class="spec-v b">Thấp</span></div>
+      <div class="spec"><span class="spec-l">PCCC</span><span class="spec-v w">Chưa rõ</span></div>
+      <div class="spec"><span class="spec-l">Container</span><span class="spec-v b">11pm–4am</span></div>
+    </div>
+  </div>
+  <div class="tags-row">
+    <span class="tag pro">Đang quen thuộc</span><span class="tag pro">Giá hợp lý</span>
+    <span class="tag con">Đường 1 chiều</span><span class="tag con">Mái tôn xuống cấp</span>
+    <span class="tag fatal">Xuống hàng đêm khuya</span>
+  </div>
+  <button class="card-expand-btn" id="btn-k0" onclick="toggleCard('k0')">Chi tiết <span class="arrow">▼</span></button>
+  <div class="card-panel" id="panel-k0">
+    <div class="score-strip">
+      <div class="score-cell"><div class="score-cell-label">Hạ tầng</div><div class="score-cell-bar"><div class="score-cell-fill" style="width:40%;background:var(--blue)"></div></div><div class="score-cell-num" style="color:var(--blue)">8</div></div>
+      <div class="score-cell"><div class="score-cell-label">Giao thông</div><div class="score-cell-bar"><div class="score-cell-fill" style="width:25%;background:var(--blue)"></div></div><div class="score-cell-num" style="color:var(--blue)">5</div></div>
+      <div class="score-cell"><div class="score-cell-label">Chi phí</div><div class="score-cell-bar"><div class="score-cell-fill" style="width:65%;background:var(--blue)"></div></div><div class="score-cell-num" style="color:var(--blue)">13</div></div>
+      <div class="score-cell"><div class="score-cell-label">Không gian</div><div class="score-cell-bar"><div class="score-cell-fill" style="width:20%;background:var(--blue)"></div></div><div class="score-cell-num" style="color:var(--blue)">4</div></div>
+      <div class="score-cell"><div class="score-cell-label">Rủi ro</div><div class="score-cell-bar"><div class="score-cell-fill" style="width:15%;background:var(--blue)"></div></div><div class="score-cell-num" style="color:var(--blue)">3</div></div>
+    </div>
+    <div class="verdict-note">
+      <span class="verdict-badge current">ĐANG DÙNG</span>
+      <span class="verdict-text">Kho baseline để so sánh. <strong>Vấn đề lớn nhất:</strong> xe container chỉ vào được 11pm–4am, ảnh hưởng sức khỏe anh em kho. Mái tôn xuống cấp, diện tích chật.</span>
+    </div>
+    <div class="media-panel">
+      <div><div class="media-col-title">📸 Hình ảnh</div><div style="color:var(--text-muted);font-size:12px;padding:12px 0">Chưa có ảnh</div></div>
+      <div class="media-right"><div class="btn-map-na">Chưa có định vị</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- KHO 1 -->
+<div class="kho-card">
+  <div class="card-top" onclick="toggleCard('k1')">
+    <div class="card-top-row1">
+      <div><div class="card-id" style="color:var(--purple)">KHO 01 · ỨNG VIÊN</div><div class="card-name">Liên Ấp 2–6</div><div class="card-addr">Cách kho hiện tại ~3 km</div></div>
+      <div class="price-box"><div class="price">80tr</div><span class="price-sub">/ tháng · còn TL · chưa VAT</span></div>
+    </div>
+    <div class="card-specs-mini">
+      <div class="spec"><span class="spec-l">Diện tích</span><span class="spec-v g">1.200 m²</span></div>
+      <div class="spec"><span class="spec-l">Trần cao</span><span class="spec-v g">8 m ✓</span></div>
+      <div class="spec"><span class="spec-l">PCCC</span><span class="spec-v g">Có sẵn ✓</span></div>
+      <div class="spec"><span class="spec-l">Dàn sắt</span><span class="spec-v g">Có sẵn ✓</span></div>
+    </div>
+  </div>
+  <div class="tags-row">
+    <span class="tag pro">PCCC có sẵn</span><span class="tag pro">Dàn sắt tận dụng</span><span class="tag pro">Trần 8m</span><span class="tag pro">Gần kho cũ</span>
+    <span class="tag fatal">⚠ Đường LA2-6 cấm xe công</span><span class="tag con">Cần nâng cấp VP</span>
+  </div>
+  <button class="card-expand-btn" id="btn-k1" onclick="toggleCard('k1')">Chi tiết & Media <span class="arrow">▼</span></button>
+  <div class="card-panel" id="panel-k1">
+    <div class="score-strip">
+      <div class="score-cell"><div class="score-cell-label">Hạ tầng</div><div class="score-cell-bar"><div class="score-cell-fill" style="width:90%;background:var(--purple)"></div></div><div class="score-cell-num" style="color:var(--purple)">18</div></div>
+      <div class="score-cell"><div class="score-cell-label">Giao thông</div><div class="score-cell-bar"><div class="score-cell-fill" style="width:40%;background:var(--purple)"></div></div><div class="score-cell-num" style="color:var(--purple)">8</div></div>
+      <div class="score-cell"><div class="score-cell-label">Chi phí</div><div class="score-cell-bar"><div class="score-cell-fill" style="width:55%;background:var(--purple)"></div></div><div class="score-cell-num" style="color:var(--purple)">11</div></div>
+      <div class="score-cell"><div class="score-cell-label">Không gian</div><div class="score-cell-bar"><div class="score-cell-fill" style="width:95%;background:var(--purple)"></div></div><div class="score-cell-num" style="color:var(--purple)">19</div></div>
+      <div class="score-cell"><div class="score-cell-label">Rủi ro</div><div class="score-cell-bar"><div class="score-cell-fill" style="width:35%;background:var(--purple)"></div></div><div class="score-cell-num" style="color:var(--purple)">7</div></div>
+    </div>
+    <div class="verdict-note">
+      <span class="verdict-badge medium">CẦN XÁC MINH</span>
+      <span class="verdict-text"><strong>Tốt nhất về hạ tầng</strong> — PCCC + dàn sắt có sẵn. Nhưng đường LA2-6 <strong>bị cấm xe công</strong> — phải xác minh lộ trình thay thế trước khi quyết định.</span>
+    </div>
+    <div class="media-panel">
+      <div>
+        <div class="media-col-title">📸 Hình ảnh (3 ảnh)</div>
+        <div class="photo-gallery">
+          <div class="photo-thumb" onclick="openLb('k1',0)"><img src="https://drive.google.com/thumbnail?id=1i4O_Bc5no5IA6jLCSZ9IJyylKZy7K9bp&sz=w400" loading="lazy"></div>
+          <div class="photo-thumb" onclick="openLb('k1',1)"><img src="https://drive.google.com/thumbnail?id=13VdF3aPUG7S3z5ngiTLofNQ0vTubWrrO&sz=w400" loading="lazy"></div>
+          <div class="photo-thumb" onclick="openLb('k1',2)"><img src="https://drive.google.com/thumbnail?id=1CVSVDtIZJIHEo0VV0f0Eh4GdAyXmzxrn&sz=w400" loading="lazy"></div>
+        </div>
+      </div>
+      <div class="media-right">
+        <div class="video-wrap"><div class="video-label">Video thực tế</div><div class="video-iframe-wrap"><iframe src="https://drive.google.com/file/d/1dNDeK2PjZSrdLymTirTX08mridpdQISP/preview" allow="autoplay" allowfullscreen loading="lazy"></iframe></div></div>
+        <a class="btn-map" href="https://maps.app.goo.gl/4V4Y2Ggo1SpMR9cW7" target="_blank">🗺 Mở Google Maps · Kho 1</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- KHO 2 -->
+<div class="kho-card">
+  <div class="card-top" onclick="toggleCard('k2')">
+    <div class="card-top-row1">
+      <div><div class="card-id" style="color:var(--accent)">KHO 02 · ỨNG VIÊN</div><div class="card-name">Phạm Văn Sáng</div><div class="card-addr">2 mặt tiền · ngã ba</div></div>
+      <div class="price-box"><div class="price">75tr</div><span class="price-sub">/ tháng · còn TL · chưa VAT</span></div>
+    </div>
+    <div class="card-specs-mini">
+      <div class="spec"><span class="spec-l">Diện tích</span><span class="spec-v g">1.200 m²</span></div>
+      <div class="spec"><span class="spec-l">Trần cao</span><span class="spec-v w">6 m</span></div>
+      <div class="spec"><span class="spec-l">PCCC</span><span class="spec-v b">Chưa có</span></div>
+      <div class="spec"><span class="spec-l">Container</span><span class="spec-v g">Ban ngày ✓</span></div>
+    </div>
+  </div>
+  <div class="tags-row">
+    <span class="tag pro">Container ban ngày</span><span class="tag pro">2 mặt tiền</span><span class="tag pro">Đường thông thoáng</span>
+    <span class="tag con">Trần 6m — nóng</span><span class="tag con">Không PCCC</span><span class="tag con">Cần đầu tư ban đầu</span>
+  </div>
+  <button class="card-expand-btn" id="btn-k2" onclick="toggleCard('k2')">Chi tiết & Media <span class="arrow">▼</span></button>
+  <div class="card-panel" id="panel-k2">
+    <div class="score-strip">
+      <div class="score-cell"><div class="score-cell-label">Hạ tầng</div><div class="score-cell-bar"><div class="score-cell-fill" style="width:35%;background:var(--accent)"></div></div><div class="score-cell-num" style="color:var(--accent)">7</div></div>
+      <div class="score-cell"><div class="score-cell-label">Giao thông</div><div class="score-cell-bar"><div class="score-cell-fill" style="width:85%;background:var(--accent)"></div></div><div class="score-cell-num" style="color:var(--accent)">17</div></div>
+      <div class="score-cell"><div class="score-cell-label">Chi phí</div><div class="score-cell-bar"><div class="score-cell-fill" style="width:60%;background:var(--accent)"></div></div><div class="score-cell-num" style="color:var(--accent)">12</div></div>
+      <div class="score-cell"><div class="score-cell-label">Không gian</div><div class="score-cell-bar"><div class="score-cell-fill" style="width:70%;background:var(--accent)"></div></div><div class="score-cell-num" style="color:var(--accent)">14</div></div>
+      <div class="score-cell"><div class="score-cell-label">Rủi ro</div><div class="score-cell-bar"><div class="score-cell-fill" style="width:75%;background:var(--accent)"></div></div><div class="score-cell-num" style="color:var(--accent)">15</div></div>
+    </div>
+    <div class="verdict-note">
+      <span class="verdict-badge medium">KHẢ THI NHẤT</span>
+      <span class="verdict-text"><strong>Giải quyết vấn đề lớn nhất</strong> — container đậu ban ngày. Cần đầu tư PCCC + dàn sắt + VP. Lưu ý: công ty may đối diện ~1.000 CN, tránh giờ tan ca.</span>
+    </div>
+    <div class="media-panel">
+      <div>
+        <div class="media-col-title">📸 Hình ảnh (2 ảnh)</div>
+        <div class="photo-gallery">
+          <div class="photo-thumb" onclick="openLb('k2',0)"><img src="https://drive.google.com/thumbnail?id=1YkhAYy4qjQRMJXE3dmRvi5jdqYFN4a20&sz=w400" loading="lazy"></div>
+          <div class="photo-thumb" onclick="openLb('k2',1)"><img src="https://drive.google.com/thumbnail?id=1kUhLQ8CP_JRt7vsa_vPWZ06PWoIrnTWP&sz=w400" loading="lazy"></div>
+        </div>
+      </div>
+      <div class="media-right">
+        <div class="video-wrap"><div class="video-label">Video thực tế</div><div class="video-iframe-wrap"><iframe src="https://drive.google.com/file/d/1z5cfkZMfEoBTcCdm8ZnE_XFqf7MzsaWZ/preview" allow="autoplay" allowfullscreen loading="lazy"></iframe></div></div>
+        <a class="btn-map" href="https://maps.app.goo.gl/m6SvKfuD76QeX4XWA" target="_blank">🗺 Mở Google Maps · Kho 2</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- KHO 3 -->
+<div class="kho-card">
+  <div class="card-top" onclick="toggleCard('k3')">
+    <div class="card-top-row1">
+      <div><div class="card-id" style="color:var(--teal)">KHO 03 · ỨNG VIÊN</div><div class="card-name">Hẻm 93 Nguyễn Thị Tú</div><div class="card-addr">Cuối hẻm · gần kho hiện tại</div></div>
+      <div class="price-box"><div class="price">75tr</div><span class="price-sub">/ tháng · 100k/m²</span></div>
+    </div>
+    <div class="card-specs-mini">
+      <div class="spec"><span class="spec-l">Diện tích</span><span class="spec-v b">750 m²</span></div>
+      <div class="spec"><span class="spec-l">Trần cao</span><span class="spec-v w">6 m</span></div>
+      <div class="spec"><span class="spec-l">PCCC</span><span class="spec-v b">Chưa có</span></div>
+      <div class="spec"><span class="spec-l">Đơn giá</span><span class="spec-v b">100k/m² ✗</span></div>
+    </div>
+  </div>
+  <div class="tags-row">
+    <span class="tag pro">Trên đường NTT</span><span class="tag pro">Sân quay đầu</span>
+    <span class="tag fatal">Nhỏ nhất 750m²</span><span class="tag con">Giá/m² cao nhất</span><span class="tag con">Container khó ban ngày</span>
+  </div>
+  <button class="card-expand-btn" id="btn-k3" onclick="toggleCard('k3')">Chi tiết & Media <span class="arrow">▼</span></button>
+  <div class="card-panel" id="panel-k3">
+    <div class="score-strip">
+      <div class="score-cell"><div class="score-cell-label">Hạ tầng</div><div class="score-cell-bar"><div class="score-cell-fill" style="width:25%;background:var(--teal)"></div></div><div class="score-cell-num" style="color:var(--teal)">5</div></div>
+      <div class="score-cell"><div class="score-cell-label">Giao thông</div><div class="score-cell-bar"><div class="score-cell-fill" style="width:60%;background:var(--teal)"></div></div><div class="score-cell-num" style="color:var(--teal)">12</div></div>
+      <div class="score-cell"><div class="score-cell-label">Chi phí</div><div class="score-cell-bar"><div class="score-cell-fill" style="width:25%;background:var(--teal)"></div></div><div class="score-cell-num" style="color:var(--teal)">5</div></div>
+      <div class="score-cell"><div class="score-cell-label">Không gian</div><div class="score-cell-bar"><div class="score-cell-fill" style="width:25%;background:var(--teal)"></div></div><div class="score-cell-num" style="color:var(--teal)">5</div></div>
+      <div class="score-cell"><div class="score-cell-label">Rủi ro</div><div class="score-cell-bar"><div class="score-cell-fill" style="width:55%;background:var(--teal)"></div></div><div class="score-cell-num" style="color:var(--teal)">11</div></div>
+    </div>
+    <div class="verdict-note">
+      <span class="verdict-badge weak">KHÔNG KHUYẾN NGHỊ</span>
+      <span class="verdict-text">Diện tích 750m² <strong>nhỏ hơn 25% yêu cầu</strong>. Đơn giá 100k/m² cao nhất. Chỉ cân nhắc nếu không còn lựa chọn nào khác.</span>
+    </div>
+    <div class="media-panel">
+      <div>
+        <div class="media-col-title">📸 Hình ảnh (4 ảnh)</div>
+        <div class="photo-gallery">
+          <div class="photo-thumb" onclick="openLb('k3',0)"><img src="https://drive.google.com/thumbnail?id=1XAOpcvlZvFjh2ZKlPRfDzqFxohmKKLfc&sz=w400" loading="lazy"></div>
+          <div class="photo-thumb" onclick="openLb('k3',1)"><img src="https://drive.google.com/thumbnail?id=1XSWz0NoxQNj82U6XAUabjVHLxPH1iNzm&sz=w400" loading="lazy"></div>
+          <div class="photo-thumb" onclick="openLb('k3',2)"><img src="https://drive.google.com/thumbnail?id=1iw3p35MDb0LdwxfhAL5Z98PMsLle8e8p&sz=w400" loading="lazy"></div>
+          <div class="photo-thumb" onclick="openLb('k3',3)"><img src="https://drive.google.com/thumbnail?id=1KARfeaDWjzHHgU2VyHLQwjwgAkZy0ZCm&sz=w400" loading="lazy"></div>
+        </div>
+      </div>
+      <div class="media-right">
+        <div class="video-wrap"><div class="video-label">Video thực tế</div><div class="video-iframe-wrap"><iframe src="https://drive.google.com/file/d/1m_1HbaqG5p-pi8JDBCE7GYbKaJehAAl1/preview" allow="autoplay" allowfullscreen loading="lazy"></iframe></div></div>
+        <a class="btn-map" href="https://maps.app.goo.gl/qKDzNarFr3uQSjGLA" target="_blank">🗺 Mở Google Maps · Kho 3</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- KHO 4 -->
+<div class="kho-card">
+  <div class="card-top" onclick="toggleCard('k4')">
+    <div class="card-top-row1">
+      <div><div class="card-id" style="color:var(--orange)">KHO 04 · ỨNG VIÊN</div><div class="card-name">Cụm Kho Tân Vĩnh Lộc</div><div class="card-addr">Cách kho hiện tại ~9 km</div></div>
+      <div class="price-box"><div class="price">45tr</div><span class="price-sub">/ tháng · rẻ nhất</span></div>
+    </div>
+    <div class="card-specs-mini">
+      <div class="spec"><span class="spec-l">Diện tích</span><span class="spec-v g">1.000 m²</span></div>
+      <div class="spec"><span class="spec-l">Trần cao</span><span class="spec-v g">9 m ✓</span></div>
+      <div class="spec"><span class="spec-l">PCCC</span><span class="spec-v w">Chưa xác nhận</span></div>
+      <div class="spec"><span class="spec-l">Container</span><span class="spec-v w">Chưa chắc</span></div>
+    </div>
+  </div>
+  <div class="tags-row">
+    <span class="tag pro">Giá rẻ nhất 45tr</span><span class="tag pro">Trần 9m cao nhất</span><span class="tag pro">Rộng thoáng</span>
+    <span class="tag fatal">Xa nhất ~9km</span><span class="tag fatal">Container vào: chưa xác nhận</span><span class="tag con">Khu hẻo lánh</span>
+  </div>
+  <button class="card-expand-btn" id="btn-k4" onclick="toggleCard('k4')">Chi tiết & Media <span class="arrow">▼</span></button>
+  <div class="card-panel" id="panel-k4">
+    <div class="score-strip">
+      <div class="score-cell"><div class="score-cell-label">Hạ tầng</div><div class="score-cell-bar"><div class="score-cell-fill" style="width:40%;background:var(--orange)"></div></div><div class="score-cell-num" style="color:var(--orange)">8</div></div>
+      <div class="score-cell"><div class="score-cell-label">Giao thông</div><div class="score-cell-bar"><div class="score-cell-fill" style="width:20%;background:var(--orange)"></div></div><div class="score-cell-num" style="color:var(--orange)">4</div></div>
+      <div class="score-cell"><div class="score-cell-label">Chi phí</div><div class="score-cell-bar"><div class="score-cell-fill" style="width:95%;background:var(--orange)"></div></div><div class="score-cell-num" style="color:var(--orange)">19</div></div>
+      <div class="score-cell"><div class="score-cell-label">Không gian</div><div class="score-cell-bar"><div class="score-cell-fill" style="width:85%;background:var(--orange)"></div></div><div class="score-cell-num" style="color:var(--orange)">17</div></div>
+      <div class="score-cell"><div class="score-cell-label">Rủi ro</div><div class="score-cell-bar"><div class="score-cell-fill" style="width:15%;background:var(--orange)"></div></div><div class="score-cell-num" style="color:var(--orange)">3</div></div>
+    </div>
+    <div class="verdict-note">
+      <span class="verdict-badge weak">RỦI RO CAO</span>
+      <span class="verdict-text">Giá tốt nhất nhưng <strong>container vào được hay không vẫn bỏ ngỏ</strong> — đây là điều kiện sống còn. Cần đưa xe thử thực tế trước khi xem xét.</span>
+    </div>
+    <div class="media-panel">
+      <div>
+        <div class="media-col-title">📸 Hình ảnh (4 ảnh)</div>
+        <div class="photo-gallery">
+          <div class="photo-thumb" onclick="openLb('k4',0)"><img src="https://drive.google.com/thumbnail?id=17tAoL2gdESjOpFeASX9eJtFRtEKl3MDJ&sz=w400" loading="lazy"></div>
+          <div class="photo-thumb" onclick="openLb('k4',1)"><img src="https://drive.google.com/thumbnail?id=18poFuTqBDbW0GPJN9thaVe_VpNiLR8-5&sz=w400" loading="lazy"></div>
+          <div class="photo-thumb" onclick="openLb('k4',2)"><img src="https://drive.google.com/thumbnail?id=10-SGlVxS8Y2FE-xWArOPq0R5NmnfsY6q&sz=w400" loading="lazy"></div>
+          <div class="photo-thumb" onclick="openLb('k4',3)"><img src="https://drive.google.com/thumbnail?id=19PLCKlad7sPS8z8UM-OPEj9VHOC8AHjb&sz=w400" loading="lazy"></div>
+        </div>
+      </div>
+      <div class="media-right">
+        <div class="video-wrap"><div class="video-label">Video thực tế</div><div class="no-video" style="padding:24px">Chưa có video</div></div>
+        <a class="btn-map" href="https://maps.app.goo.gl/yFzPvHpUqRfp3Ki36" target="_blank">🗺 Mở Google Maps · Kho 4</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- end cards-grid -->
+</div><!-- end view-0 -->
+
+<!-- ===== TAB 1: BẢNG SO SÁNH ===== -->
+<div class="view" id="view-1">
+<div class="compare-wrap">
+<table>
+  <thead>
+    <tr>
+      <th>TIÊU CHÍ</th>
+      <th class="c0">Kho Hiện Tại<br><small style="font-weight:400;color:#6b7394">326 NTT</small></th>
+      <th class="c1">Kho 1<br><small style="font-weight:400;color:#6b7394">Liên Ấp 2–6</small></th>
+      <th class="c2">Kho 2<br><small style="font-weight:400;color:#6b7394">Phạm Văn Sáng</small></th>
+      <th class="c3">Kho 3<br><small style="font-weight:400;color:#6b7394">Hẻm 93 NTT</small></th>
+      <th class="c4">Kho 4<br><small style="font-weight:400;color:#6b7394">Tân Vĩnh Lộc</small></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr class="sec"><td colspan="6">THÔNG SỐ CƠ BẢN</td></tr>
+    <tr><td>Diện tích (m²)</td><td class="cw">~621 m²</td><td class="cg">1.200 m²</td><td class="cg">1.200 m²</td><td class="cb">750 m²</td><td class="cg">1.000 m²</td></tr>
+    <tr><td>Giá thuê / tháng</td><td class="cw">50 triệu</td><td class="cw">80tr (còn TL)</td><td class="cw">75tr (còn TL)</td><td class="cb">75 triệu</td><td class="cg">45 triệu ✓</td></tr>
+    <tr><td>Đơn giá / m²</td><td>~80.5k</td><td class="cg">~66.7k</td><td class="cg">~62.5k</td><td class="cb">100k ✗</td><td class="cg">45k ✓</td></tr>
+    <tr><td>Chiều cao trần</td><td class="cb">Thấp</td><td class="cg">8 m ✓</td><td class="cw">6 m</td><td class="cw">6 m</td><td class="cg">9 m ✓</td></tr>
+    <tr class="sec"><td colspan="6">GIAO THÔNG & TIẾP CẬN</td></tr>
+    <tr><td>Xe container / công</td><td class="cb">11pm–4am</td><td class="cw">Vào được — đường bị cấm</td><td class="cg">Đậu cặp ban ngày ✓</td><td class="cw">Sân quay đầu, khó ban ngày</td><td class="cw">Chủ cam đoan — chưa xác nhận</td></tr>
+    <tr><td>Giao thông khu vực</td><td class="cb">1 chiều, đông</td><td class="cw">Đường cấm xe công</td><td class="cg">Thông thoáng ✓</td><td class="cw">Hẻm, đông ban ngày</td><td class="cb">Hẻo lánh, sâu</td></tr>
+    <tr><td>Khoảng cách kho cũ</td><td>—</td><td class="cg">~3 km ✓</td><td>Chưa rõ</td><td class="cg">Rất gần</td><td class="cb">~9 km ✗</td></tr>
+    <tr class="sec"><td colspan="6">HẠ TẦNG & TIỆN ÍCH</td></tr>
+    <tr><td>PCCC</td><td><span class="pill p">Chưa rõ</span></td><td><span class="pill y">✓ Có sẵn</span></td><td><span class="pill n">✗ Chưa có</span></td><td><span class="pill n">✗ Chưa có</span></td><td><span class="pill p">Chưa xác nhận</span></td></tr>
+    <tr><td>Dàn sắt / kệ</td><td><span class="pill p">Hiện có</span></td><td><span class="pill y">✓ Có sẵn</span></td><td><span class="pill n">✗ Chưa có</span></td><td><span class="pill n">✗ Chưa có</span></td><td><span class="pill p">Chưa rõ</span></td></tr>
+    <tr><td>Văn phòng</td><td><span class="pill y">Có</span></td><td><span class="pill p">Cần nâng cấp ~50m²</span></td><td><span class="pill n">✗ Chưa có</span></td><td><span class="pill n">✗ Chưa có</span></td><td><span class="pill p">Chưa rõ</span></td></tr>
+    <tr><td>Tình trạng kết cấu</td><td class="cb">Mái tôn xuống cấp</td><td class="cg">Tốt</td><td class="cw">Trần thấp, nóng</td><td class="cw">Đang cải tạo</td><td class="cg">Rộng thoáng</td></tr>
+    <tr class="sec"><td colspan="6">KẾT QUẢ ĐÁNH GIÁ</td></tr>
+    <tr>
+      <td>Tổng điểm (/100)</td>
+      <td><b style="color:var(--blue)">33</b></td>
+      <td><b style="color:var(--purple)">63</b></td>
+      <td><b style="color:var(--accent)">65</b></td>
+      <td><b style="color:var(--teal)">38</b></td>
+      <td><b style="color:var(--orange)">51</b></td>
+    </tr>
+    <tr>
+      <td>Đề xuất</td>
+      <td><span class="pill p">Đang dùng</span></td>
+      <td><span class="pill p">⚠ Cần xác minh</span></td>
+      <td><span class="pill y">✓ Khả thi nhất</span></td>
+      <td><span class="pill n">✗ Không nên</span></td>
+      <td><span class="pill n">✗ Rủi ro cao</span></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div>
+
+</div><!-- end main -->
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox" onclick="lbOutside(event)">
+  <span class="lb-close" onclick="lbClose()">✕</span>
+  <button class="lb-nav lb-prev" onclick="lbNav(-1)">‹</button>
+  <img id="lb-img" src="" alt="">
+  <button class="lb-nav lb-next" onclick="lbNav(1)">›</button>
+  <div class="lb-counter" id="lb-counter"></div>
+</div>
+
+<script>
+function switchTab(i){
+  document.querySelectorAll('.tab').forEach((t,j)=>t.classList.toggle('active',i===j));
+  document.querySelectorAll('.view').forEach((v,j)=>v.classList.toggle('active',i===j));
+}
+function toggleCard(id){
+  const panel=document.getElementById('panel-'+id);
+  const btn=document.getElementById('btn-'+id);
+  const open=panel.classList.toggle('open');
+  btn.classList.toggle('open',open);
+}
+const galleries={
+  k1:['1i4O_Bc5no5IA6jLCSZ9IJyylKZy7K9bp','13VdF3aPUG7S3z5ngiTLofNQ0vTubWrrO','1CVSVDtIZJIHEo0VV0f0Eh4GdAyXmzxrn'],
+  k2:['1YkhAYy4qjQRMJXE3dmRvi5jdqYFN4a20','1kUhLQ8CP_JRt7vsa_vPWZ06PWoIrnTWP'],
+  k3:['1XAOpcvlZvFjh2ZKlPRfDzqFxohmKKLfc','1XSWz0NoxQNj82U6XAUabjVHLxPH1iNzm','1iw3p35MDb0LdwxfhAL5Z98PMsLle8e8p','1KARfeaDWjzHHgU2VyHLQwjwgAkZy0ZCm'],
+  k4:['17tAoL2gdESjOpFeASX9eJtFRtEKl3MDJ','18poFuTqBDbW0GPJN9thaVe_VpNiLR8-5','10-SGlVxS8Y2FE-xWArOPq0R5NmnfsY6q','19PLCKlad7sPS8z8UM-OPEj9VHOC8AHjb'],
+};
+let curG=[],curI=0;
+function openLb(k,i){curG=galleries[k];curI=i;updLb();document.getElementById('lightbox').classList.add('open');document.body.style.overflow='hidden';}
+function lbClose(){document.getElementById('lightbox').classList.remove('open');document.body.style.overflow='';}
+function lbOutside(e){if(e.target===document.getElementById('lightbox'))lbClose();}
+function lbNav(d){curI=(curI+d+curG.length)%curG.length;updLb();}
+function updLb(){document.getElementById('lb-img').src='https://drive.google.com/thumbnail?id='+curG[curI]+'&sz=w1400';document.getElementById('lb-counter').textContent=(curI+1)+' / '+curG.length;}
+document.addEventListener('keydown',e=>{
+  if(!document.getElementById('lightbox').classList.contains('open'))return;
+  if(e.key==='Escape')lbClose();
+  if(e.key==='ArrowLeft')lbNav(-1);
+  if(e.key==='ArrowRight')lbNav(1);
+});
+</script>
+</body>
+</html>
