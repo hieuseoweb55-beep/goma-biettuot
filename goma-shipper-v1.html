@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>GOMA SHIPPER</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#000;font-family:'Courier New',monospace;overflow:hidden;width:100vw;height:100vh;display:flex;align-items:center;justify-content:center}
+#gc{position:relative;width:100%;height:100%;max-width:480px;margin:0 auto}
+canvas{width:100%!important;height:100%!important;display:block}
+.screen{display:none;position:absolute;inset:0;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:50;padding:24px}
+.screen.active{display:flex}
+#ss{background:linear-gradient(160deg,#0a1628,#1a0a2e,#0d1f0d)}
+.logo1{font-size:clamp(3rem,13vw,5rem);font-weight:900;letter-spacing:.15em;color:#ff6b00;text-shadow:0 0 30px #ff6b0088,4px 4px 0 #8b3a00;font-family:Impact,sans-serif}
+.logo2{font-size:clamp(.85rem,3.5vw,1.1rem);color:#ffd700;letter-spacing:.3em}
+.logo3{font-size:clamp(.7rem,2.5vw,.85rem);color:#aaa;letter-spacing:.1em}
+.dtitle{color:#ffd700;font-size:.85rem;letter-spacing:.2em;margin-top:8px}
+.dgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;max-width:320px}
+.dbtn{padding:14px 8px;border:2px solid;border-radius:8px;background:transparent;cursor:pointer;font-family:inherit;font-size:clamp(.75rem,2.8vw,.9rem);font-weight:bold;letter-spacing:.08em;transition:all .18s;text-align:center;line-height:1.5}
+.dbtn:hover{transform:scale(1.05)}.dbtn:active{transform:scale(.97)}
+.de{border-color:#44dd44;color:#44dd44}.de:hover{background:rgba(68,221,68,.15)}
+.dm{border-color:#ffd700;color:#ffd700}.dm:hover{background:rgba(255,215,0,.15)}
+.dh{border-color:#ff4444;color:#ff4444}.dh:hover{background:rgba(255,68,68,.15)}
+.du{border-color:#ff00ff;color:#ff00ff}.du:hover{background:rgba(255,0,255,.15)}
+.dicon{font-size:1.4rem;display:block;margin-bottom:4px}
+.ddesc{font-size:.65rem;opacity:.7;font-weight:normal;display:block;margin-top:2px}
+#hud{display:none;position:absolute;inset:0;pointer-events:none;z-index:20}
+#hud.active{display:block}
+.htop{position:absolute;top:0;left:0;right:0;padding:10px 14px;display:flex;justify-content:space-between;align-items:flex-start}
+.hbox{background:rgba(0,0,0,.6);border:1px solid rgba(255,215,0,.4);border-radius:8px;padding:6px 14px;text-align:center}
+.htimer{font-size:clamp(1.4rem,6vw,2rem);font-weight:bold;color:#ffd700;font-family:Impact,sans-serif;display:block}
+.htimer.urg{color:#ff2200;animation:blink .4s infinite}
+@keyframes blink{50%{opacity:.3}}
+.hlbl{font-size:.6rem;color:#888;letter-spacing:.15em}
+.hspd{font-size:clamp(1.1rem,4.5vw,1.5rem);font-weight:bold;color:#fff;font-family:Impact,sans-serif}
+.hlives{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.lrow{display:flex;gap:4px}
+.li{font-size:1.1rem}.li.lost{filter:grayscale(1);opacity:.3}
+.dbadge{position:absolute;top:10px;left:50%;transform:translateX(-50%);font-size:.65rem;letter-spacing:.15em;padding:3px 10px;border-radius:20px;font-weight:bold}
+.hprog{position:absolute;bottom:130px;left:14px;right:14px}
+.pbg{height:6px;background:rgba(255,255,255,.1);border-radius:3px;overflow:hidden}
+.pfill{height:100%;background:linear-gradient(90deg,#ff6b00,#ffd700);border-radius:3px;transition:width .1s}
+.plbls{display:flex;justify-content:space-between;font-size:.6rem;color:#666;margin-top:3px;letter-spacing:.08em}
+#mc{display:none;position:absolute;bottom:0;left:0;right:0;padding:10px 12px 28px;pointer-events:all;z-index:30}
+@media(pointer:coarse){#mc{display:block}}
+.crow{display:flex;justify-content:space-between;align-items:flex-end;gap:8px}
+.ccol{display:flex;flex-direction:column;gap:8px}
+.cb{width:62px;height:52px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:12px;color:#fff;font-size:1.3rem;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;transition:background .08s;user-select:none}
+.cb:active{background:rgba(255,255,255,.28)}
+.cba{background:rgba(255,107,0,.25)!important;border-color:rgba(255,107,0,.5)!important;width:72px!important;height:72px!important;font-size:1.6rem!important}
+.cbb{background:rgba(255,50,50,.2)!important;border-color:rgba(255,80,80,.4)!important}
+#om{display:none;position:absolute;inset:0;background:rgba(0,0,0,.78);align-items:center;justify-content:center;flex-direction:column;gap:12px;z-index:40;pointer-events:none}
+#om.active{display:flex;pointer-events:all}
+.oe{font-size:clamp(3rem,15vw,5rem)}
+.ot{font-size:clamp(1.5rem,7vw,2.5rem);font-weight:bold;font-family:Impact,sans-serif;letter-spacing:.08em;text-align:center}
+.os{font-size:clamp(.75rem,3vw,1rem);color:#bbb;text-align:center;max-width:280px;line-height:1.6}
+.ob{margin-top:8px;padding:12px 36px;border:none;border-radius:8px;font-family:inherit;font-size:1rem;font-weight:bold;letter-spacing:.1em;cursor:pointer;transition:transform .1s}
+.ob:hover{transform:scale(1.05)}.ob:active{transform:scale(.96)}
+.obr{background:#ff6b00;color:#fff}.obm{background:#333;color:#fff}
+#wf{position:absolute;inset:0;pointer-events:none;z-index:15;opacity:0;transition:opacity .05s}
+#cd{display:none;position:absolute;inset:0;background:rgba(0,0,0,.6);align-items:center;justify-content:center;z-index:45}
+#cd.active{display:flex}
+#cn{font-size:clamp(6rem,25vw,10rem);font-family:Impact,sans-serif;color:#ffd700;text-shadow:0 0 40px #ff6b00,4px 4px 0 #8b3a00;animation:pop .3s ease-out}
+@keyframes pop{from{transform:scale(2);opacity:0}to{transform:scale(1);opacity:1}}
+
+/* ── VIDEO INTRO SYSTEM ── */
+#videoWrap{
+  display:none;position:absolute;inset:0;background:#000;
+  z-index:200;align-items:center;justify-content:center;
+  flex-direction:column;
+}
+#videoWrap.active{display:flex}
+#introVideo.visible{opacity:1}
+/* Fade overlay — darkens video at end */
+#videoFade{
+  position:absolute;inset:0;background:#000;
+  opacity:0;pointer-events:none;
+  transition:opacity 1.2s ease;z-index:2;
+}
+/* Tagline text */
+#videoTagline{
+  position:absolute;bottom:18%;left:50%;transform:translateX(-50%);
+  z-index:3;text-align:center;width:88%;
+  opacity:0;transition:opacity .8s ease;
+}
+#videoTagline .tl-main{
+  font-family:Impact,sans-serif;
+  font-size:clamp(1.3rem,6vw,2rem);
+  color:#fff;letter-spacing:.08em;
+  text-shadow:0 2px 20px rgba(0,0,0,.9),0 0 40px rgba(255,107,0,.6);
+  display:block;line-height:1.3;
+}
+#videoTagline .tl-sub{
+  font-size:clamp(.7rem,2.8vw,.9rem);
+  color:#ffd700;letter-spacing:.15em;
+  text-transform:uppercase;margin-top:8px;display:block;
+  text-shadow:0 1px 10px rgba(0,0,0,.8);
+}
+/* Skip button */
+#skipBtn{
+  position:absolute;top:16px;right:16px;z-index:10;
+  background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.3);
+  color:rgba(255,255,255,.7);font-family:'Courier New',monospace;
+  font-size:.75rem;letter-spacing:.1em;padding:6px 14px;
+  border-radius:20px;cursor:pointer;
+  transition:all .2s;
+}
+#skipBtn:hover{background:rgba(255,255,255,.15);color:#fff}
+/* GOMA watermark on video */
+#videoLogo{
+  position:absolute;top:14px;left:16px;z-index:10;
+  font-family:Impact,sans-serif;font-size:1.4rem;
+  color:#ff6b00;letter-spacing:.12em;
+  text-shadow:2px 2px 0 #000,0 0 20px #ff6b0088;
+  opacity:0;transition:opacity .8s ease;
+}
+</style>
+</head>
+<body>
+<div id="gc">
+<canvas id="c"></canvas>
+<div id="wf"></div>
+<div id="hud">
+  <div class="htop">
+    <div class="hbox"><span class="htimer" id="td">60</span><span class="hlbl">GIÂY CÒN LẠI</span></div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:4px"><div class="dbadge" id="db">DỄ</div></div>
+    <div class="hlives">
+      <div class="lrow" id="lr"></div>
+      <div class="hbox" style="min-width:60px"><div class="hspd" id="sd">0</div><div class="hlbl">KM/H</div></div>
+    </div>
+  </div>
+  <div id="lighthud" style="position:absolute;top:94px;left:50%;transform:translateX(-50%);display:none;flex-direction:column;align-items:center;gap:3px;background:rgba(0,0,0,.65);border-radius:10px;padding:6px 10px;border:1px solid rgba(255,255,255,.15)">
+    <div style="font-size:.55rem;color:#888;letter-spacing:.12em">ĐÈN GIAO THÔNG</div>
+    <div style="display:flex;gap:6px;align-items:center">
+      <div id="lhR" style="width:16px;height:16px;border-radius:50%;background:#ff2200;opacity:.15;box-shadow:0 0 0 2px #ff220033"></div>
+      <div id="lhY" style="width:16px;height:16px;border-radius:50%;background:#ffaa00;opacity:.15;box-shadow:0 0 0 2px #ffaa0033"></div>
+      <div id="lhG" style="width:16px;height:16px;border-radius:50%;background:#00ee44;opacity:.95;box-shadow:0 0 8px #00ee44"></div>
+    </div>
+    <div id="lhTxt" style="font-size:.6rem;font-weight:bold;letter-spacing:.08em;color:#00ee44">ĐI ĐƯỢC</div>
+  </div>
+  <div class="hprog">
+    <div class="pbg"><div class="pfill" id="pf" style="width:0%"></div></div>
+    <div class="plbls"><span>🏍️ KHO GOMA</span><span id="dl">0m</span><span>🏠 KHÁCH HÀNG</span></div>
+  </div>
+</div>
+<div id="mc">
+  <div class="crow">
+    <div class="ccol"><div class="cb" ontouchstart="mk.l=true" ontouchend="mk.l=false">◀</div></div>
+    <div class="ccol" style="align-items:center">
+      <div class="cb cba" ontouchstart="mk.u=true" ontouchend="mk.u=false">▲</div>
+      <div class="cb cbb" ontouchstart="mk.d=true" ontouchend="mk.d=false">▼</div>
+    </div>
+    <div class="ccol"><div class="cb" ontouchstart="mk.r=true" ontouchend="mk.r=false">▶</div></div>
+  </div>
+</div>
+<div class="screen active" id="ss">
+  <div style="text-align:center;margin-bottom:8px">
+    <div class="logo1">GOMA</div>
+    <div class="logo2">⚡ Shipper Thần Tốc ⚡</div>
+    <div class="logo3">Giao thảm — Né đời — Về kịp</div>
+  </div>
+  <div class="dtitle">CHỌN ĐỘ KHÓ</div>
+  <div class="dgrid">
+    <button class="dbtn de" onclick="startGame('easy')"><span class="dicon">😊</span>DỄ<span class="ddesc">1–2 lần là qua</span></button>
+    <button class="dbtn dm" onclick="startGame('medium')"><span class="dicon">😤</span>TRUNG BÌNH<span class="ddesc">5–10 lần thử</span></button>
+    <button class="dbtn dh" onclick="startGame('hard')"><span class="dicon">😰</span>KHÓ<span class="ddesc">Cầu may mà chơi</span></button>
+    <button class="dbtn du" onclick="startGame('ultra')"><span class="dicon">💀</span>SIÊU KHÓ<span class="ddesc">Siêu nhân mới qua</span></button>
+  </div>
+  <div style="color:#666;font-size:.72rem;letter-spacing:.1em" id="bs">Kỷ lục: <span>Chưa có</span></div>
+</div>
+<div id="cd"><div id="cn">3</div></div>
+<!-- VIDEO INTRO SYSTEM -->
+<div id="videoWrap">
+  <video id="introVideo" playsinline webkit-playsinline crossorigin="anonymous" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .8s ease;"></video>
+  <div id="videoFade"></div>
+  <div id="videoTagline">
+    <span class="tl-main" id="tlMain"></span>
+    <span class="tl-sub" id="tlSub"></span>
+  </div>
+  <div id="videoLogo">GOMA</div>
+  <button id="skipBtn" onclick="skipVideo()">SKIP ▶▶</button>
+</div>
+<div id="om">
+  <!-- Police canvas - shown only for police reason -->
+  <canvas id="policeCanvas" width="110" height="150" style="display:none;margin-bottom:-8px"></canvas>
+  <!-- Normal emoji - shown for other reasons -->
+  <div class="oe" id="oe" style="display:block">😱</div>
+  <div class="ot" id="ot">TÉ XE RỒI!</div>
+  <div class="os" id="os">Thảm văng hết rồi anh ơi...</div>
+  <button class="ob obr" onclick="retryGame()">🔄 THỬ LẠI</button>
+  <button class="ob obm" onclick="goMenu()">🏠 MENU</button>
+</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ── RENDERER ──
+const gc = document.getElementById('gc');
+const canvas = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({canvas, antialias:true});
+renderer.shadowMap.enabled = true;
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+
+const scene = new THREE.Scene();
+
+// Camera: eyes at ~1.4m high, looking straight ahead (+Z is forward in our world)
+const camera = new THREE.PerspectiveCamera(72, 1, 0.1, 300);
+
+function resize(){
+  const w=gc.clientWidth, h=gc.clientHeight;
+  renderer.setSize(w,h,false);
+  camera.aspect=w/h;
+  camera.updateProjectionMatrix();
+}
+resize();
+window.addEventListener('resize',resize);
+
+// ── WORLD: +Z = forward (direction of travel) ──
+// Sky & fog
+const SKY = new THREE.Color(0x87CEEB);
+scene.background = SKY;
+scene.fog = new THREE.FogExp2(0x87CEEB, 0.018);
+
+// Lights
+scene.add(new THREE.AmbientLight(0xffffff, 0.65));
+const sun = new THREE.DirectionalLight(0xfff5cc, 1.1);
+sun.position.set(-20, 40, 20);
+sun.castShadow = true;
+sun.shadow.mapSize.set(1024,1024);
+['left','right','top','bottom'].forEach(s=>sun.shadow.camera[s]=(s==='left'||s==='bottom'?-80:80));
+sun.shadow.camera.far = 300;
+scene.add(sun);
+
+// ── ROAD (runs along +Z) ──
+const ROAD_LEN = 600;
+const ROAD_W = 9;
+
+// Ground plane
+const gnd = new THREE.Mesh(
+  new THREE.PlaneGeometry(200, ROAD_LEN),
+  new THREE.MeshLambertMaterial({color:0x4a8a3a})
+);
+gnd.rotation.x = -Math.PI/2;
+gnd.position.set(0,0,ROAD_LEN/2);
+gnd.receiveShadow = true;
+scene.add(gnd);
+
+// Road surface
+const road = new THREE.Mesh(
+  new THREE.PlaneGeometry(ROAD_W, ROAD_LEN),
+  new THREE.MeshLambertMaterial({color:0x3a3a3a})
+);
+road.rotation.x = -Math.PI/2;
+road.position.set(0,0.01,ROAD_LEN/2);
+road.receiveShadow = true;
+scene.add(road);
+
+// Sidewalks
+[-5.5,5.5].forEach(x=>{
+  const sw = new THREE.Mesh(
+    new THREE.PlaneGeometry(2,ROAD_LEN),
+    new THREE.MeshLambertMaterial({color:0xbbaa88})
+  );
+  sw.rotation.x = -Math.PI/2;
+  sw.position.set(x,0.015,ROAD_LEN/2);
+  scene.add(sw);
+});
+
+// Road center dashes
+for(let z=5;z<ROAD_LEN;z+=8){
+  const d=new THREE.Mesh(
+    new THREE.PlaneGeometry(0.15,3),
+    new THREE.MeshBasicMaterial({color:0xffffff})
+  );
+  d.rotation.x=-Math.PI/2;
+  d.position.set(0,0.02,z);
+  scene.add(d);
+}
+
+// Road edge lines
+[-3.8,3.8].forEach(x=>{
+  const l=new THREE.Mesh(
+    new THREE.PlaneGeometry(0.12,ROAD_LEN),
+    new THREE.MeshBasicMaterial({color:0xffffff})
+  );
+  l.rotation.x=-Math.PI/2;
+  l.position.set(x,0.02,ROAD_LEN/2);
+  scene.add(l);
+});
+
+// ── BUILDINGS ──
+const bColors=[0xd4a574,0xe8c4a0,0xc8b89a,0xf0d0b0,0xb8a898,0xe0c8a8,0xcc9966,0xddbb99];
+function makeBuilding(x,z){
+  const w=4+Math.random()*5, h=5+Math.random()*12, d=5+Math.random()*5;
+  const b=new THREE.Mesh(
+    new THREE.BoxGeometry(w,h,d),
+    new THREE.MeshLambertMaterial({color:bColors[Math.floor(Math.random()*bColors.length)]})
+  );
+  b.position.set(x,h/2,z);
+  b.castShadow=true; b.receiveShadow=true;
+  scene.add(b);
+  // Windows
+  const wRows=Math.floor(h/2.2), wCols=Math.floor(w/1.6);
+  for(let r=0;r<wRows;r++) for(let c=0;c<wCols;c++){
+    const wm=new THREE.Mesh(
+      new THREE.PlaneGeometry(0.65,0.85),
+      new THREE.MeshBasicMaterial({color:Math.random()>.35?0x88aacc:0x332211})
+    );
+    const side=x<0?1:-1;
+    wm.position.set(x+side*(w/2+0.01), 1.5+r*2.2, z-d/2+1+c*1.6);
+    wm.rotation.y=side*Math.PI/2;
+    scene.add(wm);
+  }
+}
+for(let z=15;z<ROAD_LEN-10;z+=14){
+  makeBuilding(-(7.5+Math.random()*4), z+Math.random()*4);
+  makeBuilding(  7.5+Math.random()*4,  z+Math.random()*4);
+}
+
+// ── TREES ──
+function makeTree(x,z){
+  const h=1.2+Math.random()*.8;
+  const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.1,.15,h,6),new THREE.MeshLambertMaterial({color:0x8B5A2B}));
+  trunk.position.set(x,h/2,z); scene.add(trunk);
+  const top=new THREE.Mesh(new THREE.SphereGeometry(.6+Math.random()*.3,7,6),new THREE.MeshLambertMaterial({color:0x2d7a2d}));
+  top.position.set(x,h+.4,z); scene.add(top);
+}
+for(let z=5;z<ROAD_LEN;z+=10){
+  makeTree(-6.2+Math.random()*.6, z+Math.random()*3);
+  makeTree( 6.2-Math.random()*.6, z+Math.random()*3);
+}
+
+// ── TRAFFIC LIGHTS ──
+const TL_POSITIONS=[70,190,330,460];
+const tlights=[];
+function makeTrafficLight(z){
+  // LEFT pole (x=-5) - tall, visible from far
+  const poleL=new THREE.Mesh(new THREE.CylinderGeometry(.1,.1,5.5,8),new THREE.MeshLambertMaterial({color:0x666666}));
+  poleL.position.set(-5,2.75,z); scene.add(poleL);
+  // Horizontal arm over road
+  const arm=new THREE.Mesh(new THREE.CylinderGeometry(.08,.08,5,8),new THREE.MeshLambertMaterial({color:0x666666}));
+  arm.rotation.z=Math.PI/2; arm.position.set(-2.5,5.5,z); scene.add(arm);
+  // Light box hanging over road center
+  const box=new THREE.Mesh(new THREE.BoxGeometry(.7,1.8,.5),new THREE.MeshLambertMaterial({color:0x111111}));
+  box.position.set(0,4.7,z); scene.add(box);
+  // Right pole
+  const poleR=new THREE.Mesh(new THREE.CylinderGeometry(.1,.1,5.5,8),new THREE.MeshLambertMaterial({color:0x666666}));
+  poleR.position.set(5,2.75,z); scene.add(poleR);
+  // Right side light box
+  const boxR=new THREE.Mesh(new THREE.BoxGeometry(.5,1.6,.4),new THREE.MeshLambertMaterial({color:0x111111}));
+  boxR.position.set(5,4.7,z); scene.add(boxR);
+
+  const bulbs=[], bulbsR=[];
+  ['red','yellow','green'].forEach((col,i)=>{
+    const hexC=col==='red'?0xff2200:col==='yellow'?0xffaa00:0x00ee44;
+    // Center box bulbs (big, visible)
+    const mat=new THREE.MeshBasicMaterial({color:hexC,transparent:true,opacity:.15});
+    const glow=new THREE.Mesh(new THREE.SphereGeometry(.22,12,10),mat);
+    glow.position.set(0, 5.3-i*.62, z-.1); scene.add(glow);
+    // Glow ring
+    const ringMat=new THREE.MeshBasicMaterial({color:hexC,transparent:true,opacity:.06,side:THREE.DoubleSide});
+    const ring=new THREE.Mesh(new THREE.RingGeometry(.22,.38,16),ringMat);
+    ring.position.set(0,5.3-i*.62,z-.26); scene.add(ring);
+    bulbs.push({mat,ringMat,c:col,hex:hexC});
+    // Right side
+    const matR=new THREE.MeshBasicMaterial({color:hexC,transparent:true,opacity:.15});
+    const glowR=new THREE.Mesh(new THREE.SphereGeometry(.18,10,8),matR);
+    glowR.position.set(5,5.2-i*.52,z-.1); scene.add(glowR);
+    bulbsR.push({mat:matR,c:col});
+  });
+  // Stop line on road
+  const stopLine=new THREE.Mesh(
+    new THREE.PlaneGeometry(ROAD_W,0.35),
+    new THREE.MeshBasicMaterial({color:0xffffff})
+  );
+  stopLine.rotation.x=-Math.PI/2;
+  stopLine.position.set(0,0.025,z-3);
+  scene.add(stopLine);
+  // Zebra crossing
+  for(let xi=-3.5;xi<=3.5;xi+=1){
+    const stripe=new THREE.Mesh(new THREE.PlaneGeometry(0.55,1.8),new THREE.MeshBasicMaterial({color:0xffffff}));
+    stripe.rotation.x=-Math.PI/2;
+    stripe.position.set(xi,0.024,z-4.5);
+    scene.add(stripe);
+  }
+  tlights.push({z, bulbs, bulbsR});
+}
+TL_POSITIONS.forEach(makeTrafficLight);
+
+let lightState='green', lightTimer=0;
+function setLight(s){
+  if(s===lightState) return;
+  lightState=s;
+  updateLightVisuals();
+}
+function updateLightVisuals(){
+  tlights.forEach(tl=>{
+    tl.bulbs.forEach(b=>{
+      const on=b.c===lightState;
+      b.mat.opacity=on?.95:.1;
+      if(b.ringMat) b.ringMat.opacity=on?.35:.02;
+    });
+    tl.bulbsR.forEach(b=>{ b.mat.opacity=b.c===lightState?.85:.1; });
+  });
+}
+// Init green
+updateLightVisuals();
+
+// ── OBSTACLES POOL ──
+const obstacles=[], dogs=[], potholes=[];
+
+function spawnCar(z){
+  const lanes=[-2.8,-1.0,1.0,2.8];
+  const lx=lanes[Math.floor(Math.random()*lanes.length)];
+  const grp=new THREE.Group();
+  const body=new THREE.Mesh(new THREE.BoxGeometry(1.9,.72,4),new THREE.MeshLambertMaterial({color:[0xcc2222,0x2255cc,0x22aa44,0xdddd22,0xffffff,0xff8800][Math.floor(Math.random()*6)]}));
+  body.position.y=.56; grp.add(body);
+  const cab=new THREE.Mesh(new THREE.BoxGeometry(1.6,.55,2.3),new THREE.MeshLambertMaterial({color:0x6699bb}));
+  cab.position.set(0,1.1,-.15); grp.add(cab);
+  [[.98,.28,1.4],[-.98,.28,1.4],[.98,.28,-1.4],[-.98,.28,-1.4]].forEach(([x,y,wz])=>{
+    const w=new THREE.Mesh(new THREE.CylinderGeometry(.28,.28,.2,10),new THREE.MeshLambertMaterial({color:0x111111}));
+    w.rotation.z=Math.PI/2; w.position.set(x,y,wz); grp.add(w);
+  });
+  grp.position.set(lx,0,z);
+  grp.castShadow=true;
+  scene.add(grp);
+  return {mesh:grp, x:lx, z, hit:false, radius:1.1};
+}
+
+function spawnDog(z){
+  const grp=new THREE.Group();
+  const body=new THREE.Mesh(new THREE.BoxGeometry(.5,.3,.7),new THREE.MeshLambertMaterial({color:0xd4a04a}));
+  body.position.y=.3; grp.add(body);
+  const head=new THREE.Mesh(new THREE.BoxGeometry(.3,.3,.3),new THREE.MeshLambertMaterial({color:0xd4a04a}));
+  head.position.set(0,.44,.38); grp.add(head);
+  grp.position.set(-3.5+Math.random()*7,0,z);
+  scene.add(grp);
+  return {grp, x:grp.position.x, z, spd:(0.6+Math.random()*1.4)*(Math.random()>.5?1:-1), hit:false, radius:.7, w:0};
+}
+
+function spawnPothole(z){
+  const lx=(-1+Math.random()*2)*2.5;
+  const m=new THREE.Mesh(new THREE.CylinderGeometry(.5,.35,.07,12),new THREE.MeshLambertMaterial({color:0x1a1a1a}));
+  m.position.set(lx,0,z); scene.add(m);
+  return {mesh:m, x:lx, z, hit:false, radius:.65};
+}
+
+// ── PLAYER BIKE HUD (handlebar overlay) ──
+// Using a separate ortho scene so it always renders on top correctly
+const hudScene=new THREE.Scene();
+const hudCam=new THREE.OrthographicCamera(-1,1,-1,1,-1,1);
+
+// Simple 2D handlebar drawn on canvas overlay instead — skip Three for this
+
+// ── GAME STATE ──
+const DIFF={
+  easy:  {time:60,lives:3,carSpd:5, carDen:.35,dogF:.15,potF:.2, lgDur:8,  fog:0.012,label:'DỄ',       badge:'#44dd44',sky:0x87CEEB},
+  medium:{time:50,lives:2,carSpd:8, carDen:.6, dogF:.3, potF:.38,lgDur:5,  fog:0.018,label:'TRUNG BÌNH',badge:'#ffd700',sky:0x6ab0cc},
+  hard:  {time:40,lives:1,carSpd:12,carDen:.85,dogF:.5, potF:.58,lgDur:3.5,fog:0.025,label:'KHÓ',       badge:'#ff4444',sky:0x4a90aa},
+  ultra: {time:35,lives:1,carSpd:16,carDen:1.0,dogF:.72,potF:.78,lgDur:2.5,fog:0.038,label:'💀 SIÊU KHÓ',badge:'#ff00ff',sky:0x203040},
+};
+let gs='menu', diff='easy', cfg=DIFF.easy;
+let timeLeft,lives,pz,px,spd,lastTs,frameId;
+let shk=0, tiltX=0, spawnZ=0;
+const keys={u:false,d:false,l:false,r:false};
+const mk={u:false,d:false,l:false,r:false};
+const MAXSPD=20, ACC=11, BRK=17, FRIC=5, STEER=3.2, TOTALDIST=500;
+let bestTimes=JSON.parse(localStorage.getItem('gomaBest')||'{}');
+
+// ── CAMERA SETUP ──
+// Camera starts at z=0, eyes at y=1.4, looks toward +Z (no rotation needed = default)
+function setCameraPos(){
+  camera.position.set(px+(Math.random()-.5)*shk*.025, 1.4+(Math.random()-.5)*shk*.015, pz+(Math.random()-.5)*shk*.025);
+  camera.rotation.set(0,0,tiltX*.12); // only tilt, no flip
+  camera.lookAt(px, 1.38, pz+50); // always look 50 units ahead
+}
+
+// ── SPAWN ──
+function doSpawn(){
+  const ahead = spawnZ - pz;
+  if(ahead > 80) return;
+  const z = spawnZ + 25;
+  if(Math.random() < cfg.carDen*.55) obstacles.push(spawnCar(z));
+  if(Math.random() < cfg.potF)       potholes.push(spawnPothole(z+8));
+  if(Math.random() < cfg.dogF)       dogs.push(spawnDog(z+12));
+  spawnZ = z;
+}
+
+// ── GAME INIT ──
+function initRace(){
+  timeLeft=cfg.time; lives=cfg.lives; pz=0; px=0; spd=0;
+  shk=0; tiltX=0; spawnZ=30; lightTimer=0;
+  setLight('green');
+  obstacles.forEach(o=>scene.remove(o.mesh)); obstacles.length=0;
+  potholes.forEach(p=>scene.remove(p.mesh));  potholes.length=0;
+  dogs.forEach(d=>scene.remove(d.grp));       dogs.length=0;
+  scene.fog=new THREE.FogExp2(cfg.sky,cfg.fog);
+  scene.background=new THREE.Color(cfg.sky);
+  gs='racing'; lastTs=performance.now();
+  document.getElementById('mc').style.display='';
+  loop(lastTs);
+}
+
+// ── MAIN LOOP ──
+function loop(ts){
+  if(gs!=='racing') return;
+  frameId=requestAnimationFrame(loop);
+  const dt=Math.min((ts-lastTs)/1000,.05);
+  lastTs=ts;
+  update(dt);
+  render();
+}
+
+function update(dt){
+  const U=keys.u||mk.u, D=keys.d||mk.d, L=keys.l||mk.l, R=keys.r||mk.r;
+  // Speed
+  if(U) spd=Math.min(MAXSPD,spd+ACC*dt);
+  else if(D) spd=Math.max(0,spd-BRK*dt);
+  else spd=Math.max(0,spd-FRIC*dt);
+  // Steer
+  const sa=STEER*dt*(spd/MAXSPD+.35);
+  if(L){px=Math.max(-3.2,px-sa); tiltX=Math.max(-.2,tiltX-dt*2);}
+  if(R){px=Math.min( 3.2,px+sa); tiltX=Math.min( .2,tiltX+dt*2);}
+  if(!L&&!R) tiltX*=(1-dt*6);
+  // Off road slow
+  if(Math.abs(px)>3.8) spd*=.94;
+  // Advance
+  pz+=spd*dt;
+  shk*=.82;
+
+  // Traffic light
+  lightTimer+=dt;
+  const lp=lightTimer%(cfg.lgDur*3);
+  if(lp<cfg.lgDur) setLight('green');
+  else if(lp<cfg.lgDur*1.45) setLight('yellow');
+  else setLight('red');
+
+  // Camera
+  setCameraPos();
+
+  // HUD
+  timeLeft=Math.max(0,timeLeft-dt);
+  document.getElementById('td').textContent=Math.ceil(timeLeft);
+  document.getElementById('td').className='htimer'+(timeLeft<10?' urg':'');
+  document.getElementById('sd').textContent=Math.round(spd*3.6);
+  const prog=Math.min(1,pz/TOTALDIST);
+  document.getElementById('pf').style.width=(prog*100)+'%';
+  document.getElementById('dl').textContent=Math.round(pz)+'m';
+  // Update mini light HUD
+  const lhEl=document.getElementById('lighthud');
+  // Show only when near a traffic light
+  const nearLight=TL_POSITIONS.some(tlz=>tlz-pz>0&&tlz-pz<60);
+  lhEl.style.display=nearLight?'flex':'none';
+  if(nearLight){
+    document.getElementById('lhR').style.opacity=lightState==='red'?'1':'0.12';
+    document.getElementById('lhR').style.boxShadow=lightState==='red'?'0 0 10px #ff2200':'0 0 0 2px #ff220022';
+    document.getElementById('lhY').style.opacity=lightState==='yellow'?'1':'0.12';
+    document.getElementById('lhY').style.boxShadow=lightState==='yellow'?'0 0 10px #ffaa00':'0 0 0 2px #ffaa0022';
+    document.getElementById('lhG').style.opacity=lightState==='green'?'1':'0.12';
+    document.getElementById('lhG').style.boxShadow=lightState==='green'?'0 0 10px #00ee44':'0 0 0 2px #00ee4422';
+    const txt=document.getElementById('lhTxt');
+    txt.textContent=lightState==='red'?'DỪNG LẠI!':lightState==='yellow'?'CHUẨN BỊ...':'ĐI ĐƯỢC';
+    txt.style.color=lightState==='red'?'#ff4444':lightState==='yellow'?'#ffaa00':'#00ee44';
+  }
+
+  // Spawn
+  doSpawn();
+
+  // Update dogs
+  dogs.forEach(d=>{
+    if(d.hit) return;
+    d.w+=dt*4;
+    d.x+=d.spd*dt;
+    d.grp.position.x=d.x;
+    d.grp.position.y=.02+Math.abs(Math.sin(d.w))*.06;
+    if(d.x>4||d.x<-4) d.spd*=-1;
+  });
+
+  // Move cars toward player (cars come from ahead, move in -Z direction)
+  obstacles.forEach(o=>{
+    if(o.hit) return;
+    // Cars ahead but moving same direction slower — player overtakes
+    // Or oncoming — move in -Z
+    o.z-=cfg.carSpd*dt; // oncoming traffic
+    o.mesh.position.z=o.z;
+    const dz=Math.abs(pz-o.z), dx=Math.abs(px-o.x);
+    if(dz<2.5&&dx<o.radius) doHit('car');
+  });
+
+  // Potholes
+  potholes.forEach(p=>{
+    if(p.hit) return;
+    const dz=Math.abs(pz-p.z), dx=Math.abs(px-p.x);
+    if(dz<.9&&dx<p.radius){p.hit=true;shk=10;spd*=.5;beep(180,.25);}
+  });
+
+  // Dogs
+  dogs.forEach(d=>{
+    if(d.hit) return;
+    const dz=Math.abs(pz-d.z), dx=Math.abs(px-d.x);
+    if(dz<1.5&&dx<d.radius) doHit('dog');
+  });
+
+  // Red light check
+  TL_POSITIONS.forEach(tlz=>{
+    const dz=pz-tlz;
+    if(dz>0&&dz<2.5&&lightState==='red'&&spd>1.5) doHit('police');
+  });
+
+  if(timeLeft<=0) endGame('timeout');
+  if(pz>=TOTALDIST) endGame('win');
+}
+
+function doHit(reason){
+  lives--;
+  updateLivesUI();
+  shk=22; flashWarn(reason);
+  if(lives<=0) endGame(reason);
+  else spd*=.18;
+}
+
+function updateLivesUI(){
+  document.querySelectorAll('.li').forEach((el,i)=>el.classList.toggle('lost',i>=lives));
+}
+
+function flashWarn(r){
+  const el=document.getElementById('wf');
+  el.style.background=r==='police'?'rgba(0,80,255,.45)':'rgba(255,30,0,.45)';
+  el.style.opacity='1';
+  setTimeout(()=>el.style.opacity='0',220);
+  beep(r==='police'?280:160,.3);
+}
+
+function render(){
+  renderer.render(scene,camera);
+}
+
+// ── DRAW POLICE OFFICER (CSGT VN style) ──
+function drawPolice(){
+  const cv=document.getElementById('policeCanvas');
+  const cx=cv.getContext('2d');
+  cx.clearRect(0,0,110,150);
+
+  // === BODY / UNIFORM (vàng đặc trưng CSGT) ===
+  // Legs - dark trousers
+  cx.fillStyle='#2a2a4a';
+  cx.fillRect(32,105,18,40); // left leg
+  cx.fillRect(60,105,18,40); // right leg
+  // Shoes
+  cx.fillStyle='#111';
+  cx.beginPath(); cx.ellipse(41,143,12,6,0,0,Math.PI*2); cx.fill();
+  cx.beginPath(); cx.ellipse(69,143,12,6,0,0,Math.PI*2); cx.fill();
+
+  // Belt - dark brown
+  cx.fillStyle='#5c3a1a';
+  cx.fillRect(28,100,54,8);
+  cx.fillStyle='#d4a017';
+  cx.fillRect(50,101,10,6); // buckle
+
+  // Shirt body - VÀNG (#e8c84a = màu đặc trưng CSGT VN)
+  const shirtGrad=cx.createLinearGradient(28,55,82,55);
+  shirtGrad.addColorStop(0,'#c8a832');
+  shirtGrad.addColorStop(0.3,'#e8c84a');
+  shirtGrad.addColorStop(0.7,'#e8c84a');
+  shirtGrad.addColorStop(1,'#c8a832');
+  cx.fillStyle=shirtGrad;
+  // Torso
+  cx.beginPath();
+  cx.moveTo(30,58); cx.lineTo(80,58);
+  cx.lineTo(82,108); cx.lineTo(28,108);
+  cx.closePath(); cx.fill();
+
+  // Shirt pockets
+  cx.fillStyle='#c8a832';
+  cx.fillRect(33,68,16,14); cx.fillRect(61,68,16,14);
+  cx.strokeStyle='#a88820'; cx.lineWidth=1;
+  cx.strokeRect(33,68,16,14); cx.strokeRect(61,68,16,14);
+  // Pocket flaps
+  cx.fillStyle='#c8a832';
+  cx.fillRect(33,68,16,4); cx.fillRect(61,68,16,4);
+
+  // Shoulder epaulettes (cầu vai) - red with gold star
+  cx.fillStyle='#cc2222';
+  cx.fillRect(24,56,16,8); // left
+  cx.fillRect(70,56,16,8); // right
+  // Gold border on epaulettes
+  cx.strokeStyle='#e8c84a'; cx.lineWidth=1.5;
+  cx.strokeRect(24,56,16,8); cx.strokeRect(70,56,16,8);
+  // Stars on epaulette
+  cx.fillStyle='#ffd700';
+  drawStar(cx,32,60,3.5);
+  drawStar(cx,78,60,3.5);
+
+  // Collar & tie area
+  cx.fillStyle='#c8a832';
+  cx.beginPath();
+  cx.moveTo(44,58); cx.lineTo(55,74); cx.lineTo(66,58); cx.closePath(); cx.fill();
+  // Collar lines
+  cx.strokeStyle='#a88820'; cx.lineWidth=1.5;
+  cx.beginPath(); cx.moveTo(44,58); cx.lineTo(55,72); cx.stroke();
+  cx.beginPath(); cx.moveTo(66,58); cx.lineTo(55,72); cx.stroke();
+
+  // Badge on left chest (phù hiệu)
+  cx.fillStyle='#1a1a8a';
+  cx.beginPath(); cx.ellipse(42,80,7,9,0,0,Math.PI*2); cx.fill();
+  cx.fillStyle='#ffd700';
+  cx.font='bold 7px Arial';
+  cx.textAlign='center';
+  cx.fillText('CA',42,83);
+
+  // Name tag right chest
+  cx.fillStyle='#fff';
+  cx.fillRect(60,78,16,8);
+  cx.fillStyle='#333';
+  cx.font='5px Arial'; cx.textAlign='center';
+  cx.fillText('CSGT',68,84);
+
+  // Arms - left raised (đang giơ tay ra hiệu DỪNG)
+  // Left arm raised up
+  cx.fillStyle='#e8c84a';
+  cx.save();
+  cx.translate(28,70);
+  cx.rotate(-0.8);
+  cx.fillRect(-6,-28,14,28); // upper arm
+  cx.restore();
+  // Left forearm
+  cx.save();
+  cx.translate(20,45);
+  cx.rotate(-1.1);
+  cx.fillRect(-5,-22,12,22);
+  cx.restore();
+  // White glove - left hand (STOP gesture)
+  cx.fillStyle='#f5f5f5';
+  cx.beginPath(); cx.arc(14,30,10,0,Math.PI*2); cx.fill();
+  cx.strokeStyle='#ccc'; cx.lineWidth=1; cx.stroke();
+  // Fingers
+  cx.fillStyle='#f0f0f0';
+  for(let fi=0;fi<4;fi++){
+    cx.fillRect(8+fi*3.5,21,3,8);
+  }
+  cx.fillRect(5,28,7,5); // thumb
+
+  // Right arm - normal down
+  cx.fillStyle='#e8c84a';
+  cx.fillRect(80,60,14,30); // right upper arm
+  cx.fillRect(82,88,12,20); // right forearm
+  // Right white glove
+  cx.fillStyle='#f5f5f5';
+  cx.beginPath(); cx.arc(88,113,9,0,Math.PI*2); cx.fill();
+
+  // === NECK ===
+  cx.fillStyle='#f4c08a';
+  cx.fillRect(47,46,16,16);
+
+  // === HEAD ===
+  // Face skin
+  cx.fillStyle='#f4c08a';
+  cx.beginPath(); cx.ellipse(55,34,16,18,0,0,Math.PI*2); cx.fill();
+  // Ears
+  cx.fillStyle='#e8b07a';
+  cx.beginPath(); cx.ellipse(38,34,4,6,0,0,Math.PI*2); cx.fill();
+  cx.beginPath(); cx.ellipse(72,34,4,6,0,0,Math.PI*2); cx.fill();
+
+  // Face features
+  // Eyes
+  cx.fillStyle='#333';
+  cx.beginPath(); cx.ellipse(48,32,3,3.5,0,0,Math.PI*2); cx.fill();
+  cx.beginPath(); cx.ellipse(62,32,3,3.5,0,0,Math.PI*2); cx.fill();
+  cx.fillStyle='#fff';
+  cx.beginPath(); cx.arc(49,31,1.2,0,Math.PI*2); cx.fill();
+  cx.beginPath(); cx.arc(63,31,1.2,0,Math.PI*2); cx.fill();
+  // Eyebrows (stern look)
+  cx.strokeStyle='#4a3010'; cx.lineWidth=2.5;
+  cx.beginPath(); cx.moveTo(44,26); cx.lineTo(53,28); cx.stroke();
+  cx.beginPath(); cx.moveTo(66,26); cx.lineTo(57,28); cx.stroke();
+  // Nose
+  cx.fillStyle='#d4965a';
+  cx.beginPath(); cx.ellipse(55,38,3,2.5,.0,0,Math.PI*2); cx.fill();
+  // Mouth - stern/serious
+  cx.strokeStyle='#b06040'; cx.lineWidth=2;
+  cx.beginPath(); cx.moveTo(47,44); cx.quadraticCurveTo(55,42,63,44); cx.stroke();
+
+  // === MŨ CSGT (kết đỏ viền vàng đặc trưng) ===
+  // Hat brim
+  cx.fillStyle='#cc1111';
+  cx.beginPath(); cx.ellipse(55,18,22,5,0,0,Math.PI*2); cx.fill();
+  // Hat body
+  const hatGrad=cx.createLinearGradient(34,4,76,18);
+  hatGrad.addColorStop(0,'#aa0e0e');
+  hatGrad.addColorStop(0.5,'#cc1111');
+  hatGrad.addColorStop(1,'#991010');
+  cx.fillStyle=hatGrad;
+  cx.beginPath();
+  cx.moveTo(34,18); cx.lineTo(38,4); cx.lineTo(72,4); cx.lineTo(76,18); cx.closePath(); cx.fill();
+  // Gold band around hat
+  cx.fillStyle='#e8c84a';
+  cx.fillRect(34,13,42,5);
+  // Gold brim edge
+  cx.strokeStyle='#e8c84a'; cx.lineWidth=2.5;
+  cx.beginPath(); cx.ellipse(55,18,22,5,0,0,Math.PI*2); cx.stroke();
+  // Hat badge (ngôi sao)
+  cx.fillStyle='#ffd700';
+  drawStar(cx,55,10,6);
+  cx.strokeStyle='#cc1111'; cx.lineWidth=1;
+  cx.beginPath(); // circle around star
+  cx.arc(55,10,8,0,Math.PI*2); cx.stroke();
+
+  // STOP sign in raised hand (biển báo)
+  cx.fillStyle='#ff2200';
+  cx.beginPath(); cx.arc(14,19,11,0,Math.PI*2); cx.fill();
+  cx.fillStyle='#fff';
+  cx.font='bold 8px Arial'; cx.textAlign='center';
+  cx.fillText('STOP',14,22);
+  cx.strokeStyle='#fff'; cx.lineWidth=1.5;
+  cx.beginPath(); cx.arc(14,19,11,0,Math.PI*2); cx.stroke();
+}
+
+function drawStar(ctx,x,y,r){
+  ctx.beginPath();
+  for(let i=0;i<5;i++){
+    const a=i*Math.PI*2/5-Math.PI/2;
+    const ai=a+Math.PI/5;
+    if(i===0) ctx.moveTo(x+r*Math.cos(a),y+r*Math.sin(a));
+    else ctx.lineTo(x+r*Math.cos(a),y+r*Math.sin(a));
+    ctx.lineTo(x+r*.4*Math.cos(ai),y+r*.4*Math.sin(ai));
+  }
+  ctx.closePath(); ctx.fill();
+}
+
+// ── END GAME ──
+function endGame(reason){
+  gs='over';
+  cancelAnimationFrame(frameId);
+  document.getElementById('mc').style.display='none';
+  const map={
+    win:    {e:'🎉',t:'GIAO HÀNG THÀNH CÔNG!',s:'Bạn đã giao thảm GOMA đúng giờ!\nKhách hàng hài lòng lắm 😄',c:'#ffd700'},
+    car:    {e:'💥',t:'TÉ XE RỒI!',s:'Va vào xe khác, thảm văng tung tóe\nAnh kho đang khóc ngoài kia...',c:'#ff4444'},
+    dog:    {e:'🐕',t:'BỊ CHÓ CẮN!',s:'Con chó chạy rong trừng trị bạn rồi\nMay mà thảm không bị cắn theo!',c:'#ff8800'},
+    police: {e:'',  t:'BỊ CÔNG AN BẮT!',s:'"Con xin chú, con giao hàng gấp ạ..."\nPhạt 300k, mất luôn tiền công 😭',c:'#ffcc00'},
+    timeout:{e:'⏰',t:'TRỄ GIỜ GIAO HÀNG!',s:'Khách hàng không còn ở nhà nữa rồi\nLần sau đi sớm hơn nhé!',c:'#ff6b00'},
+  };
+  const d=map[reason]||map.timeout;
+  const emojiEl=document.getElementById('oe');
+  const policeEl=document.getElementById('policeCanvas');
+  if(reason==='police'){
+    emojiEl.style.display='none';
+    policeEl.style.display='block';
+    drawPolice();
+  } else {
+    emojiEl.style.display='block';
+    policeEl.style.display='none';
+    emojiEl.textContent=d.e;
+  }
+  document.getElementById('ot').textContent=d.t;
+  document.getElementById('ot').style.color=d.c;
+  document.getElementById('os').textContent=d.s;
+  // Show result
+  function showResult(){
+    if(reason==='win'){
+      const t=cfg.time-timeLeft;
+      if(!bestTimes[diff]||t<bestTimes[diff]){bestTimes[diff]=t;localStorage.setItem('gomaBest',JSON.stringify(bestTimes));}
+      winSound();
+    } else loseSound();
+    document.getElementById('om').classList.add('active');
+  }
+  // Play end video
+  const videoMap={win:'win',police:'police',dog:'dog',car:'car'};
+  const vtype=videoMap[reason];
+  if(vtype) playIntroVideo(vtype, showResult);
+  else showResult();
+}
+
+// ── YOUTUBE VIDEO IDs ──
+const VIDEOS = {
+  intro:  'https://res.cloudinary.com/ddzondzwc/video/upload/v1780058629/vao_game_c3hpdy.mp4',
+  win:    'https://res.cloudinary.com/ddzondzwc/video/upload/v1780058631/Ho%C3%A0n_Th%C3%A0nh_f2gorw.mp4',
+  police: 'https://res.cloudinary.com/ddzondzwc/video/upload/v1780058629/%C4%91%C3%A8n_%C4%91%E1%BB%8F_mspcc5.mp4',
+  dog:    'https://res.cloudinary.com/ddzondzwc/video/upload/v1780058630/ch%C3%B3_k9vfpz.mp4',
+  car:    'https://res.cloudinary.com/ddzondzwc/video/upload/v1780058630/xe_hoi_iaxdeh.mp4',
+};
+
+const TAGLINES = {
+  intro:  { main:'1 GIÂY TỐC ĐỘ\n1 ĐỜI ĐI BỘ',              sub:'— GOMA SHIPPER —' },
+  win:    { main:'GIAO NHANH · GIAO ĐÚNG\nGOMA TIN TƯỞNG',   sub:'🎉 HOÀN THÀNH NHIỆM VỤ 🎉' },
+  police: { main:'ĐÈN ĐỎ DỪNG LẠI\nTHẢM GOMA VẪN TỚI',      sub:'— CSGT THÂN THIỆN —' },
+  dog:    { main:'CHÓ THÌ NÉ ĐƯỢC\nDEADLINE THÌ KHÔNG',      sub:'— GIAO HÀNG THẦN TỐC —' },
+  car:    { main:'CẨN THẬN MỘT CHÚT\nVỀ NHÀ NGUYÊN VẸN',    sub:'— AN TOÀN LÀ TRÊN HẾT —' },
+};
+
+// Video player — base64 embedded
+
+document.getElementById('ss').classList.add('active');
+// YouTube player
+let ytPlayer = null;
+let ytReady  = false;
+window.onYouTubeIframeAPIReady = function(){ ytReady = true; };
+
+const TAGLINES = {
+  intro:  { main:'1 GIÂY TỐC ĐỘ
+1 ĐỜI ĐI BỘ', sub:'— GOMA SHIPPER —' },
+  win:    { main:'GIAO NHANH · GIAO ĐÚNG
+GOMA TIN TƯỞNG', sub:'🎉 HOÀN THÀNH NHIỆM VỤ 🎉' },
+  police: { main:'ĐÈN ĐỎ DỪNG LẠI
+THẢM GOMA VẪN TỚI', sub:'— CSGT THÂN THIỆN —' },
+  dog:    { main:'CHÓ THÌ NÉ ĐƯỢC
+DEADLINE THÌ KHÔNG', sub:'— GIAO HÀNG THẦN TỐC —' },
+  car:    { main:'CẨN THẬN MỘT CHÚT
+VỀ NHÀ NGUYÊN VẸN', sub:'— AN TOÀN LÀ TRÊN HẾT —' },
+};
+
+let videoCallback = null;
+let videoTimer1 = null, videoTimer2 = null, videoTimer3 = null;
+
+let fallbackTimer = null;
+let videoCallback  = null;
+let videoTimer1=null, videoTimer2=null, videoTimer3=null;
+
+function playIntroVideo(type, onDone){
+  videoCallback = onDone;
+
+  const wrap   = document.getElementById('videoWrap');
+  const vid    = document.getElementById('introVideo');
+  const fade   = document.getElementById('videoFade');
+  const tl     = document.getElementById('videoTagline');
+  const logo   = document.getElementById('videoLogo');
+  const tlMain = document.getElementById('tlMain');
+  const tlSub  = document.getElementById('tlSub');
+
+  // Reset
+  vid.classList.remove('visible');
+  fade.style.opacity='0';
+  tl.style.opacity='0';
+  logo.style.opacity='0';
+
+  const tag = TAGLINES[type]||TAGLINES.intro;
+  tlMain.innerHTML = tag.main.replace('\n','<br>');
+  tlSub.textContent = tag.sub;
+
+  wrap.classList.add('active');
+  wrap.onclick = ()=>finishVideo();
+
+  // Fallback 10s
+  fallbackTimer = setTimeout(()=>finishVideo(), 10000);
+
+  vid.oncanplay = null;
+  vid.onended   = null;
+  vid.onerror   = null;
+
+  vid.oncanplay = function(){
+    vid.oncanplay = null;
+    clearTimeout(fallbackTimer);
+    vid.play().then(()=>{
+      vid.classList.add('visible');
+      logo.style.opacity='1';
+      const dur = vid.duration||10;
+      videoTimer1 = setTimeout(()=>{ tl.style.opacity='1'; },   Math.max(dur-3.5,1)*1000);
+      videoTimer2 = setTimeout(()=>{ fade.style.opacity='1'; }, Math.max(dur-2.2,1)*1000);
+      videoTimer3 = setTimeout(()=>{ finishVideo(); },          (dur+0.5)*1000);
+    }).catch(()=>finishVideo());
+  };
+
+  vid.onended = ()=>finishVideo();
+  vid.onerror = ()=>{ clearTimeout(fallbackTimer); finishVideo(); };
+
+  vid.src = VIDEOS[type];
+  vid.load();
+}
+
+function finishVideo(){
+  clearTimeout(fallbackTimer);
+  clearTimeout(videoTimer1);
+  clearTimeout(videoTimer2);
+  clearTimeout(videoTimer3);
+  const wrap = document.getElementById('videoWrap');
+  const vid  = document.getElementById('introVideo');
+  wrap.onclick  = null;
+  vid.oncanplay = null;
+  vid.onended   = null;
+  vid.onerror   = null;
+  vid.pause();
+  vid.src = '';
+  wrap.classList.remove('active');
+  vid.classList.remove('visible');
+  document.getElementById('videoFade').style.opacity='0';
+  document.getElementById('videoTagline').style.opacity='0';
+  document.getElementById('videoLogo').style.opacity='0';
+  if(videoCallback){ const cb=videoCallback; videoCallback=null; cb(); }
+}
+
+function skipVideo(){ finishVideo(); }
+
+// ── SCREENS ──
+function startGame(d){
+  ensureAudio();
+  diff=d; cfg=DIFF[d];
+  document.getElementById('ss').classList.remove('active');
+  // Play intro video
+  playIntroVideo('intro', ()=>{
+    document.getElementById('hud').classList.add('active');
+    const badge=document.getElementById('db');
+    badge.textContent=cfg.label;
+    badge.style.cssText=`position:absolute;top:10px;left:50%;transform:translateX(-50%);font-size:.65rem;letter-spacing:.15em;padding:3px 10px;border-radius:20px;font-weight:bold;background:${cfg.badge}22;color:${cfg.badge};border:1px solid ${cfg.badge}55`;
+    buildLives();
+    doCountdown();
+  });
+}
+
+function buildLives(){
+  const row=document.getElementById('lr');
+  row.innerHTML='';
+  for(let i=0;i<3;i++){
+    const s=document.createElement('span');
+    s.className='li'+(i>=cfg.lives?' lost':'');
+    s.textContent='🏍️';
+    row.appendChild(s);
+  }
+}
+
+function doCountdown(){
+  const el=document.getElementById('cd'), num=document.getElementById('cn');
+  el.classList.add('active');
+  let c=3; num.textContent=c; beep(440,.12);
+  const iv=setInterval(()=>{
+    c--;
+    if(c>0){num.textContent=c;num.style.animation='none';void num.offsetWidth;num.style.animation='pop .3s ease-out';beep(440,.12);}
+    else{num.textContent='GO!';num.style.color='#ff6b00';beep(880,.18);
+      setTimeout(()=>{el.classList.remove('active');initRace();},700);clearInterval(iv);}
+  },900);
+}
+
+function retryGame(){document.getElementById('om').classList.remove('active');doCountdown();}
+function goMenu(){
+  document.getElementById('om').classList.remove('active');
+  document.getElementById('hud').classList.remove('active');
+  document.getElementById('ss').classList.add('active');
+  gs='menu'; updateBestDisplay();
+}
+function updateBestDisplay(){
+  const labels={easy:'DỄ',medium:'TB',hard:'KHÓ',ultra:'💀'};
+  const entries=Object.entries(bestTimes);
+  document.getElementById('bs').innerHTML=entries.length
+    ?'Kỷ lục: '+entries.map(([d,t])=>`<span style="color:#ffd700">${labels[d]}: ${t.toFixed(1)}s</span>`).join(' | ')
+    :'Kỷ lục: <span>Chưa có</span>';
+}
+
+// ── AUDIO ──
+let actx;
+function ensureAudio(){if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();}
+function beep(freq=440,dur=.15){
+  if(!actx)return;
+  const o=actx.createOscillator(),g=actx.createGain();
+  o.frequency.value=freq;o.type='square';
+  g.gain.setValueAtTime(.13,actx.currentTime);
+  g.gain.exponentialRampToValueAtTime(.001,actx.currentTime+dur);
+  o.connect(g);g.connect(actx.destination);o.start();o.stop(actx.currentTime+dur+.01);
+}
+function winSound(){[523,659,784,1047,1319].forEach((f,i)=>setTimeout(()=>beep(f,.18),i*110));}
+function loseSound(){[400,320,260,200].forEach((f,i)=>setTimeout(()=>beep(f,.22),i*100));}
+
+// ── INPUT ──
+document.addEventListener('keydown',e=>{
+  ensureAudio();
+  if(e.key==='ArrowUp'||e.key==='w'||e.key==='W')    keys.u=true;
+  if(e.key==='ArrowDown'||e.key==='s'||e.key==='S')  keys.d=true;
+  if(e.key==='ArrowLeft'||e.key==='a'||e.key==='A')  keys.l=true;
+  if(e.key==='ArrowRight'||e.key==='d'||e.key==='D') keys.r=true;
+});
+document.addEventListener('keyup',e=>{
+  if(e.key==='ArrowUp'||e.key==='w'||e.key==='W')    keys.u=false;
+  if(e.key==='ArrowDown'||e.key==='s'||e.key==='S')  keys.d=false;
+  if(e.key==='ArrowLeft'||e.key==='a'||e.key==='A')  keys.l=false;
+  if(e.key==='ArrowRight'||e.key==='d'||e.key==='D') keys.r=false;
+});
+document.addEventListener('touchstart',ensureAudio,{once:true});
+document.addEventListener('click',ensureAudio,{once:true});
+
+// ── IDLE (menu preview) ──
+updateBestDisplay();
+camera.position.set(0,1.4,0);
+camera.lookAt(0,1.38,50);
+renderer.render(scene,camera);
+function idleLoop(){
+  if(gs!=='menu')return;
+  requestAnimationFrame(idleLoop);
+  renderer.render(scene,camera);
+}
+idleLoop();
+</script>
+</body>
+</html>
