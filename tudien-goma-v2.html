@@ -533,22 +533,18 @@ function promptKey() {
 // ── Dictionary ───────────────────────────────────────────
 async function loadDict() {
   try {
-    // Dùng no-cors không đọc được response, phải dùng mode cors với Apps Script
-    // Apps Script Web App public supports CORS khi deploy đúng
-    const res = await fetch(WEBHOOK + '?action=get_dict', {
-      method: 'GET',
-      redirect: 'follow'
-    });
+    const res = await fetch(WEBHOOK, { method: 'GET', redirect: 'follow' });
     const text = await res.text();
-    // Apps Script đôi khi trả về HTML redirect, parse cẩn thận
     const data = JSON.parse(text);
-    if (data.status === 'ok') {
+    // doGet mới trả array trực tiếp
+    if (Array.isArray(data)) {
+      dictionary = data;
+    } else if (data.status === 'ok') {
       dictionary = data.dict || [];
-      updateDictUI();
-      if (dictionary.length > 0) setStatus('Đã tải ' + dictionary.length + ' mục từ điển', 'ok');
     }
+    updateDictUI();
+    if (dictionary.length > 0) setStatus('Đã tải ' + dictionary.length + ' mục từ điển', 'ok');
   } catch(e) {
-    setStatus('Không tải được từ điển — chạy thử từ server/GitHub Pages', 'err');
     console.log('loadDict error:', e);
   }
 }
