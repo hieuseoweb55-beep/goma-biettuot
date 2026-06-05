@@ -426,7 +426,7 @@ textarea::placeholder { color: var(--muted); font-size: 14px; }
     <div class="logo">TỪ ĐIỂN <em>GOMA</em></div>
     <div class="header-meta">
       <div class="pill" id="dictPill">dict: —</div>
-      <div class="pill active">v0.2</div>
+      <div class="pill active" id="keyPill" onclick="promptKey()" style="cursor:pointer" title="Nhập API key">🔑</div>
     </div>
   </div>
 
@@ -484,7 +484,7 @@ textarea::placeholder { color: var(--muted); font-size: 14px; }
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const GEMINI_KEY = 'AIzaSyCT2UlspVZBQgyE7N2H4YxP3aHqAVaXirI';
+const GEMINI_KEY = localStorage.getItem('goma_gemini_key') || '';
 const WEBHOOK = 'https://script.google.com/macros/s/AKfycbyVSrzJhSsXo7HkmpuXDoZDpCOjm1V1n_jFSKBGcShqQDYcX_pxvaZgB1VyoHcpf7wAfA/exec';
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`;
 
@@ -497,6 +497,38 @@ let isListening = false;
 // ── Init ─────────────────────────────────────────────────
 loadDict();
 initMic();
+checkKey();
+
+function checkKey() {
+  const k = localStorage.getItem('goma_gemini_key');
+  const pill = document.getElementById('keyPill');
+  if (k && k.startsWith('AIza')) {
+    pill.textContent = '🔑✓';
+    pill.style.borderColor = 'var(--green)';
+    pill.style.color = 'var(--green)';
+  } else {
+    pill.textContent = '🔑 Nhập key';
+    pill.style.borderColor = 'var(--red)';
+    pill.style.color = 'var(--red)';
+  }
+}
+
+function promptKey() {
+  const current = localStorage.getItem('goma_gemini_key') || '';
+  const k = prompt('Nhập Gemini API key (AIzaSy...):', current);
+  if (k === null) return;
+  if (k.trim().startsWith('AIza')) {
+    localStorage.setItem('goma_gemini_key', k.trim());
+    checkKey();
+    toast('✓ Đã lưu API key', 'ok');
+  } else if (k.trim() === '') {
+    localStorage.removeItem('goma_gemini_key');
+    checkKey();
+    toast('Đã xóa API key', '');
+  } else {
+    toast('Key không hợp lệ — phải bắt đầu bằng AIza', 'err');
+  }
+}
 
 // ── Dictionary ───────────────────────────────────────────
 async function loadDict() {
@@ -596,6 +628,12 @@ function toggleMic() {
 async function analyze() {
   const raw = document.getElementById('inputText').value.trim();
   if (!raw) { toast('Chưa có nội dung', 'err'); return; }
+  const apiKey = localStorage.getItem('goma_gemini_key');
+  if (!apiKey || !apiKey.startsWith('AIza')) {
+    toast('Chưa có API key — bấm 🔑 để nhập', 'err');
+    promptKey();
+    return;
+  }
 
   const btn = document.getElementById('btnAnalyze');
   btn.disabled = true;
@@ -617,7 +655,8 @@ async function analyze() {
   const prompt = 'Trợ lý kho thảm GOMA. Chỉ trả về 1 dòng duy nhất: câu đầu vào sau khi sửa lỗi từ ngữ theo từ điển, không giải thích, không format.\nĐầu vào: "' + processed + '"' + dictExtra;
 
   try {
-    const res = await fetch(GEMINI_URL, {
+    const DYNAMIC_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+    const res = await fetch(DYNAMIC_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { thinkingConfig: { thinkingBudget: 0 } } })
