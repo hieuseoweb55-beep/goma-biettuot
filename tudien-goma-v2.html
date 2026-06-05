@@ -257,6 +257,53 @@ textarea::placeholder { color: var(--muted); font-size: 14px; }
   font-size: 12px;
 }
 
+/* ── Confirm buttons ── */
+.confirm-row {
+  display: flex;
+  gap: 8px;
+  padding: 10px 14px;
+  background: var(--s3);
+  border-top: 1px solid var(--border);
+}
+
+.btn-confirm {
+  flex: 1;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 10px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s;
+  touch-action: manipulation;
+}
+
+.btn-ok {
+  background: var(--green-bg);
+  color: var(--green);
+  border: 1px solid var(--green);
+}
+.btn-ok:active { background: var(--green); color: #080e08; }
+
+.btn-wrong {
+  background: var(--red-bg);
+  color: var(--red);
+  border: 1px solid var(--red);
+}
+.btn-wrong:active { background: var(--red); color: #fff; }
+
+.confirmed-badge {
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 6px 12px;
+  border-radius: 4px;
+  text-align: center;
+  flex: 1;
+}
+.confirmed-badge.ok { color: var(--green); background: var(--green-bg); }
+.confirmed-badge.wrong { color: var(--red); background: var(--red-bg); }
+
 /* ── Correction ── */
 .correction-section {
   display: none;
@@ -453,6 +500,10 @@ textarea::placeholder { color: var(--muted); font-size: 14px; }
         <div class="result-title">Kết quả phân tích</div>
       </div>
       <div class="result-body" id="resultBody"></div>
+      <div class="confirm-row" id="confirmRow" style="display:none">
+        <button class="btn-confirm btn-ok" onclick="confirmResult(true)">✅ Đúng ý</button>
+        <button class="btn-confirm btn-wrong" onclick="confirmResult(false)">❌ Sai ý</button>
+      </div>
     </div>
   </div>
 
@@ -493,6 +544,8 @@ let dictionary = [];
 let rowId = 0;
 let recognition = null;
 let isListening = false;
+let lastRaw = '';
+let lastLLM = '';
 
 // ── Init ─────────────────────────────────────────────────
 loadDict();
@@ -575,7 +628,7 @@ function initMic() {
     return;
   }
   recognition = new SpeechRecognition();
-  recognition.lang = 'vi-VN';
+  recognition.lang = 'vi';
   recognition.continuous = false;
   recognition.interimResults = true;
 
@@ -635,7 +688,10 @@ async function analyze() {
   btn.disabled = true;
   setStatus('Đang phân tích...', 'busy');
 
+  // Reload dict mới nhất trước khi map
+  await loadDict();
   const processed = applyDict(raw);
+  console.log('raw:', raw, '→ processed:', processed);
 
   // Show result section
   const rs = document.getElementById('resultSection');
@@ -665,12 +721,21 @@ async function analyze() {
     rb.className = 'result-body';
     rb.innerHTML = renderMd(text);
 
+    // Lưu để log
+    lastRaw = raw;
+    lastLLM = text.replace(/<[^>]+>/g, '').trim();
+
+    // Hiện confirm buttons, reset trạng thái
+    const confirmRow = document.getElementById('confirmRow');
+    confirmRow.style.display = 'flex';
+    confirmRow.innerHTML = '<button class="btn-confirm btn-ok" onclick="confirmResult(true)">✅ Đúng ý</button><button class="btn-confirm btn-wrong" onclick="confirmResult(false)">❌ Sai ý</button>';
+
     // Show correction section
     const cs = document.getElementById('corrSection');
     cs.classList.add('show');
     if (document.getElementById('corrRows').children.length === 0) addRow();
 
-    setStatus('Phân tích xong — kiểm tra kết quả', 'ok');
+    setStatus('Phân tích xong — đúng ý không?', 'ok');
     rs.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
   } catch(e) {
@@ -707,6 +772,30 @@ function addRow(sai = '', dung = '') {
 
 function delRow(id) {
   document.getElementById('r' + id)?.remove();
+}
+
+// ── Confirm & log ────────────────────────────────────────
+async function confirmResult(isOk) {
+  const confirmRow = document.getElementById('confirmRow');
+  const label = isOk ? '✅ Đã xác nhận đúng' : '❌ Đã đánh dấu sai';
+  const cls = isOk ? 'ok' : 'wrong';
+  confirmRow.innerHTML = '<div class="confirmed-badge ' + cls + '">' + label + '</div>';
+
+  try {
+    await fetch(WEBHOOK, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({
+        action: 'add_history',
+        input: lastRaw,
+        llm_result: lastLLM,
+        confirmed: isOk ? 'ĐÚNG' : 'SAI'
+      })
+    });
+    setStatus(isOk ? 'Đã log: Đúng ý ✅' : 'Đã log: Sai ý ❌ — điền correction bên dưới', isOk ? 'ok' : 'err');
+  } catch(e) {
+    console.log('log history error:', e);
+  }
 }
 
 // ── Save ─────────────────────────────────────────────────
@@ -756,9 +845,11 @@ async function saveToSheet() {
 function clearAll() {
   document.getElementById('inputText').value = '';
   document.getElementById('resultSection').style.display = 'none';
+  document.getElementById('confirmRow').style.display = 'none';
   document.getElementById('corrSection').classList.remove('show');
   document.getElementById('corrRows').innerHTML = '';
   rowId = 0;
+  lastRaw = ''; lastLLM = '';
   setStatus('Sẵn sàng');
 }
 
