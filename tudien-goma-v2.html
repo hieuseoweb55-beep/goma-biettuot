@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Từ Điển GOMA</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Be+Vietnam+Pro:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0c0e0c;
+  --s1: #131513;
+  --s2: #191c19;
+  --s3: #1f231f;
+  --border: #272b27;
+  --border2: #343834;
+  --green: #4ade80;
+  --green-bg: #0f2a1a;
+  --red: #f87171;
+  --red-bg: #2a0f0f;
+  --yellow: #fbbf24;
+  --yellow-bg: #2a200a;
+  --blue: #60a5fa;
+  --text: #dfe8df;
+  --muted: #5a6b5a;
+  --mid: #8fa08f;
+  --mono: 'IBM Plex Mono', monospace;
+  --body: 'Be Vietnam Pro', sans-serif;
+  --r: 8px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--body);
+  font-size: 15px;
+  line-height: 1.6;
+  min-height: 100dvh;
+  overflow-x: hidden;
+}
+
+/* ── Layout ── */
+.app {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 0 0 80px;
+}
+
+/* ── Header ── */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 16px 12px;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  background: var(--bg);
+  z-index: 50;
+}
+
+.logo {
+  font-family: var(--mono);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--green);
+  letter-spacing: -0.3px;
+}
+
+.logo em { color: var(--muted); font-style: normal; font-weight: 400; }
+
+.header-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pill {
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  color: var(--muted);
+}
+
+.pill.active { border-color: var(--green); color: var(--green); background: var(--green-bg); }
+
+/* ── Section ── */
+.section {
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.label {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+/* ── Input area ── */
+.input-wrap {
+  position: relative;
+}
+
+textarea {
+  width: 100%;
+  background: var(--s2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  color: var(--text);
+  font-family: var(--body);
+  font-size: 15px;
+  line-height: 1.6;
+  padding: 14px 52px 14px 14px;
+  resize: none;
+  min-height: 110px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+textarea:focus { border-color: var(--border2); }
+textarea::placeholder { color: var(--muted); font-size: 14px; }
+
+/* ── Mic button ── */
+.btn-mic {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: none;
+  background: var(--s3);
+  color: var(--mid);
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  touch-action: manipulation;
+}
+
+.btn-mic:hover { background: var(--border); color: var(--text); }
+.btn-mic.listening {
+  background: var(--red-bg);
+  color: var(--red);
+  animation: micPulse 1s infinite;
+}
+.btn-mic.not-supported { opacity: 0.3; cursor: not-allowed; }
+
+@keyframes micPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(248,113,113,0.4); }
+  50% { box-shadow: 0 0 0 8px rgba(248,113,113,0); }
+}
+
+/* ── Action buttons ── */
+.btn-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.btn {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 12px 20px;
+  border-radius: var(--r);
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s;
+  letter-spacing: 0.3px;
+  touch-action: manipulation;
+  flex-shrink: 0;
+}
+
+.btn-analyze {
+  background: var(--green);
+  color: #080e08;
+  flex: 1;
+  font-size: 13px;
+}
+
+.btn-analyze:active { background: #6ee7a0; transform: scale(0.98); }
+.btn-analyze:disabled { background: var(--green-bg); color: var(--muted); }
+
+.btn-clear {
+  background: var(--s2);
+  color: var(--mid);
+  border: 1px solid var(--border);
+  padding: 12px 16px;
+}
+
+.btn-clear:active { background: var(--s3); }
+
+/* ── Result ── */
+.result-card {
+  background: var(--s2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  overflow: hidden;
+  display: none;
+  margin-top: 4px;
+}
+
+.result-card.show { display: block; animation: fadeUp 0.25s ease; }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.result-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: var(--s3);
+  border-bottom: 1px solid var(--border);
+}
+
+.dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--green);
+  animation: blink 2.5s infinite;
+}
+
+@keyframes blink {
+  0%,100% { opacity: 1; } 50% { opacity: 0.2; }
+}
+
+.result-title {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.result-body {
+  padding: 14px;
+  font-size: 14px;
+  line-height: 1.75;
+  color: var(--text);
+}
+
+.result-body.thinking {
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
+/* ── Correction ── */
+.correction-section {
+  display: none;
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.correction-section.show { display: block; }
+
+.col-heads {
+  display: grid;
+  grid-template-columns: 1fr 1fr 32px;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.col-head {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 0 2px;
+}
+
+.corr-rows { display: flex; flex-direction: column; gap: 8px; }
+
+.corr-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 32px;
+  gap: 8px;
+  align-items: center;
+  animation: fadeUp 0.2s ease;
+}
+
+.corr-input {
+  background: var(--s2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 10px 10px;
+  outline: none;
+  width: 100%;
+  transition: border-color 0.2s;
+}
+
+.corr-input:focus { border-color: var(--border2); }
+.corr-input::placeholder { color: var(--muted); font-size: 11px; }
+.corr-input.sai { border-left: 2px solid var(--red); }
+.corr-input.dung { border-left: 2px solid var(--green); }
+
+.btn-del {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 20px;
+  cursor: pointer;
+  line-height: 1;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: manipulation;
+}
+
+.btn-del:active { color: var(--red); }
+
+.corr-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.btn-add {
+  background: var(--s2);
+  color: var(--mid);
+  border: 1px solid var(--border);
+  flex: 1;
+}
+
+.btn-add:active { background: var(--s3); }
+
+.btn-save {
+  background: var(--yellow-bg);
+  color: var(--yellow);
+  border: 1px solid transparent;
+  flex: 1;
+}
+
+.btn-save:active { border-color: var(--yellow); }
+.btn-save:disabled { opacity: 0.35; cursor: not-allowed; }
+
+/* ── Bottom bar ── */
+.bottom-bar {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: var(--s1);
+  border-top: 1px solid var(--border);
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 50;
+}
+
+.status {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.status.ok { color: var(--green); }
+.status.err { color: var(--red); }
+.status.busy { color: var(--yellow); }
+
+.dict-badge {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+  margin-left: 12px;
+}
+
+.dict-badge b { color: var(--green); }
+
+/* ── Toast ── */
+.toast {
+  position: fixed;
+  bottom: 60px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--s3);
+  border: 1px solid var(--border2);
+  border-radius: 20px;
+  padding: 10px 18px;
+  font-family: var(--mono);
+  font-size: 12px;
+  z-index: 200;
+  opacity: 0;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.toast.ok { color: var(--green); border-color: var(--green); }
+.toast.err { color: var(--red); border-color: var(--red); }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="logo">TỪ ĐIỂN <em>GOMA</em></div>
+    <div class="header-meta">
+      <div class="pill" id="dictPill">dict: —</div>
+      <div class="pill active">v0.2</div>
+    </div>
+  </div>
+
+  <!-- Input section -->
+  <div class="section">
+    <div class="label">Nội dung phân tích</div>
+    <div class="input-wrap">
+      <textarea id="inputText"
+        placeholder="Nói vào mic hoặc paste text từ voice-to-text vào đây...&#10;&#10;VD: xuất cho thằng minh hai mươi mét ba sáu bốn xanh dương"></textarea>
+      <button class="btn-mic" id="btnMic" onclick="toggleMic()" title="Nói vào mic">🎤</button>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-analyze" id="btnAnalyze" onclick="analyze()">▶ Phân tích</button>
+      <button class="btn btn-clear" onclick="clearAll()">✕</button>
+    </div>
+  </div>
+
+  <!-- Result -->
+  <div class="section" id="resultSection" style="display:none">
+    <div class="label">Gemini hiểu được</div>
+    <div class="result-card show" id="resultCard">
+      <div class="result-top">
+        <div class="dot"></div>
+        <div class="result-title">Kết quả phân tích</div>
+      </div>
+      <div class="result-body" id="resultBody"></div>
+    </div>
+  </div>
+
+  <!-- Correction -->
+  <div class="correction-section" id="corrSection">
+    <div class="label">Ghi lỗi → từ điển</div>
+    <div class="col-heads">
+      <div class="col-head">❌ Từ sai</div>
+      <div class="col-head">✅ Từ đúng</div>
+      <div></div>
+    </div>
+    <div class="corr-rows" id="corrRows"></div>
+    <div class="corr-actions">
+      <button class="btn btn-add" onclick="addRow()">+ Thêm</button>
+      <button class="btn btn-save" id="btnSave" onclick="saveToSheet()">💾 Lưu từ điển</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- Bottom bar -->
+<div class="bottom-bar">
+  <div class="status" id="statusEl">Sẵn sàng</div>
+  <div class="dict-badge">dict: <b id="dictCount">—</b></div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Config ──────────────────────────────────────────────
+const GEMINI_KEY = 'AIzaSyCT2UlspVZBQgyE7N2H4YxP3aHqAVaXirI';
+const WEBHOOK = 'https://script.google.com/macros/s/AKfycbyVSrzJhSsXo7HkmpuXDoZDpCOjm1V1n_jFSKBGcShqQDYcX_pxvaZgB1VyoHcpf7wAfA/exec';
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`;
+
+// ── State ────────────────────────────────────────────────
+let dictionary = [];
+let rowId = 0;
+let recognition = null;
+let isListening = false;
+
+// ── Init ─────────────────────────────────────────────────
+loadDict();
+initMic();
+
+// ── Dictionary ───────────────────────────────────────────
+async function loadDict() {
+  try {
+    // Dùng no-cors không đọc được response, phải dùng mode cors với Apps Script
+    // Apps Script Web App public supports CORS khi deploy đúng
+    const res = await fetch(WEBHOOK + '?action=get_dict', {
+      method: 'GET',
+      redirect: 'follow'
+    });
+    const text = await res.text();
+    // Apps Script đôi khi trả về HTML redirect, parse cẩn thận
+    const data = JSON.parse(text);
+    if (data.status === 'ok') {
+      dictionary = data.dict || [];
+      updateDictUI();
+      if (dictionary.length > 0) setStatus('Đã tải ' + dictionary.length + ' mục từ điển', 'ok');
+    }
+  } catch(e) {
+    setStatus('Không tải được từ điển — chạy thử từ server/GitHub Pages', 'err');
+    console.log('loadDict error:', e);
+  }
+}
+
+function updateDictUI() {
+  const n = dictionary.length;
+  document.getElementById('dictCount').textContent = n;
+  document.getElementById('dictPill').textContent = 'dict: ' + n;
+}
+
+function applyDict(text) {
+  let r = text;
+  dictionary.forEach(({ tu_sai, tu_dung }) => {
+    if (!tu_sai) return;
+    const re = new RegExp(tu_sai.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+    r = r.replace(re, tu_dung);
+  });
+  return r;
+}
+
+// ── Mic ──────────────────────────────────────────────────
+function initMic() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const btn = document.getElementById('btnMic');
+  if (!SpeechRecognition) {
+    btn.classList.add('not-supported');
+    btn.title = 'Trình duyệt không hỗ trợ mic';
+    return;
+  }
+  recognition = new SpeechRecognition();
+  recognition.lang = 'vi-VN';
+  recognition.continuous = false;
+  recognition.interimResults = true;
+
+  recognition.onresult = (e) => {
+    let interim = '', final = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      const t = e.results[i][0].transcript;
+      e.results[i].isFinal ? (final += t) : (interim += t);
+    }
+    const ta = document.getElementById('inputText');
+    if (final) ta.value = (ta.value + ' ' + final).trim();
+    else if (interim) ta.placeholder = interim;
+  };
+
+  recognition.onend = () => {
+    isListening = false;
+    btn.classList.remove('listening');
+    btn.textContent = '🎤';
+    document.getElementById('inputText').placeholder = 'Nói vào mic hoặc paste text từ voice-to-text vào đây...';
+    setStatus('Sẵn sàng');
+  };
+
+  recognition.onerror = (e) => {
+    isListening = false;
+    btn.classList.remove('listening');
+    btn.textContent = '🎤';
+    if (e.error !== 'aborted') setStatus('Mic lỗi: ' + e.error, 'err');
+  };
+}
+
+function toggleMic() {
+  if (!recognition) return;
+  const btn = document.getElementById('btnMic');
+  if (isListening) {
+    recognition.stop();
+  } else {
+    recognition.start();
+    isListening = true;
+    btn.classList.add('listening');
+    btn.textContent = '⏹';
+    setStatus('Đang nghe...', 'busy');
+  }
+}
+
+// ── Analyze ──────────────────────────────────────────────
+async function analyze() {
+  const raw = document.getElementById('inputText').value.trim();
+  if (!raw) { toast('Chưa có nội dung', 'err'); return; }
+
+  const btn = document.getElementById('btnAnalyze');
+  btn.disabled = true;
+  setStatus('Đang phân tích...', 'busy');
+
+  const processed = applyDict(raw);
+
+  // Show result section
+  const rs = document.getElementById('resultSection');
+  rs.style.display = 'block';
+  const rb = document.getElementById('resultBody');
+  rb.className = 'result-body thinking';
+  rb.textContent = '⟳ Gọi Gemini...';
+
+  const dictExtra = dictionary.length > 0
+    ? ' [dict:' + dictionary.slice(0,100).map(d => d.tu_sai+'='+d.tu_dung).join(',') + ']'
+    : '';
+
+  const prompt = 'Trợ lý kho thảm GOMA. Chỉ trả về 1 dòng duy nhất: câu đầu vào sau khi sửa lỗi từ ngữ theo từ điển, không giải thích, không format.\nĐầu vào: "' + processed + '"' + dictExtra;
+
+  try {
+    const res = await fetch(GEMINI_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { thinkingConfig: { thinkingBudget: 0 } } })
+    });
+    const data = await res.json();
+
+    if (data.error) throw new Error(data.error.message);
+
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Không có kết quả';
+    rb.className = 'result-body';
+    rb.innerHTML = renderMd(text);
+
+    // Show correction section
+    const cs = document.getElementById('corrSection');
+    cs.classList.add('show');
+    if (document.getElementById('corrRows').children.length === 0) addRow();
+
+    setStatus('Phân tích xong — kiểm tra kết quả', 'ok');
+    rs.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+  } catch(e) {
+    rb.className = 'result-body';
+    rb.textContent = '❌ ' + e.message;
+    setStatus('Lỗi: ' + e.message, 'err');
+  }
+
+  btn.disabled = false;
+}
+
+function renderMd(text) {
+  return text
+    .replace(/\*\*(.*?)\*\*/g, '<strong style="color:var(--green);font-family:var(--mono);font-size:10px;letter-spacing:1.2px;text-transform:uppercase;display:block;margin-top:10px;margin-bottom:4px">$1</strong>')
+    .replace(/\n/g, '<br>');
+}
+
+// ── Correction rows ───────────────────────────────────────
+function addRow(sai = '', dung = '') {
+  rowId++;
+  const id = rowId;
+  const el = document.createElement('div');
+  el.className = 'corr-row';
+  el.id = 'r' + id;
+  el.innerHTML = `
+    <input class="corr-input sai" type="text" placeholder="ba sáu bốn" value="${sai}" id="s${id}">
+    <input class="corr-input dung" type="text" placeholder="BG364" value="${dung}" id="d${id}">
+    <button class="btn-del" onclick="delRow(${id})">×</button>
+  `;
+  document.getElementById('corrRows').appendChild(el);
+  // Focus first empty sai input
+  if (!sai) document.getElementById('s' + id).focus();
+}
+
+function delRow(id) {
+  document.getElementById('r' + id)?.remove();
+}
+
+// ── Save ─────────────────────────────────────────────────
+async function saveToSheet() {
+  const rows = [];
+  document.querySelectorAll('.corr-row').forEach(row => {
+    const id = row.id.slice(1);
+    const sai = document.getElementById('s' + id)?.value.trim();
+    const dung = document.getElementById('d' + id)?.value.trim();
+    if (sai && dung) rows.push({ tu_sai: sai, tu_dung: dung });
+  });
+
+  if (!rows.length) { toast('Chưa điền dữ liệu', 'err'); return; }
+
+  const btn = document.getElementById('btnSave');
+  btn.disabled = true;
+  setStatus('Đang lưu...', 'busy');
+
+  try {
+    const res = await fetch(WEBHOOK, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ action: 'add_words', rows })
+    });
+    const data = await res.json();
+    if (data.status !== 'ok') throw new Error(data.message);
+
+    rows.forEach(r => dictionary.push(r));
+    updateDictUI();
+
+    document.getElementById('corrRows').innerHTML = '';
+    rowId = 0;
+    addRow();
+
+    toast(`✓ Đã lưu ${data.added} mục`, 'ok');
+    setStatus(`Đã lưu ${data.added} mục vào từ điển`, 'ok');
+
+  } catch(e) {
+    toast('Lỗi lưu: ' + e.message, 'err');
+    setStatus('Lỗi lưu', 'err');
+  }
+
+  btn.disabled = false;
+}
+
+// ── Helpers ───────────────────────────────────────────────
+function clearAll() {
+  document.getElementById('inputText').value = '';
+  document.getElementById('resultSection').style.display = 'none';
+  document.getElementById('corrSection').classList.remove('show');
+  document.getElementById('corrRows').innerHTML = '';
+  rowId = 0;
+  setStatus('Sẵn sàng');
+}
+
+function setStatus(msg, type = '') {
+  const el = document.getElementById('statusEl');
+  el.textContent = msg;
+  el.className = 'status ' + type;
+}
+
+function toast(msg, type = '') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show ' + type;
+  setTimeout(() => el.className = 'toast ' + type, 2800);
+}
+</script>
+</body>
+</html>
