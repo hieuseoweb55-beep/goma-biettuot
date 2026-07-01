@@ -300,6 +300,15 @@
         </select>
         <button onclick="loadImages(true)" style="padding:7px 12px;border:1.5px solid #E2DDD6;border-radius:8px;font-size:12px;background:#F8F6F1;cursor:pointer;font-family:inherit;color:#666;">🔄 Làm mới</button>
       </div>
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:10px;">
+        <span style="font-size:11px;font-weight:700;color:#C5A059;text-transform:uppercase;letter-spacing:0.06em;">Hiển thị giá:</span>
+        <div id="priceModeGroup" style="display:flex;border:1.5px solid #E2DDD6;border-radius:8px;overflow:hidden;">
+          <button id="pmBtn_dai_ly" onclick="setPriceMode('dai_ly')" style="padding:6px 12px;font-size:11px;font-weight:700;font-family:inherit;border:none;cursor:pointer;background:#C5A059;color:#fff;">Đại lý</button>
+          <button id="pmBtn_ban_le" onclick="setPriceMode('ban_le')" style="padding:6px 12px;font-size:11px;font-weight:700;font-family:inherit;border:none;cursor:pointer;background:transparent;color:#94a3b8;border-left:1px solid #E2DDD6;">Bán lẻ</button>
+          <button id="pmBtn_ca_hai" onclick="setPriceMode('ca_hai')" style="padding:6px 12px;font-size:11px;font-weight:700;font-family:inherit;border:none;cursor:pointer;background:transparent;color:#94a3b8;border-left:1px solid #E2DDD6;">Cả hai</button>
+        </div>
+        <span id="priceRatioNote" style="font-size:10px;color:#94a3b8;display:none;">(Bán lẻ = Đại lý × 1.6)</span>
+      </div>
     </div>
     <div style="margin-bottom:14px;">
       <input type="text" id="imgSearch" placeholder="Tìm mã màu (vd: C01, Rainbow...)" oninput="filterImages()" style="width:100%;padding:9px 14px;border:1.5px solid #E2DDD6;border-radius:8px;font-size:13px;font-family:inherit;outline:none;background:#F8F6F1;" />
@@ -1081,6 +1090,23 @@ function renderStock() {
 
 // ===================== IMAGES =====================
 const GAS_IMG_URL = 'https://script.google.com/macros/s/AKfycbwuAiCSOId-jvaFReSAMukfG8DFhwRMza4Qt-pqcNPPrXvH4g1dW2XKXzrmtl8-sr2j/exec';
+let _priceMode = 'dai_ly'; // 'dai_ly' | 'ban_le' | 'ca_hai'
+
+function setPriceMode(mode) {
+  _priceMode = mode;
+  ['dai_ly','ban_le','ca_hai'].forEach(m => {
+    const btn = document.getElementById('pmBtn_' + m);
+    if (!btn) return;
+    btn.style.background = (m === mode) ? '#C5A059' : 'transparent';
+    btn.style.color      = (m === mode) ? '#fff'    : '#94a3b8';
+  });
+  const note = document.getElementById('priceRatioNote');
+  if (note) note.style.display = (mode !== 'dai_ly') ? 'inline' : 'none';
+  // Nếu đang có modal mở → re-render modal
+  if (document.getElementById('imgDetailModal')) _renderImgModal();
+  // Re-render grid
+  filterImages();
+}
 
 let _imgData = [];
 let _imgLoaded = false;
@@ -1163,7 +1189,7 @@ function filterImages() {
       + '<div style="padding:8px 10px;">'
       + '<div style="font-size:13px;font-weight:700;color:#1a1a1a;">' + esc(d.ma_hang) + '</div>'
       + '<div style="font-size:10px;color:#C5A059;font-weight:600;margin:2px 0;">' + esc(d.loai) + (d.anhs.length > 1 ? ' · ' + d.anhs.length + ' ảnh' : '') + '</div>'
-      + (giaFmt ? '<div style="font-size:11px;font-weight:700;color:#1D9E75;margin-top:3px;">' + giaFmt + '/' + (d.don_vi||'m²') + '</div>' : '')
+      + (giaFmt ? '<div style="font-size:11px;font-weight:700;color:#1D9E75;margin-top:3px;">' + giaFmt + '</div>' : '')
       + '</div></div>';
   }).join('');
 }
@@ -1174,16 +1200,66 @@ function imgFallback(el) {
 
 function escQ(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-function fmtGia(gia, donVi) {
+function _fmtNum(num, donVi) {
+  return new Intl.NumberFormat('vi-VN').format(Math.round(num)) + 'đ' + (donVi ? '/' + donVi : '/m²');
+}
+
+function fmtGia(gia, donVi, mode) {
+  if (!gia) return '';
+  mode = mode || _priceMode || 'dai_ly';
+  const raw = String(gia).trim();
+  const isNum = /^[\d,\.\s]+$/.test(raw);
+  const numVal = isNum ? Number(raw.replace(/,/g,'').replace(/\s/g,'')) : NaN;
+
+  if (!isNum || isNaN(numVal) || numVal <= 0) {
+    // Text giá (thảm mỹ thuật): đại lý = text gốc, bán lẻ = Liên hệ
+    if (mode === 'dai_ly') return raw;
+    if (mode === 'ban_le') return 'Liên hệ';
+    return raw + ' | Liên hệ';
+  }
+
+  const daiLy  = _fmtNum(numVal, donVi);
+  const banLe  = _fmtNum(numVal * 1.6, donVi);
+
+  if (mode === 'dai_ly') return daiLy;
+  if (mode === 'ban_le') return banLe;
+  // ca_hai
+  return daiLy + ' | ' + banLe;
+}
+
+function fmtGiaBlock(gia, donVi) {
+  // Dùng trong modal: trả HTML 1 hoặc 2 dòng
   if (!gia) return '';
   const raw = String(gia).trim();
-  const num = Number(raw.replace(/[,\.]/g, '').replace(/[^0-9]/g, ''));
-  // Nếu là số thuần → format đẹp
-  if (/^[\d,\.]+$/.test(raw) && !isNaN(num) && num > 0) {
-    return new Intl.NumberFormat('vi-VN').format(Number(raw.replace(/,/g,''))) + 'đ' + (donVi ? '/' + donVi : '/m²');
+  const isNum = /^[\d,\.\s]+$/.test(raw);
+  const numVal = isNum ? Number(raw.replace(/,/g,'').replace(/\s/g,'')) : NaN;
+
+  if (!isNum || isNaN(numVal) || numVal <= 0) {
+    if (mode === 'dai_ly') return '<span style="color:#1D9E75;font-weight:700;">' + esc(raw) + '</span><span style="font-size:10px;color:#94a3b8;margin-left:4px;">đại lý</span>';
+    if (mode === 'ban_le') return '<span style="color:#e67e22;font-weight:700;">Liên hệ</span><span style="font-size:10px;color:#94a3b8;margin-left:4px;">bán lẻ</span>';
+    return '<div style="display:flex;flex-direction:column;gap:3px;">'
+         + '<div><span style="color:#1D9E75;font-weight:700;">' + esc(raw) + '</span><span style="font-size:10px;color:#94a3b8;margin-left:4px;">đại lý</span></div>'
+         + '<div><span style="color:#e67e22;font-weight:700;">Liên hệ</span><span style="font-size:10px;color:#94a3b8;margin-left:4px;">bán lẻ</span></div>'
+         + '</div>';
   }
-  // Text (vd: thảm mỹ thuật có 2 mức giá) → hiển thị nguyên
-  return raw;
+
+  const mode   = _priceMode || 'dai_ly';
+  const daiLy  = _fmtNum(numVal, donVi);
+  const banLe  = _fmtNum(numVal * 1.6, donVi);
+
+  if (mode === 'dai_ly') {
+    return '<span style="color:#1D9E75;font-weight:700;">' + daiLy + '</span>'
+         + '<span style="font-size:10px;color:#94a3b8;margin-left:4px;">đại lý</span>';
+  }
+  if (mode === 'ban_le') {
+    return '<span style="color:#e67e22;font-weight:700;">' + banLe + '</span>'
+         + '<span style="font-size:10px;color:#94a3b8;margin-left:4px;">bán lẻ</span>';
+  }
+  // ca_hai
+  return '<div style="display:flex;flex-direction:column;gap:3px;">'
+       + '<div><span style="color:#1D9E75;font-weight:700;">' + daiLy + '</span><span style="font-size:10px;color:#94a3b8;margin-left:4px;">đại lý</span></div>'
+       + '<div><span style="color:#e67e22;font-weight:700;">' + banLe + '</span><span style="font-size:10px;color:#94a3b8;margin-left:4px;">bán lẻ ×1.6</span></div>'
+       + '</div>';
 }
 
 function copySku(sku) { navigator.clipboard.writeText(sku).catch(()=>{}); }
@@ -1227,17 +1303,11 @@ function _renderImgModal() {
       + '</div>'
     : '<div style="padding:40px;text-align:center;color:#999;font-size:13px;background:#f8f6f1;border-radius:10px;">Chưa có ảnh sản phẩm</div>';
 
-  const infoHtml = [
-    ['Mã hàng',  d.ma_hang],
-    ['Loại hàng', d.loai],
-    ['Giá tiền',  giaFmt],
-    ['Đơn vị',   d.don_vi],
-  ].filter(r=>r[1]).map(([k,v]) =>
-    '<div style="margin-bottom:11px;">'
-    + '<div style="font-size:10px;font-weight:700;color:#C5A059;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px;">' + k + '</div>'
-    + '<div style="font-size:13px;color:#1a1a1a;font-weight:600;">' + esc(v) + '</div>'
-    + '</div>'
-  ).join('')
+  const infoHtml =
+    '<div style="margin-bottom:11px;"><div style="font-size:10px;font-weight:700;color:#C5A059;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px;">Mã hàng</div><div style="font-size:13px;color:#1a1a1a;font-weight:600;">' + esc(d.ma_hang) + '</div></div>'
+  + (d.loai ? '<div style="margin-bottom:11px;"><div style="font-size:10px;font-weight:700;color:#C5A059;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px;">Loại hàng</div><div style="font-size:13px;color:#1a1a1a;font-weight:600;">' + esc(d.loai) + '</div></div>' : '')
+  + (d.gia  ? '<div style="margin-bottom:11px;"><div style="font-size:10px;font-weight:700;color:#C5A059;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px;">Giá tiền</div><div style="font-size:14px;">' + fmtGiaBlock(d.gia, d.don_vi) + '</div></div>' : '')
+  + (d.don_vi ? '<div style="margin-bottom:11px;"><div style="font-size:10px;font-weight:700;color:#C5A059;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px;">Đơn vị</div><div style="font-size:13px;color:#1a1a1a;font-weight:600;">' + esc(d.don_vi) + '</div></div>' : '')
   + (d.dac_diem ? '<div style="margin-bottom:11px;"><div style="font-size:10px;font-weight:700;color:#C5A059;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">Đặc điểm nhận dạng</div><div style="font-size:12px;color:#444;line-height:1.6;white-space:pre-line;">' + esc(d.dac_diem) + '</div></div>' : '')
   + (d.thong_tin ? '<div style="margin-bottom:11px;"><div style="font-size:10px;font-weight:700;color:#C5A059;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">Thông tin hàng</div><div style="font-size:12px;color:#444;line-height:1.6;white-space:pre-line;">' + esc(d.thong_tin) + '</div></div>' : '')
   + (d.link_sp ? '<a href="' + escQ(d.link_sp) + '" target="_blank" style="display:inline-flex;align-items:center;gap:6px;margin-top:6px;padding:8px 14px;background:#0F172A;color:#C5A059;border-radius:8px;font-size:12px;font-weight:700;text-decoration:none;">🔗 Xem sản phẩm</a>' : '');
