@@ -1,0 +1,2563 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Thợ Dệt Goma — v0.4b RPG Xưởng Dệt</title>
+<style>
+  :root{
+    --do-tham:#8e1f2f; --do-dam:#5e121e; --vang:#e8b94a; --vang-nhat:#f5d98b;
+    --nen:#141010; --nen-2:#261c1c; --nen-3:#332424; --chu:#f3e9d8; --chu-mo:#b9a98f;
+    --xanh:#4caf6e; --do:#e05545;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  body{background:var(--nen);color:var(--chu);font-family:"Segoe UI",Roboto,Arial,sans-serif;
+    min-height:100vh;display:flex;flex-direction:column;align-items:center;}
+  #app{width:100%;max-width:560px;padding:8px;display:flex;flex-direction:column;gap:8px;}
+
+  header{background:linear-gradient(135deg,var(--do-dam),var(--do-tham));border:1px solid var(--vang);
+    border-radius:12px;padding:8px 12px;display:flex;align-items:center;gap:10px;}
+  header img{height:28px;background:#fff;border-radius:6px;padding:2px;}
+  header .ttl h1{font-size:14px;color:var(--vang-nhat);letter-spacing:.5px;}
+  header .ttl small{color:var(--chu-mo);font-size:10px;}
+  .hud{display:flex;gap:6px;flex-wrap:wrap;}
+  .hud .pill{background:rgba(0,0,0,.35);border:1px solid rgba(232,185,74,.5);border-radius:20px;
+    padding:3px 9px;font-size:12px;white-space:nowrap;}
+  .hud b{color:var(--vang);}
+  nav{display:flex;gap:8px;}
+  nav button{flex:1;font-size:13px;padding:9px 6px;font-family:inherit;cursor:pointer;border-radius:10px;
+    color:#fff;background:var(--nen-3);border:1px solid #5a4444;font-weight:600;}
+  nav button.act{background:linear-gradient(180deg,#c99b2e,#8a681c);color:#1a1414;}
+
+  .screen{display:none;}.screen.on{display:block;}
+  button{font-family:inherit;cursor:pointer;border-radius:10px;padding:10px 14px;font-size:14px;
+    font-weight:600;color:#fff;background:linear-gradient(180deg,var(--do-tham),var(--do-dam));
+    border:1px solid rgba(232,185,74,.6);}
+  button:active{transform:scale(.97);}
+  button:disabled{opacity:.4;cursor:not-allowed;}
+  button.gold{background:linear-gradient(180deg,#c99b2e,#8a681c);color:#1a1414;border-color:#f5d98b;}
+  button.ghost{background:var(--nen-3);border-color:#5a4444;}
+  .row{display:flex;gap:8px;flex-wrap:wrap;}.row>button{flex:1;}
+
+  /* ====== WORLD SCREEN ====== */
+  #worldWrap{position:relative;border:1px solid var(--vang);border-radius:12px 12px 0 0;overflow:hidden;background:#2a1408;}
+  #wCanvas{display:block;width:100%;touch-action:none;}
+
+  /* Thanh điều khiển bên dưới canvas — ngón tay không che game */
+  #ctrlBar{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:10px 16px 12px;
+    background:rgba(12,6,2,.95);
+    border:1px solid rgba(232,185,74,.35);border-top:none;
+    border-radius:0 0 12px 12px;
+    min-height:130px;
+  }
+  /* Joystick tròn */
+  #joystick{
+    width:116px;height:116px;border-radius:50%;
+    background:radial-gradient(circle,rgba(75,48,20,.9) 0%,rgba(18,10,3,.95) 72%);
+    border:2.5px solid rgba(255,255,255,.2);
+    box-shadow:0 0 0 4px rgba(232,185,74,.12),inset 0 2px 8px rgba(0,0,0,.5);
+    position:relative;touch-action:none;user-select:none;-webkit-user-select:none;flex-shrink:0;
+  }
+  .jbtn{
+    position:absolute;width:36px;height:36px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:13px;color:rgba(255,255,255,.65);pointer-events:none;
+    text-shadow:0 0 6px rgba(255,255,255,.3);
+  }
+  #jUp   {top:3px;left:50%;transform:translateX(-50%);}
+  #jDown {bottom:3px;left:50%;transform:translateX(-50%);}
+  #jLeft {left:3px;top:50%;transform:translateY(-50%);}
+  #jRight{right:3px;top:50%;transform:translateY(-50%);}
+  /* Nút tròn giữa joystick (chạy theo hướng khi touch) */
+  #jDot{
+    position:absolute;width:40px;height:40px;border-radius:50%;
+    background:rgba(232,185,74,.25);border:2px solid rgba(232,185,74,.55);
+    box-shadow:0 0 10px rgba(232,185,74,.2);
+    top:50%;left:50%;transform:translate(-50%,-50%);
+    transition:transform .06s ease;pointer-events:none;
+  }
+  /* Nút tương tác — to, dễ chạm */
+  #btnInteract{
+    padding:18px 24px;font-size:15px;font-weight:700;letter-spacing:.3px;
+    background:linear-gradient(180deg,#d4a830,#8a681c);
+    border-color:#f5d98b;color:#120e04;border-radius:50px;
+    min-width:130px;min-height:56px;
+    opacity:.3;transition:opacity .2s, transform .1s;pointer-events:none;
+    box-shadow:0 3px 12px rgba(200,150,20,.3);
+  }
+  #btnInteract.show{opacity:1;pointer-events:all;}
+  #btnInteract.show:active{transform:scale(.95);}
+  /* Hint text trên canvas (góc dưới) */
+  #interactHint{
+    position:absolute;bottom:8px;left:0;right:0;text-align:center;
+    font-size:12px;color:var(--vang-nhat);text-shadow:0 1px 5px #000;
+    background:rgba(0,0,0,.45);padding:4px 0;
+    pointer-events:none;opacity:0;transition:opacity .2s;
+  }
+  #interactHint.show{opacity:1;}
+
+  /* NPC Panel overlays */
+  .panel-overlay{position:absolute;inset:0;background:rgba(0,0,0,.82);display:none;
+    align-items:flex-start;justify-content:center;padding:10px;overflow-y:auto;}
+  .panel-overlay.on{display:flex;}
+  .panel-box{background:var(--nen-2);border:2px solid var(--vang);border-radius:14px;
+    padding:14px;width:100%;max-height:100%;overflow-y:auto;}
+  .panel-box h2{font-size:14px;color:var(--vang-nhat);margin-bottom:10px;}
+  .card-mini{background:var(--nen-3);border:1px solid #4a3535;border-radius:10px;
+    padding:10px;margin-bottom:8px;display:flex;align-items:center;gap:10px;}
+  .card-mini .ic{font-size:22px;width:32px;text-align:center;flex-shrink:0;}
+  .card-mini .inf{flex:1;min-width:0;}
+  .card-mini .nm{font-size:12px;font-weight:600;}
+  .card-mini .sub{font-size:10px;color:var(--chu-mo);}
+  .card-mini .tier{font-size:10px;color:var(--vang);}
+  .lvbar{height:5px;background:#181010;border-radius:4px;overflow:hidden;margin-top:3px;border:1px solid #201616;}
+  .lvbar .lf{height:100%;background:linear-gradient(90deg,var(--vang),#c9852e);border-radius:4px;}
+  .stage-row{background:var(--nen-3);border:1px solid #4a3535;border-radius:10px;
+    padding:10px;margin-bottom:8px;display:flex;align-items:center;gap:8px;}
+  .stage-row .bt{display:flex;flex-direction:column;gap:4px;}
+  .stage-row .bt button{padding:5px 10px;font-size:11px;min-width:90px;}
+  .locked{opacity:.4;filter:grayscale(.7);}
+
+  /* Stats grid */
+  .statgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-top:6px;}
+  .statgrid .st{background:var(--nen-3);border-radius:7px;padding:5px 3px;text-align:center;border:1px solid #4a3535;}
+  .statgrid .st .v{font-size:12px;font-weight:700;color:var(--vang);}
+  .statgrid .st .k{font-size:8px;color:var(--chu-mo);}
+
+  /* ====== BATTLE SCREEN ====== */
+  #battleWrap{position:relative;border-radius:12px;overflow:hidden;border:1px solid var(--vang);background:#0d0a0a;}
+  #c3d{display:block;width:100%;height:360px;touch-action:none;}
+  #hpOverlay{position:absolute;top:0;left:0;right:0;padding:7px 10px;
+    display:flex;flex-direction:column;gap:5px;pointer-events:none;}
+  .obar{display:flex;align-items:center;gap:8px;}
+  .obar .onm{font-size:11px;font-weight:700;text-shadow:0 1px 3px #000;min-width:0;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .obar.enemy .onm{color:#ffb3a7;}.obar.me .onm{color:var(--vang-nhat);}
+  .obar .track{flex:1;height:12px;background:rgba(0,0,0,.6);border-radius:7px;
+    overflow:hidden;border:1px solid rgba(0,0,0,.8);position:relative;}
+  .obar .fill{height:100%;border-radius:7px;transition:width .25s;}
+  .obar.enemy .fill{background:linear-gradient(180deg,#ff7a63,#c53b2a);}
+  .obar.me .fill{background:linear-gradient(180deg,#6fdc8f,#2e9e55);}
+  .obar .htx{position:absolute;inset:0;font-size:9px;display:flex;align-items:center;
+    justify-content:center;text-shadow:0 1px 2px #000;}
+  #rageRow{display:none;}
+  #rageFill{background:linear-gradient(180deg,#ff9a4a,#b04800) !important;}
+  /* Cat world */
+  #catWorld .panel-box{background:var(--nen-2);}
+  .cat-stage{display:flex;align-items:center;gap:8px;padding:8px;background:var(--nen-3);border-radius:8px;margin-bottom:6px;border:1px solid #5a4444;}
+  .cat-stage.locked{opacity:0.4;pointer-events:none;}
+  .cat-stage .cat-si{font-size:22px;min-width:30px;text-align:center;}
+  .cat-stage .cat-inf{flex:1;font-size:11px;}
+  .cat-stage .cat-nm{font-weight:500;color:var(--vang-nhat);font-size:12px;}
+  .cat-stage .cat-btns{display:flex;flex-direction:column;gap:4px;}
+  .cat-stage .cat-btns button{font-size:10px;padding:3px 8px;}
+  #wasteFill{transition:width .4s,background .4s;}
+  #comboFill{transition:width .3s;}
+  #vignette{position:absolute;inset:0;pointer-events:none;opacity:0;
+    background:radial-gradient(circle,transparent 55%,rgba(220,40,30,.55) 100%);transition:opacity .12s;}
+  #battleMsg{position:absolute;left:0;right:0;bottom:7px;text-align:center;font-size:11px;
+    color:var(--vang-nhat);text-shadow:0 1px 3px #000;pointer-events:none;padding:0 10px;}
+  #actions{display:flex;gap:8px;margin-top:8px;}
+  #actions button{flex:1;font-size:14px;padding:11px;}
+
+  /* ===== Archery Mini-game (Cat Mode) ===== */
+  #archeryWrap{display:none;border:2px solid #3b82f6;border-radius:12px;
+    padding:10px 8px 8px;background:#060d1a;text-align:center;margin-top:6px;
+    transition:border-color .08s,box-shadow .08s;}
+  #archeryLabel{font-size:13px;font-weight:700;color:#93c5fd;margin-bottom:6px;letter-spacing:.5px;}
+  #archeryTarget{position:relative;width:200px;height:200px;margin:0 auto;
+    border-radius:50%;overflow:hidden;box-shadow:0 0 20px rgba(59,130,246,.5),0 0 40px rgba(59,130,246,.2);}
+  #archeryCanv{display:block;width:200px;height:200px;}
+  #archVLine{position:absolute;top:0;bottom:0;width:3px;background:rgba(255,255,255,.9);
+    box-shadow:0 0 10px rgba(255,255,255,.8);transform:translateX(-50%);left:50%;pointer-events:none;transition:none;}
+  #archHLine{position:absolute;left:0;right:0;height:3px;background:rgba(255,215,0,.9);
+    box-shadow:0 0 10px rgba(255,215,0,.8);transform:translateY(-50%);top:50%;display:none;pointer-events:none;}
+  #archeryPhase{font-size:11px;font-weight:700;color:#60a5fa;margin-top:5px;min-height:16px;}
+  #archeryHint{font-size:10px;color:#94a3b8;margin-top:2px;}
+  /* v0.4 Timing Bar */
+  #timingWrap{display:none;border:1px solid var(--vang);border-radius:10px;
+    padding:8px 10px;background:rgba(8,4,4,.94);margin-top:6px;}
+  #timingLabel{text-align:center;font-size:13px;font-weight:700;color:var(--vang-nhat);
+    margin-bottom:6px;letter-spacing:.5px;}
+  #timingTrack{position:relative;height:54px;border-radius:8px;overflow:hidden;
+    cursor:pointer;border:2px solid rgba(255,255,255,.28);user-select:none;-webkit-user-select:none;}
+  #timingHint{text-align:center;font-size:11px;color:var(--chu-mo);margin-top:4px;}
+
+  /* Skill glow */
+  .skill-glow{background:linear-gradient(180deg,#ff9a4a,#944800) !important;
+    border-color:#ffb86c !important;animation:pglow .7s ease-in-out infinite alternate;}
+  @keyframes pglow{from{box-shadow:0 0 6px rgba(255,154,74,.4);}to{box-shadow:0 0 18px rgba(255,154,74,.9);}}
+
+  /* Phím tắt */
+  kbd{display:inline-block;font-size:9px;font-family:monospace;font-weight:700;
+    background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.35);
+    border-radius:4px;padding:1px 5px;vertical-align:middle;margin-left:4px;
+    color:rgba(255,255,255,.85);letter-spacing:.5px;}
+  #kbHint{text-align:center;font-size:10px;color:var(--chu-mo);margin-top:5px;
+    padding:4px 6px;background:rgba(0,0,0,.25);border-radius:6px;line-height:1.8;}
+
+  /* Panel close button — ghim đầu panel khi cuộn */
+  .panel-close-top{
+    position:sticky;top:0;z-index:3;
+    background:var(--nen-2);padding-bottom:8px;margin-bottom:4px;
+  }
+  /* Multi-enemy HP bars */
+  .obar.e2{margin-top:2px;}
+  .obar.boss-bar .onm{color:#ff7a63;}
+  /* Info/rules */
+  .info-card{background:var(--nen-2);border:1px solid #4a3535;border-radius:12px;padding:12px;}
+  .muted{color:var(--chu-mo);font-size:12px;line-height:1.6;}
+
+  #modal{position:fixed;inset:0;background:rgba(0,0,0,.78);display:none;
+    align-items:center;justify-content:center;z-index:100;padding:20px;}
+  #modal.on{display:flex;}
+  #modal .box{background:var(--nen-2);border:2px solid var(--vang);border-radius:14px;
+    padding:20px;max-width:380px;width:100%;text-align:center;}
+  #modal .box .big{font-size:38px;margin-bottom:8px;}
+  #modal .box h3{color:var(--vang-nhat);margin-bottom:8px;font-size:16px;}
+  #modal .box p{font-size:12px;line-height:1.5;margin-bottom:12px;}
+  #modal .row{margin-top:6px;flex-direction:column;}
+  footer{font-size:10px;color:var(--chu-mo);text-align:center;padding:6px 0 14px;}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <img src="https://gomacarpet.com/wp-content/uploads/2023/09/logo-min.png" alt="GOMA" onerror="this.style.display='none'">
+    <div class="ttl">
+      <h1>THỢ DỆT GOMA <span id="headerVer" style="font-size:10px;color:var(--chu-mo)">v0.4 RPG Xưởng Dệt</span></h1>
+      <small id="headerSub">Khâu Dệt · "Trải niềm tin cho mọi thành công"</small>
+    </div>
+  </header>
+
+  <div class="hud" id="mainHud">
+    <div id="detHudGrp" style="display:contents">
+      <div class="pill">🧶 Điểm: <b id="hudPts">0</b></div>
+      <div class="pill">🏆 Thắng hôm nay: <b id="hudWins">0</b></div>
+      <div class="pill">👷 Cấp Thợ: <b id="hudLv">0</b></div>
+    </div>
+    <div id="catHudGrp" style="display:none">
+      <div class="pill">✂️ Điểm Cắt: <b id="catHudPts">0</b></div>
+      <div class="pill">🏆 Cấp Thợ Cắt: <b id="catHudLv">0</b></div>
+    </div>
+  </div>
+
+  <nav>
+    <button id="tabWorld" class="act" onclick="showScreen('world')">🏭 Xưởng Dệt</button>
+    <button id="tabInfo" onclick="showScreen('info')">📖 Luật</button>
+  </nav>
+
+  <!-- ===== WORLD SCREEN ===== -->
+  <div id="world" class="screen on">
+    <div id="worldWrap">
+      <canvas id="wCanvas" width="540" height="420"></canvas>
+      <div id="interactHint"></div>
+
+      <!-- SHOP OVERLAY -->
+      <div class="panel-overlay" id="shopOverlay">
+        <div class="panel-box">
+          <div class="panel-close-top">
+            <button class="ghost" style="width:100%" onclick="closePanel()">✖ Đóng · Về Xưởng</button>
+          </div>
+          <h2>🛒 Chú Kho Hàng — Nâng cấp trang bị</h2>
+          <div id="shopList"></div>
+          <div id="shopStats"></div>
+        </div>
+      </div>
+
+      <!-- STAGE OVERLAY -->
+      <div class="panel-overlay" id="stageOverlay">
+        <div class="panel-box">
+          <div class="panel-close-top">
+            <button class="ghost" style="width:100%" onclick="closePanel()">✖ Đóng · Về Xưởng</button>
+          </div>
+          <h2>📋 Bác Thợ Cả — Chọn màn dệt</h2>
+          <div class="muted" style="margin-bottom:8px">Hạ Boss để mở màn kế. <b>Thua trận thường mất 50% thưởng màn đó.</b> Boss không phạt.</div>
+          <div id="stageList"></div>
+        </div>
+      </div>
+      <!-- CAT SHOP OVERLAY -->
+      <div class="panel-overlay" id="catShopOverlay">
+        <div class="panel-box">
+          <div class="panel-close-top">
+            <button class="ghost" style="width:100%" onclick="closeCatPanel()">✖ Đóng · Về Xưởng Cắt</button>
+          </div>
+          <h2>🔧 Nâng Cấp Dụng Cụ Cắt</h2>
+          <div id="catShopList"></div>
+          <div id="catShopStats"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Thanh điều khiển bên dưới canvas — ngón tay không che game -->
+    <div id="ctrlBar">
+      <!-- Joystick tròn: vuốt bất kỳ hướng nào để di chuyển -->
+      <div id="joystick">
+        <div id="jUp"    class="jbtn">▲</div>
+        <div id="jLeft"  class="jbtn">◀</div>
+        <div id="jRight" class="jbtn">▶</div>
+        <div id="jDown"  class="jbtn">▼</div>
+        <div id="jDot"></div>
+      </div>
+      <!-- Nút tương tác to, dễ chạm -->
+      <button id="btnInteract" onclick="doInteract()">⚡ Tương tác (E)</button>
+    </div>
+  </div>
+
+  <!-- ===== BATTLE SCREEN ===== -->
+  <div id="battle" class="screen">
+    <div id="battleWrap">
+      <canvas id="c3d"></canvas>
+      <div id="hpOverlay">
+        <!-- Enemy HP bars (rendered dynamically for 2-3 enemies) -->
+        <div id="enemyBars"></div>
+        <div class="obar me">
+          <div class="onm">👷 Thợ Dệt</div>
+          <div class="track"><div class="fill" id="pHpFill"></div><div class="htx" id="pHpTxt"></div></div>
+        </div>
+        <div class="obar" id="rageRow">
+          <div class="onm" style="color:#ff9a4a;min-width:32px">⚡ Nộ</div>
+          <div class="track"><div class="fill" id="rageFill" style="width:0%"></div><div class="htx" id="rageTxt">0/100</div></div>
+        </div>
+        <!-- Cat mode extras: combo + waste + order card -->
+        <div id="catCombatUI" style="display:none">
+          <div class="obar" style="margin-bottom:2px">
+            <div class="onm" style="color:#60a5fa;min-width:38px;font-size:10px">✂️ Combo</div>
+            <div class="track"><div class="fill" id="comboFill" style="width:0%;background:#3b82f6"></div><div class="htx" id="comboTxt">0/5</div></div>
+          </div>
+          <div class="obar" style="margin-bottom:2px">
+            <div class="onm" style="color:#fb923c;min-width:38px;font-size:10px">♻️ Hao</div>
+            <div class="track"><div class="fill" id="wasteFill" style="width:0%;background:#22c55e"></div><div class="htx" id="wasteTxt">0%</div></div>
+          </div>
+          <div id="orderCardRow" style="font-size:10px;color:#86efac;text-align:center;padding:2px 4px;background:rgba(0,60,20,0.5);border-radius:4px;margin:2px 0;display:none">
+            📋 <span id="orderCardTxt"></span>
+          </div>
+        </div>
+      </div>
+      <div id="vignette"></div>
+      <div id="battleMsg"></div>
+    </div>
+    <!-- v0.4 Timing Bar (det mode) -->
+    <div id="timingWrap">
+      <div id="timingLabel">BẤM ĐỂ TẤN CÔNG!</div>
+      <div id="timingTrack"></div>
+      <div id="timingHint"></div>
+    </div>
+    <!-- 🏹 Archery Mini-game (cat mode attack) -->
+    <div id="archeryWrap">
+      <div id="archeryLabel">🏹 BẮN VÀO HỒNG TÂM!</div>
+      <div id="archeryTarget">
+        <canvas id="archeryCanv" width="200" height="200"></canvas>
+        <div id="archVLine"></div>
+        <div id="archHLine"></div>
+      </div>
+      <div id="archeryPhase">Phase 1: Căn góc ngang →</div>
+      <div id="archeryHint">⌨️ <kbd>Space</kbd> / Chạm để bắn</div>
+    </div>
+    <div id="actions">
+      <button id="btnAtk" onclick="playerAct('atk')">⚔️ Tấn công <kbd>1</kbd></button>
+      <button id="btnDef" class="ghost" onclick="playerAct('def')">🔥 Nạp Nộ (+30) <kbd>2</kbd></button>
+      <button id="btnRun" class="ghost" onclick="fleeBattle()">🏃 Rút lui <kbd>3</kbd></button>
+    </div>
+    <div id="kbHint">⌨️ PC: <kbd>1</kbd> Đánh &nbsp;<kbd>2</kbd> Nạp Nộ &nbsp;<kbd>3</kbd> / <kbd>Esc</kbd> Rút &nbsp;<kbd>Space</kbd> Bấm căn lực</div>
+  </div>
+
+  <!-- ===== INFO SCREEN ===== -->
+  <div id="info" class="screen">
+    <div class="info-card">
+      <h2 style="font-size:14px;color:var(--vang-nhat);margin-bottom:8px">Luật chơi — v0.4 Căn Thời Gian</h2>
+      <div class="muted">
+        <b>🏭 Thế giới Xưởng Dệt</b> — Dùng WASD / ↑↓←→ để di chuyển nhân vật trong kho. Lại gần NPC để tương tác.<br><br>
+        <b>🎯 Căn Lực TẤN CÔNG</b> — Con chạy qua 3 vùng, bấm để chốt:<br>
+        &nbsp;🟡 Ô Vàng (~5%): <b>CHÍ MẠNG</b> × hệ số Kính Bảo Hộ<br>
+        &nbsp;🟢 Ô Xanh (~30%): trúng 100% dame<br>
+        &nbsp;🔴 Ô Đỏ (~65%): <b>MISS</b> — không gây dame<br><br>
+        <b>🛡️ Căn Lực BỊ ĐÁNH</b> — bấm đúng ô vàng để <b>né chiêu</b>. Nâng <b>Nhíp</b> để nới rộng ô vàng (dễ né hơn).<br><br>
+        <b>⚡ Thanh Nộ</b> — tích khi đánh/bị đánh. Đầy 100 → "⚡ Tung Chiêu!" gây dame ×2, không cần căn.<br><br>
+        <b>🔥 Nạp Nộ</b> (thay Phòng thủ) — bỏ lượt tấn công, nạp ngay +30 Nộ.<br><br>
+        <b>💸 Phạt thua trận thường</b> — mất 50% thưởng màn đó. Không âm điểm. Boss không phạt.<br><br>
+        <b>Boss màn cao</b> — ô vàng tấn công nhỏ hơn (2.5%), con chạy nhanh hơn theo màn.<br><br>
+        Thưởng màn N = 50×2ᴺ⁻¹ · Trang bị 15 cấp · Hạ Boss → mở màn kế +1 Cấp Thợ (+25 HP).
+      </div>
+      <div class="row" style="margin-top:10px">
+        <button class="ghost" onclick="resetSave()">🗑️ Xóa save (test)</button>
+        <button onclick="showScreen('world')">🏭 Về Xưởng</button>
+      </div>
+    </div>
+  </div>
+
+  <footer>© Goma Carpet — game nội bộ vui vẻ, không tính tiền thật · v0.4</footer>
+</div>
+
+<div id="modal">
+  <div class="box">
+    <div class="big" id="mIcon">🎉</div>
+    <h3 id="mTitle"></h3>
+    <p id="mBody"></p>
+    <div class="row" id="mBtns"></div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+"use strict";
+/* ======================================================
+   DỮ LIỆU v0.4
+   ====================================================== */
+const MAX_LV = 15;
+const MAT_NAMES=["Gỗ","Gỗ","Gỗ","Sắt","Sắt","Sắt","Đồng","Đồng","Đồng","Bạc","Bạc","Bạc","Vàng","Vàng","Kim Cương"];
+const EQUIP=[
+  {id:"thoi",name:"Thoi Dệt",      real:"Sapphire",   stat:"atk",  icon:"🧵",base:68, descr:"Sát thương"},
+  {id:"gang",name:"Găng Tay Dệt",  real:"Melody X",   stat:"def",  icon:"🧤",base:69, descr:"Giảm dame nhận"},
+  {id:"quat",name:"Quạt/Máy Lạnh", real:"Melody DK",  stat:"regen",icon:"🌀",base:83, descr:"Hồi máu/lượt"},
+  {id:"nhip",name:"Nhíp Gỡ Sợi",   real:"Melody C",   stat:"dodge",icon:"🥢",base:98, descr:"Ô vàng né đòn"},
+  {id:"kinh",name:"Kính Bảo Hộ",   real:"Shining KN", stat:"crit", icon:"🥽",base:139,descr:"Hệ số chí mạng"},
+  {id:"acc", name:"Mắt Kính Ngắm", real:"Laser Sight",stat:"acc",  icon:"🎯",base:95, descr:"Giảm né của quái"},
+];
+const STAGES=[
+  {n:1,line:"Sapphire",        mob:"Rối Chỉ",     icon:"🧶",color:0x3f74c9,floor:"#7a5a3a"},
+  {n:2,line:"Melody X",        mob:"Sợi Lệch Màu",icon:"🌈",color:0xc94f8a,floor:"#6b6f7a"},
+  {n:3,line:"Melody DK",       mob:"Biên Xô",     icon:"📏",color:0xc9a13f,floor:"#8a7a44"},
+  {n:4,line:"FOREST+Melody C", mob:"Vân Lệch Sọc",icon:"🌲",color:0x3fa05c,floor:"#4a6648"},
+  {n:5,line:"Shining AL",      mob:"Loang Ánh Kim",icon:"✨",color:0x9aa7b8,floor:"#5c626e"},
+  {n:6,line:"Shining KN",      mob:"Xù Sợi Nylon",icon:"💠",color:0x40b8c4,floor:"#3f5a63"},
+];
+const DROP_RATE=0.001;
+
+/* Công thức v0.4 */
+const F={
+  atk:   l=>10+2*l,
+  /* crit = hệ số nhân ô vàng: ×1.20 (l=0) → ×2.00 (l=15) */
+  crit:  l=>+(1.2+l*(0.8/MAX_LV)).toFixed(2),
+  /* dodge = độ rộng ô vàng né đòn: 10% (l=0) → 20% (l=15) */
+  dodge: l=>+(0.10+l*(0.10/MAX_LV)).toFixed(4),
+  def:   l=>2*l,
+  regen: l=>Math.round(0.5*l),
+  maxHp: lv=>100+25*lv,
+  lvCost:(base,l)=>Math.round(base*Math.pow(1.6,l-1)),
+  mobHp: n=>Math.round(60*Math.pow(1.35,n-1)),
+  mobDmg:n=>Math.round(6*Math.pow(1.35,n-1)),
+  mobReward:n=>50*Math.pow(2,n-1),
+  bossHp: n=>Math.round(60*Math.pow(1.35,n-1))*3,
+  bossDmg:n=>Math.round(Math.round(6*Math.pow(1.35,n-1))*2.0),
+  /* Evasion quái: mob 5→15%, boss cao hơn, tối đa 20% */
+  mobEvasion: n=>5+(n-1)*2,
+  bossEvasion:n=>Math.min(20,Math.round((5+(n-1)*2)*1.4)),
+  /* acc = giảm tỷ lệ né quái: 0%(l=0) → 15%(l=15) */
+  acc: l=>l,
+  bossReward:n=>250*Math.pow(2,n-1),
+  /* Con chạy timing: 0.50 widths/s màn 1 → 1.00 màn 6 */
+  timingSpeed:n=>0.50+(n-1)*0.10,
+};
+
+/* ======================================================
+   SAVE
+   ====================================================== */
+const SAVE_KEY="gomaThoDetV4";
+let S=null;
+function defaultSave(){
+  return{pts:0,lv:0,unlocked:1,tiers:{thoi:0,gang:0,quat:0,nhip:0,kinh:0,acc:0},
+         winsToday:0,day:todayStr(),bossDown:{},drops:0,dropDay:""};
+}
+function todayStr(){const d=new Date();return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate();}
+function load(){
+  try{
+    const r=localStorage.getItem(SAVE_KEY);
+    if(r){
+      const d=defaultSave(),saved=JSON.parse(r);
+      const defTiers={...d.tiers};          // lưu trước khi bị ghi đè
+      S=Object.assign(d,saved);
+      S.tiers=Object.assign(defTiers,saved.tiers||{});  // deep merge: giữ acc:0 nếu save cũ thiếu
+    }else{S=defaultSave();}
+  }catch(e){S=defaultSave();}
+  if(S.day!==todayStr()){S.day=todayStr();S.winsToday=0;}
+  save();
+}
+function save(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(S));}catch(e){}}
+function resetSave(){
+  askModal("🗑️","Xóa save?","Toàn bộ tiến trình về 0 (chỉ dùng test).",[
+    ["Xóa luôn",()=>{try{localStorage.removeItem(SAVE_KEY);}catch(e){}load();renderHud();rebuildWorldNpcs();closeModal();}],
+    ["Thôi",closeModal],
+  ]);
+}
+function playerStats(){
+  const t=S.tiers;
+  return{atk:F.atk(t.thoi),critMult:F.crit(t.kinh),yellowDef:F.dodge(t.nhip),
+         def:F.def(t.gang),regen:F.regen(t.quat),maxHp:F.maxHp(S.lv),
+         acc:F.acc(t.acc||0)};
+}
+function enemyEvasion(enemy){
+  const base=enemy.isBoss?F.bossEvasion(B.n):F.mobEvasion(B.n);
+  return Math.max(0,base-playerStats().acc);
+}
+
+/* ======================================================
+   UI CHUNG
+   ====================================================== */
+const $=id=>document.getElementById(id);
+function fmt(n){return Number(n).toLocaleString("vi-VN");}
+function wait(ms,fn){if(ms<=0){fn();}else{setTimeout(fn,ms);}}
+function showScreen(name){
+  ["world","battle","info"].forEach(s=>{const el=$(s);if(el)el.classList.toggle("on",s===name);});
+  ["tabWorld","tabInfo"].forEach(b=>$(b).classList.remove("act"));
+  if(name==="world"){$("tabWorld").classList.add("act"); startWorldLoop();}
+  if(name==="info") $("tabInfo").classList.add("act");
+  if(name==="battle") resize3D();
+  renderHud();
+}
+function renderHud(){
+  const isCatMap=WL&&WL.map==="cat";
+  $("detHudGrp").style.display=isCatMap?"none":"contents";
+  $("catHudGrp").style.display=isCatMap?"":"none";
+  if(isCatMap&&SC){
+    $("catHudPts").textContent=fmt(SC.pts);
+    $("catHudLv").textContent=SC.lv;
+  }else{
+    $("hudPts").textContent=fmt(S.pts);
+    $("hudWins").textContent=S.winsToday;
+    $("hudLv").textContent=S.lv;
+  }
+  // Update nav label + subtitle based on current map
+  const twl=$("tabWorld");
+  if(twl)twl.textContent=isCatMap?"✂️ Xưởng Cắt":"🏭 Xưởng Dệt";
+  const sub=$("headerSub");
+  if(sub)sub.textContent=isCatMap?'Khâu Cắt · "Trải niềm tin cho mọi thành công"':'Khâu Dệt · "Trải niềm tin cho mọi thành công"';
+  const ver=$("headerVer");
+  if(ver)ver.textContent=isCatMap?"v0.4 RPG Xưởng Cắt":"v0.4 RPG Xưởng Dệt";
+}
+function statPreview(stat,l){
+  if(stat==="crit")  return"×"+F.crit(l).toFixed(2);
+  if(stat==="dodge") return(F.dodge(l)*100).toFixed(1)+"% ô vàng";
+  if(stat==="def")   return F.def(l)+"%";
+  if(stat==="regen") return F.regen(l)+"/lượt";
+  if(stat==="acc")   return"-"+F.acc(l)+"% né quái";
+  return String(F[stat](l));
+}
+
+function askModal(icon,title,body,btns){
+  $("mIcon").textContent=icon;$("mTitle").textContent=title;$("mBody").innerHTML=body;
+  $("mBtns").innerHTML="";
+  btns.forEach(([label,fn],i)=>{
+    const b=document.createElement("button");b.textContent=label;
+    if(i===0)b.classList.add("gold");b.onclick=fn;$("mBtns").appendChild(b);
+  });
+  $("modal").classList.add("on");
+}
+function closeModal(){$("modal").classList.remove("on");}
+
+/* ======================================================
+   PANELS (shop / stage)
+   ====================================================== */
+function openPanel(which){
+  WL.openPanel=which;
+  if(which==="shop") renderShopPanel();
+  if(which==="stage") renderStagePanel();
+  $(which+"Overlay").classList.add("on");
+}
+function closePanel(){
+  if(WL.openPanel){$(WL.openPanel+"Overlay").classList.remove("on");WL.openPanel=null;}
+  $("catShopOverlay").classList.remove("on");
+}
+
+function renderShopPanel(){
+  $("shopList").innerHTML=EQUIP.map(eq=>{
+    const l=S.tiers[eq.id]??0,maxed=l>=MAX_LV;
+    const cost=maxed?0:F.lvCost(eq.base,l+1);
+    return`<div class="card-mini">
+      <div class="ic">${eq.icon}</div>
+      <div class="inf">
+        <div class="nm">${eq.name} <span style="color:var(--chu-mo);font-size:10px">· ${eq.real}</span></div>
+        <div class="sub">${eq.descr}: ${statPreview(eq.stat,l)}${maxed?"":" → <b>"+statPreview(eq.stat,l+1)+"</b>"}</div>
+        <div class="tier">Cấp ${l}/${MAX_LV}${l>0?" · "+MAT_NAMES[l-1]:""}</div>
+        <div class="lvbar"><div class="lf" style="width:${l/MAX_LV*100}%"></div></div>
+      </div>
+      ${maxed?`<button class="ghost" disabled>💎 MAX`
+             :`<button ${S.pts<cost?"disabled":""} onclick="buyTier('${eq.id}')">⬆️ ${fmt(cost)} 🧶</button>`}
+    </div>`;
+  }).join("");
+  // Stat summary
+  const p=playerStats();
+  $("shopStats").innerHTML=`<div class="statgrid" style="margin-bottom:8px">
+    ${[["⚔️ ATK",p.atk],["🎯 Crit×","×"+p.critMult.toFixed(2)],
+      ["🥢 Ô Vàng",(p.yellowDef*100).toFixed(0)+"%"],["🛡️ DEF",p.def+"%"],["💚 Regen",p.regen+"/lt"],["🎯 Chính Xác","-"+p.acc+"%"]]
+     .map(([k,v])=>`<div class="st"><div class="v">${v}</div><div class="k">${k}</div></div>`).join("")}
+    <div class="st" style="grid-column:span 5"><div class="v">${p.maxHp} HP</div><div class="k">Máu tối đa</div></div>
+  </div>`;
+}
+function buyTier(id){
+  const eq=EQUIP.find(e=>e.id===id),l=S.tiers[id]??0;
+  if(l>=MAX_LV)return;
+  const cost=F.lvCost(eq.base,l+1);
+  if(S.pts<cost)return;
+  S.pts-=cost;S.tiers[id]=l+1;save();renderShopPanel();renderHud();
+}
+
+function renderStagePanel(){
+  if(WL.map==="cat"){
+    const sp=$("stageOverlay").querySelector("h2");
+    if(sp)sp.innerHTML="📋 Bác Thợ Cắt — Chọn màn cắt";
+    const sd=$("stageOverlay").querySelector(".muted");
+    if(sd)sd.innerHTML="Hạ Boss để mở màn kế. <b>Thua thường mất 50% thưởng. Boss không phạt.</b>";
+    $("stageList").innerHTML=STAGES_CAT.map(st=>{
+      const open=st.n<=SC.unlocked,bossDone=!!SC.bossDown[st.n];
+      const penalty=Math.round(F_CAT.mobReward(st.n)*0.5);
+      const bossBtn=bossDone?`<button class="ghost" disabled style="font-size:10px">✅ Boss hạ</button>`
+        :(open?`<button class="gold" style="font-size:10px" onclick="closePanel();startCatBattle(${st.n},true)">${st.n===STAGES_CAT.length?"👑":"👔"} Boss</button>`:"");
+      return`<div class="stage-row ${open?"":"locked"}">
+        <div class="ic">${st.icon}</div>
+        <div class="inf" style="flex:1;min-width:0">
+          <div class="nm" style="font-size:12px;font-weight:600">Màn ${st.n} · ${st.line}</div>
+          <div class="sub">HP ${fmt(F_CAT.mobHp(st.n))} · DMG ${fmt(F_CAT.mobDmg(st.n))} · +${fmt(F_CAT.mobReward(st.n))}/trận · Phạt −${fmt(penalty)}</div>
+        </div>
+        <div class="bt">
+          ${open?`<button onclick="closePanel();startCatBattle(${st.n},false)" style="font-size:10px">✂️ Cắt</button>`
+                :`<button disabled style="font-size:10px">🔒 Khóa</button>`}
+          ${bossBtn}
+        </div>
+      </div>`;
+    }).join("");
+    return;
+  }
+  // Restore det stage panel headers
+  const sp=$("stageOverlay").querySelector("h2");
+  if(sp)sp.innerHTML="📋 Bác Thợ Cả — Chọn màn dệt";
+  const sd=$("stageOverlay").querySelector(".muted");
+  if(sd)sd.innerHTML="Hạ Boss để mở màn kế. <b>Thua trận thường mất 50% thưởng màn đó.</b> Boss không phạt.";
+  $("stageList").innerHTML=STAGES.map(st=>{
+    const open=st.n<=S.unlocked,bossDone=!!S.bossDown[st.n];
+    const penalty=Math.round(F.mobReward(st.n)*0.5);
+    const bossBtn=bossDone?`<button class="ghost" disabled style="font-size:10px">✅ Boss hạ</button>`
+      :(open?`<button class="gold" style="font-size:10px" onclick="closePanel();startBattle(${st.n},true)">${st.n===STAGES.length?"👑":"👹"} Khiêu chiến</button>`:"");
+    return`<div class="stage-row ${open?"":"locked"}">
+      <div class="ic">${st.icon}</div>
+      <div class="inf" style="flex:1;min-width:0">
+        <div class="nm" style="font-size:12px;font-weight:600">Màn ${st.n} · ${st.line}</div>
+        <div class="sub">HP ${fmt(F.mobHp(st.n))} · DMG ${fmt(F.mobDmg(st.n))} · +${fmt(F.mobReward(st.n))}/trận · Phạt −${fmt(penalty)}</div>
+      </div>
+      <div class="bt">
+        ${open?`<button onclick="closePanel();startBattle(${st.n},false)" style="font-size:10px">⚔️ Đánh</button>`
+              :`<button disabled style="font-size:10px">🔒 Khóa</button>`}
+        ${bossBtn}
+      </div>
+    </div>`;
+  }).join("");
+}
+
+/* ======================================================
+   WORLD ENGINE 2D
+   ====================================================== */
+const WL={
+  W:540,H:420,
+  SPEED:130,
+  map:"det",
+  player:{x:270,y:365,w:16,h:22,dir:"up",anim:0},
+  keys:{},
+  npcs:[],
+  nearNpc:null,
+  openPanel:null,
+  raf:null,
+  lastTs:null,
+  running:false,
+  // Obstacles: [{x,y,w,h}] in world coords
+  obstacles:[
+    // Looms (3 machines in middle area)
+    {x:168,y:215,w:58,h:70},
+    {x:241,y:215,w:58,h:70},
+    {x:314,y:215,w:58,h:70},
+    // Shelves left/right (near top)
+    {x:55,y:80,w:52,h:100},
+    {x:433,y:80,w:52,h:100},
+  ],
+};
+
+/* NPC definitions */
+const NPC_DEFS={
+  shop:{x:95, y:225,r:18,color:"#1e9a5c",label:"🛒",name:"Chú Kho Hàng",prompt:"Mua đồ nghề!",action:()=>openPanel("shop")},
+  master:{x:445,y:225,r:18,color:"#2860d8",label:"📋",name:"Bác Thợ Cả",prompt:"Chọn màn dệt!",action:()=>openPanel("stage")},
+};
+// Enemy positions per stage
+const ENEMY_POS=[
+  {x:200,y:170},{x:270,y:150},{x:340,y:170},{x:200,y:115},{x:340,y:115},
+];
+const BOSS_POS=[
+  {x:190,y:90},{x:270,y:80},{x:350,y:90},{x:210,y:68},{x:330,y:68},
+];
+
+function rebuildWorldNpcs(){
+  WL.npcs=[];
+  if(WL.map==="cat"){
+    // Cat world NPCs
+    WL.npcs.push({x:95,y:225,r:18,color:"#1e9a5c",label:"🔧",name:"Chú Dao Kéo",prompt:"Nâng cấp dụng cụ cắt!",action:()=>openCatPanel("shop")});
+    WL.npcs.push({x:445,y:225,r:18,color:"#2860d8",label:"📋",name:"Bác Thợ Cắt",prompt:"Chọn màn cắt!",action:()=>openPanel("stage")});
+    WL.npcs.push({x:95,y:365,r:18,color:"#5544cc",label:"🚪",name:"Cửa Xưởng Dệt",prompt:"Quay lại Xưởng Dệt",action:()=>switchToDetWorld()});
+    STAGES_CAT.forEach((st,i)=>{
+      if(st.n>SC.unlocked)return;
+      const ep=ENEMY_POS[i]||{x:200+i*50,y:160};
+      const hex="#"+st.color.toString(16).padStart(6,"0");
+      WL.npcs.push({
+        id:"catMob"+st.n,x:ep.x,y:ep.y,r:15,color:hex,
+        label:st.icon,name:st.mob+" (Màn "+st.n+")",
+        prompt:"✂️ Cắt! (Thường)",isEnemy:true,
+        action:()=>startCatBattle(st.n,false),
+      });
+      const bp=BOSS_POS[i]||{x:270,y:85};
+      const done=!!SC.bossDown[st.n];
+      WL.npcs.push({
+        id:"catBoss"+st.n,x:bp.x,y:bp.y,r:done?14:18,
+        color:done?"#3a5e3a":"#5533aa",
+        label:done?"✅":"👔",
+        name:done?`Kiểm Tra Viên ${st.line} (đã hạ)`:`BOSS · ${st.line}`,
+        prompt:done?"Boss đã hạ":"👔 Khiêu chiến Kiểm Tra Viên!",
+        isEnemy:!done,
+        action:done?null:()=>startCatBattle(st.n,true),
+      });
+    });
+    return;
+  }
+  // Det world NPCs
+  WL.npcs.push({...NPC_DEFS.shop});
+  WL.npcs.push({...NPC_DEFS.master});
+  WL.npcs.push({x:485,y:150,r:18,color:"#5544cc",label:"🚪",name:"Cửa Xưởng Cắt",prompt:"Vào Xưởng Cắt Thảm!",action:()=>switchToCatWorld()});
+  STAGES.forEach((st,i)=>{
+    if(st.n>S.unlocked)return;
+    const ep=ENEMY_POS[i]||{x:200+i*50,y:160};
+    const hex="#"+st.color.toString(16).padStart(6,"0");
+    WL.npcs.push({
+      id:"mob"+st.n,x:ep.x,y:ep.y,r:15,color:hex,
+      label:st.icon,name:st.mob+"  (Màn "+st.n+")",
+      prompt:"⚔️ Chiến! (Thường)",isEnemy:true,
+      action:()=>startBattle(st.n,false),
+    });
+    const bp=BOSS_POS[i]||{x:270,y:85};
+    const done=!!S.bossDown[st.n];
+    WL.npcs.push({
+      id:"boss"+st.n,x:bp.x,y:bp.y,r:done?14:18,
+      color:done?"#3a5e3a":"#8e2020",
+      label:done?"✅":"👹",
+      name:done?`Boss ${st.line} (đã hạ)`:`BOSS · ${st.line}`,
+      prompt:done?"Boss đã bị hạ":"👹 Khiêu chiến Boss!",
+      isEnemy:!done,
+      action:done?null:()=>startBattle(st.n,true),
+    });
+  });
+}
+
+function resizeWorldCanvas(){
+  const canvas=$("wCanvas");
+  if(!canvas||!canvas.parentElement)return;
+  const cw=canvas.parentElement.clientWidth||540;
+  const ch=Math.round(cw*(420/540));
+  if(canvas.width!==cw||canvas.height!==ch){canvas.width=cw;canvas.height=ch;}
+}
+window.addEventListener("resize",()=>{
+  resizeWorldCanvas();
+  const canvas=$("wCanvas");
+  if(canvas&&WL.running){
+    try{drawWorld(canvas.getContext("2d"),canvas.width,canvas.height);}catch(e){}
+  }
+});
+
+function startWorldLoop(){
+  if(WL.running)return;
+  WL.running=true;WL.lastTs=null;
+  resizeWorldCanvas();
+  WL.raf=requestAnimationFrame(worldFrame);
+}
+function stopWorldLoop(){
+  WL.running=false;
+  if(WL.raf){cancelAnimationFrame(WL.raf);WL.raf=null;}
+  // Clear world canvas to prevent bleed-through into battle screen
+  const wc=$("wCanvas");
+  if(wc){const wctx=wc.getContext("2d");if(wctx)wctx.clearRect(0,0,wc.width,wc.height);}
+}
+
+function worldFrame(ts){
+  if(!WL.running){return;}
+  WL.raf=requestAnimationFrame(worldFrame);
+  const dt=Math.min(((ts-(WL.lastTs||ts))/1000),0.05);
+  WL.lastTs=ts;
+  if(WL.openPanel===null) updatePlayerPos(dt);
+  WL.player.anim=(WL.player.anim||0)+dt;
+  checkNearNpc();
+  const canvas=$("wCanvas");
+  if(!canvas||!canvas.width||!canvas.height)return;
+  try{drawWorld(canvas.getContext("2d"),canvas.width,canvas.height);}
+  catch(e){console.error("drawWorld error:",e);}
+}
+
+function updatePlayerPos(dt){
+  const p=WL.player,spd=WL.SPEED;
+  let dx=0,dy=0;
+  const k=WL.keys;
+  if(k.up||k.w){dy-=spd*dt;p.dir="up";}
+  if(k.down||k.s){dy+=spd*dt;p.dir="down";}
+  if(k.left||k.a){dx-=spd*dt;p.dir="left";}
+  if(k.right||k.d){dx+=spd*dt;p.dir="right";}
+  // Move X
+  const nx=p.x+dx;
+  if(nx-p.w/2>=55&&nx+p.w/2<=WL.W-55&&!hitObs(nx,p.y,p.w,p.h)) p.x=nx;
+  // Move Y
+  const ny=p.y+dy;
+  if(ny-p.h/2>=55&&ny+p.h/2<=WL.H-20&&!hitObs(p.x,ny,p.w,p.h)) p.y=ny;
+}
+function hitObs(cx,cy,pw,ph){
+  const hx=pw/2,hy=ph/2;
+  return WL.obstacles.some(o=>cx+hx>o.x&&cx-hx<o.x+o.w&&cy+hy>o.y&&cy-hy<o.y+o.h);
+}
+
+function checkNearNpc(){
+  const p=WL.player;let near=null,nearDist=9999;
+  WL.npcs.forEach(npc=>{
+    const d=Math.hypot(p.x-npc.x,p.y-npc.y);
+    if(d<(npc.r+45)&&d<nearDist){near=npc;nearDist=d;}
+  });
+  WL.nearNpc=near;
+  const hint=$("interactHint"),btn=$("btnInteract");
+  if(near&&near.action){
+    hint.textContent=near.name+" — "+near.prompt;
+    hint.classList.add("show");btn.classList.add("show");
+  } else {
+    hint.classList.remove("show");btn.classList.remove("show");
+  }
+}
+function doInteract(){
+  if(WL.nearNpc&&WL.nearNpc.action) WL.nearNpc.action();
+}
+
+/* ====== WORLD DRAWING ====== */
+function drawWorld(ctx,W,H){
+  const sx=W/WL.W,sy=H/WL.H;
+  ctx.save();ctx.scale(sx,sy);
+  const cw=WL.W,ch=WL.H;
+
+  if(WL.map==="cat"){
+    // Cat world background (blue cutting room)
+    ctx.fillStyle="#0f1e2e";ctx.fillRect(0,0,cw,ch);
+    const ts=40;
+    for(let y=55;y<ch-20;y+=ts){for(let x=55;x<cw-55;x+=ts){
+      const alt=((Math.floor(x/ts)+Math.floor(y/ts))%2===0);
+      ctx.fillStyle=alt?"#1e3a5a":"#192e46";
+      ctx.fillRect(x,y,ts,ts);
+      ctx.strokeStyle="rgba(60,130,200,.15)";ctx.lineWidth=.5;ctx.strokeRect(x,y,ts,ts);
+    }}
+    ctx.fillStyle="#091420";
+    ctx.fillRect(0,0,cw,55);ctx.fillRect(0,ch-20,cw,20);
+    ctx.fillRect(0,0,55,ch);ctx.fillRect(cw-55,0,55,ch);
+    ctx.fillStyle="#142238";
+    ctx.fillRect(55,55,cw-110,3);ctx.fillRect(55,55,3,ch-75);ctx.fillRect(cw-58,55,3,ch-75);
+    const bx2=(cw-220)/2;
+    ctx.fillStyle="#1a3a7a";ctx.fillRect(bx2,14,220,28);
+    ctx.strokeStyle="#60a5fa";ctx.lineWidth=2;ctx.strokeRect(bx2,14,220,28);
+    ctx.fillStyle="#bfdbfe";ctx.font="bold 13px Arial";ctx.textAlign="center";ctx.textBaseline="middle";
+    ctx.fillText("✂️ XƯỞNG CẮT THẢM",cw/2,14+14);
+    ctx.fillStyle="rgba(30,90,160,.5)";ctx.fillRect(150,ch-22,240,18);
+    ctx.fillStyle="#93c5fd";ctx.font="10px Arial";ctx.textAlign="center";ctx.textBaseline="middle";
+    ctx.fillText("— PHÂN XƯỞNG CẮT —",cw/2,ch-13);
+    // Cutting tables
+    WL.obstacles.slice(0,3).forEach((o,i)=>drawCuttingTable(ctx,o.x,o.y,o.w,o.h,i));
+    // Zone divider
+    ctx.strokeStyle="rgba(60,150,240,.5)";ctx.lineWidth=1.5;ctx.setLineDash([8,5]);
+    ctx.beginPath();ctx.moveTo(58,200);ctx.lineTo(cw-58,200);ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle="rgba(0,0,0,.4)";ctx.fillRect(60,204,115,13);
+    ctx.fillStyle="#93c5fd";ctx.font="bold 9px Arial";ctx.textAlign="left";ctx.textBaseline="top";
+    ctx.fillText("✂️ VÙNG CHIẾN ĐẤU",63,205);
+  } else {
+  // Background floor (sáng hơn)
+  ctx.fillStyle="#8b6035";ctx.fillRect(0,0,cw,ch);
+  // Floor carpet tiles — ô vuông sáng xen kẽ
+  const ts=40;
+  for(let y=55;y<ch-20;y+=ts){for(let x=55;x<cw-55;x+=ts){
+    const alt=((Math.floor(x/ts)+Math.floor(y/ts))%2===0);
+    ctx.fillStyle=alt?"#c8935a":"#b07c48";
+    ctx.fillRect(x,y,ts,ts);
+    // Đường viền ô nhẹ
+    ctx.strokeStyle="rgba(80,40,10,.18)";ctx.lineWidth=.5;ctx.strokeRect(x,y,ts,ts);
+  }}
+  // Wall border frames
+  ctx.fillStyle="#3a1e08";
+  ctx.fillRect(0,0,cw,55);         // top
+  ctx.fillRect(0,ch-20,cw,20);     // bottom
+  ctx.fillRect(0,0,55,ch);         // left
+  ctx.fillRect(cw-55,0,55,ch);     // right
+  // Inner wall trim (thanh viền sáng hơn)
+  ctx.fillStyle="#5a3015";
+  ctx.fillRect(55,55,cw-110,3);
+  ctx.fillRect(55,55,3,ch-75);
+  ctx.fillRect(cw-58,55,3,ch-75);
+
+  // Warehouse banner (top)
+  const bw=200,bh=28,bx=(cw-bw)/2,by=14;
+  ctx.fillStyle="#7a0e1a";ctx.fillRect(bx,by,bw,bh);
+  ctx.strokeStyle="#f0c040";ctx.lineWidth=2;ctx.strokeRect(bx,by,bw,bh);
+  ctx.fillStyle="#fff8cc";ctx.font="bold 13px Arial";ctx.textAlign="center";ctx.textBaseline="middle";
+  ctx.fillText("🏭 XƯỞNG DỆT GOMA",cw/2,by+bh/2);
+
+  // Entrance sign (bottom)
+  ctx.fillStyle="rgba(180,130,30,.6)";ctx.fillRect(150,ch-22,240,18);
+  ctx.fillStyle="#ffe080";ctx.font="10px Arial";ctx.textAlign="center";ctx.textBaseline="middle";
+  ctx.fillText("— LỐI VÀO XƯỞNG —",cw/2,ch-13);
+
+  // Shelves
+  drawShelf(ctx,55,80,52,100);
+  drawShelf(ctx,433,80,52,100);
+
+  // Looms
+  WL.obstacles.slice(0,3).forEach((o,i)=>drawLoom(ctx,o.x,o.y,o.w,o.h,i));
+
+  // Zone dividers (dashed)
+  ctx.strokeStyle="rgba(240,190,60,.6)";ctx.lineWidth=1.5;ctx.setLineDash([8,5]);
+  ctx.beginPath();ctx.moveTo(58,200);ctx.lineTo(cw-58,200);ctx.stroke();
+  ctx.setLineDash([]);
+  // Zone label
+  ctx.fillStyle="rgba(0,0,0,.35)";ctx.fillRect(60,204,100,13);
+  ctx.fillStyle="#ffe080";ctx.font="bold 9px Arial";ctx.textAlign="left";ctx.textBaseline="top";
+  ctx.fillText("⚔️ VÙNG CHIẾN ĐẤU",63,205);
+  } // end map branch
+
+  // Draw NPCs
+  WL.npcs.forEach(npc=>drawNpc(ctx,npc,WL.player.anim));
+
+  // Player
+  drawPlayer(ctx,WL.player);
+
+  // Near NPC highlight
+  if(WL.nearNpc&&WL.nearNpc.action){
+    const n=WL.nearNpc;
+    ctx.strokeStyle="#e8b94a";ctx.lineWidth=2;
+    ctx.setLineDash([4,4]);
+    ctx.beginPath();ctx.arc(n.x,n.y,n.r+10+Math.sin(WL.player.anim*4)*3,0,Math.PI*2);ctx.stroke();
+    ctx.setLineDash([]);
+  }
+  ctx.restore();
+}
+
+function drawShelf(ctx,x,y,w,h){
+  // Shelf body (sáng hơn — gỗ nâu ấm)
+  ctx.fillStyle="#5a3518";ctx.fillRect(x,y,w,h);
+  ctx.strokeStyle="#8a6030";ctx.lineWidth=1.5;ctx.strokeRect(x,y,w,h);
+  // Thanh kệ ngang
+  for(let s=0;s<3;s++){
+    ctx.fillStyle="#3e2010";ctx.fillRect(x+2,y+h*0.28*s+22,w-4,3);
+  }
+  // Cuộn chỉ màu sắc (spool)
+  const cols=["#cc2244","#f0c030","#3a80e0","#30c060","#d040a0","#e8e0d0"];
+  for(let row=0;row<3;row++){
+    for(let col=0;col<2;col++){
+      const ci=(row*2+col)%cols.length;
+      const r=7,cx=x+14+col*22,cy=y+18+row*26;
+      // Thân cuộn
+      ctx.fillStyle=cols[ci];
+      ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.fill();
+      // Highlight sáng
+      ctx.fillStyle="rgba(255,255,255,.35)";
+      ctx.beginPath();ctx.arc(cx-2,cy-2,3,0,Math.PI*2);ctx.fill();
+      // Viền
+      ctx.strokeStyle="rgba(0,0,0,.3)";ctx.lineWidth=0.8;
+      ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.stroke();
+    }
+  }
+}
+function drawLoom(ctx,x,y,w,h,i){
+  // Khung máy dệt (nâu trung bình — nhìn thấy rõ trên nền sáng)
+  ctx.fillStyle="#4a2e14";ctx.fillRect(x,y,w,h);
+  ctx.strokeStyle="#9a7040";ctx.lineWidth=2;ctx.strokeRect(x,y,w,h);
+  // Bề mặt máy (vải đang dệt)
+  const fabricColors=["#9a1a30","#1a60c0","#208040"];
+  ctx.fillStyle=fabricColors[i%fabricColors.length];
+  ctx.fillRect(x+4,y+8,w-8,h*0.44);
+  // Sợi chỉ dọc (dùng màu rõ ràng thay 8-digit hex)
+  ctx.strokeStyle="rgba(220,200,160,0.6)";ctx.lineWidth=1;
+  for(let xi=x+7;xi<x+w-7;xi+=5){
+    ctx.beginPath();ctx.moveTo(xi,y+8);ctx.lineTo(xi,y+8+h*0.43);ctx.stroke();
+  }
+  // Thanh ngang trên dưới
+  ctx.fillStyle="#6a4020";
+  ctx.fillRect(x+2,y+4,w-4,5);
+  ctx.fillRect(x+2,y+h*0.52,w-4,5);
+  // Label máy
+  ctx.fillStyle="#ffe0a0";ctx.font="bold 9px Arial";ctx.textAlign="center";ctx.textBaseline="bottom";
+  ctx.fillText("🪡 Máy "+(i+1),x+w/2,y+h-3);
+}
+function drawCuttingTable(ctx,x,y,w,h,i){
+  const tableColors=["#1a3a5a","#1a4a5a","#1a3a4a"];
+  ctx.fillStyle=tableColors[i%tableColors.length];ctx.fillRect(x,y,w,h);
+  ctx.strokeStyle="#3a7acc";ctx.lineWidth=2;ctx.strokeRect(x,y,w,h);
+  // Cutting mat surface
+  ctx.fillStyle="#2a5a7a";ctx.fillRect(x+4,y+6,w-8,h*0.45);
+  // Grid lines on mat
+  ctx.strokeStyle="rgba(150,210,255,0.25)";ctx.lineWidth=0.8;
+  for(let xi=x+8;xi<x+w-4;xi+=6){ctx.beginPath();ctx.moveTo(xi,y+6);ctx.lineTo(xi,y+6+h*0.44);ctx.stroke();}
+  // Ruler strip
+  ctx.fillStyle="#4a8aaa";ctx.fillRect(x+2,y+h*0.52,w-4,5);
+  // Label
+  ctx.fillStyle="#93c5fd";ctx.font="bold 9px Arial";ctx.textAlign="center";ctx.textBaseline="bottom";
+  ctx.fillText("✂️ Bàn "+(i+1),x+w/2,y+h-3);
+}
+function drawNpc(ctx,npc,t){
+  const bob=Math.sin(t*2.2+npc.x*0.1)*2;
+  const ny=npc.y+bob;
+  // Shadow
+  ctx.fillStyle="rgba(0,0,0,.35)";
+  ctx.beginPath();ctx.ellipse(npc.x,npc.y+npc.r+3,npc.r*0.85,npc.r*0.3,0,0,Math.PI*2);ctx.fill();
+  // Body circle (viền trắng để nổi)
+  ctx.fillStyle=npc.color;
+  ctx.beginPath();ctx.arc(npc.x,ny,npc.r,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle="rgba(255,255,255,.65)";ctx.lineWidth=2.5;ctx.stroke();
+  // Emoji icon
+  ctx.font=Math.round(npc.r*1.15)+"px Arial";ctx.textAlign="center";ctx.textBaseline="middle";
+  ctx.fillText(npc.label,npc.x,ny);
+  // Name tag background + text
+  const nm=npc.name.split(" (")[0];
+  ctx.font="bold 9px Arial";
+  const tw=ctx.measureText(nm).width;
+  const tx=npc.x-tw/2-3, ty=ny-npc.r-15;
+  ctx.fillStyle="rgba(0,0,0,.6)";
+  ctx.fillRect(tx,ty,tw+6,13);
+  ctx.fillStyle="#ffe080";ctx.textAlign="left";ctx.textBaseline="top";
+  ctx.fillText(nm,tx+3,ty+1);
+}
+function drawPlayer(ctx,p){
+  const bob=Math.sin(p.anim*3)*2;
+  const px=p.x,py=p.y+bob;
+  // Shadow
+  ctx.fillStyle="rgba(0,0,0,.4)";
+  ctx.beginPath();ctx.ellipse(px,p.y+p.h/2+3,p.w*0.75,p.h*0.18,0,0,Math.PI*2);ctx.fill();
+  // Body (áo đỏ thợ — thêm viền tối)
+  ctx.fillStyle="#c83248";
+  ctx.fillRect(px-p.w/2,py-p.h/2,p.w,p.h);
+  ctx.strokeStyle="#7a1828";ctx.lineWidth=1.5;
+  ctx.strokeRect(px-p.w/2,py-p.h/2,p.w,p.h);
+  // Áo yếm trắng
+  ctx.fillStyle="rgba(255,255,255,.45)";
+  ctx.fillRect(px-3,py-p.h/2+2,6,p.h*0.55);
+  // Face (mặt sáng)
+  ctx.fillStyle="#f5c890";
+  ctx.beginPath();ctx.arc(px,py-p.h/2-5,7,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle="#c8987a";ctx.lineWidth=1;ctx.stroke();
+  // Mắt nhỏ
+  ctx.fillStyle="#402010";
+  ctx.beginPath();ctx.arc(px-2,py-p.h/2-6,1.2,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.arc(px+2,py-p.h/2-6,1.2,0,Math.PI*2);ctx.fill();
+  // Mũ bảo hộ vàng
+  ctx.fillStyle="#f0c020";
+  ctx.beginPath();ctx.ellipse(px,py-p.h/2-10,9,4.5,0,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.arc(px,py-p.h/2-13,6,Math.PI,0);ctx.fill();
+  ctx.strokeStyle="#c09010";ctx.lineWidth=1;ctx.stroke();
+  // Label tag (nền tối + text sáng)
+  ctx.font="bold 9px Arial";ctx.textAlign="center";
+  const lbl="👷 Bạn";const lw=ctx.measureText(lbl).width;
+  ctx.fillStyle="rgba(0,0,0,.55)";ctx.fillRect(px-lw/2-3,py-p.h/2-30,lw+6,13);
+  ctx.fillStyle="#ffe080";ctx.textBaseline="top";
+  ctx.fillText(lbl,px-lw/2,py-p.h/2-29);
+}
+
+/* Keyboard */
+document.addEventListener("keydown",e=>{
+  const k=e.key.toLowerCase();
+  // ====== WORLD: di chuyển + tương tác ======
+  // (chỉ khi đang ở world screen, không phải battle)
+  const inBattle=$("battle").classList.contains("on");
+  if(!inBattle){
+    const map={arrowup:"up",arrowdown:"down",arrowleft:"left",arrowright:"right",
+               w:"w",s:"s",a:"a",d:"d"};
+    if(map[k])WL.keys[map[k]]=true;
+    if(k==="e"||k==="enter"||k===" "){if(WL.nearNpc&&WL.nearNpc.action)doInteract();}
+  }
+  // ====== BATTLE: phím tắt chiến đấu ======
+  if(inBattle){
+    if(k==="1")          playerAct("atk");          // [1] Tấn công / Tung Chiêu
+    if(k==="2")          playerAct("def");          // [2] Nạp Nộ
+    if(k==="3"||k==="escape"){e.preventDefault();fleeBattle();}  // [3/Esc] Rút lui
+    // Space/Enter → bấm thanh căn lực (đã được xử lý bởi timing bar stop handler)
+  }
+});
+document.addEventListener("keyup",e=>{
+  const k=e.key.toLowerCase();
+  const map={arrowup:"up",arrowdown:"down",arrowleft:"left",arrowright:"right",
+             w:"w",s:"s",a:"a",d:"d"};
+  if(map[k])WL.keys[map[k]]=false;
+});
+// ====== JOYSTICK TRÒN ======
+function initJoystick(){
+  const joy=$("joystick"),dot=$("jDot");
+  if(!joy)return;
+  const DEAD=14; // vùng chết ở tâm (px)
+
+  function clearKeys(){
+    WL.keys.up=WL.keys.down=WL.keys.left=WL.keys.right=false;
+    if(dot)dot.style.transform="translate(-50%,-50%)";
+  }
+
+  function applyDir(e){
+    const rect=joy.getBoundingClientRect();
+    const cx=rect.left+rect.width/2,cy=rect.top+rect.height/2;
+    const t=e.touches?e.touches[0]:e;
+    const dx=t.clientX-cx,dy=t.clientY-cy;
+    const dist=Math.sqrt(dx*dx+dy*dy);
+    if(dist<DEAD){clearKeys();return;}
+    const angle=Math.atan2(dy,dx); // -PI đến PI
+    clearKeys();
+    // Chia thành 4 góc phần tư rõ ràng
+    if(angle>=-Math.PI/4&&angle<Math.PI/4){
+      WL.keys.right=true;if(dot)dot.style.transform="translate(-25%,-50%)";
+    }else if(angle>=Math.PI/4&&angle<3*Math.PI/4){
+      WL.keys.down=true;if(dot)dot.style.transform="translate(-50%,-25%)";
+    }else if(angle>=-3*Math.PI/4&&angle<-Math.PI/4){
+      WL.keys.up=true;if(dot)dot.style.transform="translate(-50%,-75%)";
+    }else{
+      WL.keys.left=true;if(dot)dot.style.transform="translate(-75%,-50%)";
+    }
+  }
+
+  joy.addEventListener("touchstart", e=>{e.preventDefault();applyDir(e);},{passive:false});
+  joy.addEventListener("touchmove",  e=>{e.preventDefault();applyDir(e);},{passive:false});
+  joy.addEventListener("touchend",   e=>{e.preventDefault();clearKeys();},{passive:false});
+  joy.addEventListener("touchcancel",()=>clearKeys());
+  // Fallback chuột (desktop)
+  let md=false;
+  joy.addEventListener("mousedown", e=>{md=true;applyDir(e);});
+  joy.addEventListener("mousemove", e=>{if(md)applyDir(e);});
+  joy.addEventListener("mouseup",   ()=>{md=false;clearKeys();});
+  joy.addEventListener("mouseleave",()=>{md=false;clearKeys();});
+}
+initJoystick();
+
+/* ======================================================
+   3D ENGINE (giữ nguyên v0.3)
+   ====================================================== */
+const HAS3D=(typeof THREE!=="undefined");
+let renderer,scene,camera,clock3d;
+let world3d=null;
+let tweens=[],particles=[],sprites3d=[];
+let shake=0;
+const PLAYER_POS={x:-2.3,z:0.6},EN3D={x:2.3,z:-0.2};
+
+function init3D(){
+  if(!HAS3D)return;
+  const canvas=$("c3d");
+  renderer=new THREE.WebGLRenderer({canvas,antialias:true});
+  renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  scene=new THREE.Scene();scene.background=new THREE.Color(0x181112);
+  scene.fog=new THREE.Fog(0x181112,14,26);
+  camera=new THREE.PerspectiveCamera(58,16/9,0.1,100);
+  camera.position.set(0,4.2,11.0);camera.lookAt(0,1.0,0);
+  const hemi=new THREE.HemisphereLight(0xfff2dd,0x40282a,0.75);scene.add(hemi);
+  const dir=new THREE.DirectionalLight(0xffe0b0,0.95);
+  dir.position.set(4,8,5);dir.castShadow=true;
+  dir.shadow.mapSize.set(1024,1024);
+  dir.shadow.camera.left=-8;dir.shadow.camera.right=8;
+  dir.shadow.camera.top=8;dir.shadow.camera.bottom=-8;
+  scene.add(dir);
+  const rim=new THREE.PointLight(0xe8b94a,.7,20);rim.position.set(-4,3.5,-3);scene.add(rim);
+  const floorMat=new THREE.MeshStandardMaterial({map:makeCarpetTex("#7a5a3a"),roughness:.95});
+  const floor=new THREE.Mesh(new THREE.PlaneGeometry(40,40),floorMat);
+  floor.rotation.x=-Math.PI/2;floor.receiveShadow=true;scene.add(floor);
+  const props=new THREE.Group();
+  props.add(makeLoom(0,-5.5));props.add(makeSpoolShelf(-6.5,-3.5));props.add(makeSpoolShelf(6.5,-3.5));
+  const banner=makeBanner();banner.position.set(0,4.05,-7.9);props.add(banner);
+  scene.add(props);
+  world3d={floorMat,props,player:null,enemies:[]};
+  clock3d=new THREE.Clock();resize3D();
+  window.addEventListener("resize",resize3D);animate3D();
+}
+function resize3D(){
+  if(!HAS3D||!renderer)return;
+  const canvas=$("c3d"),w=canvas.clientWidth||520,h=canvas.clientHeight||360;
+  renderer.setSize(w,h,false);renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+  camera.aspect=w/h;camera.updateProjectionMatrix();
+}
+function makeCarpetTex(hex){
+  const c=document.createElement("canvas");c.width=c.height=256;const g=c.getContext("2d");
+  g.fillStyle=hex;g.fillRect(0,0,256,256);
+  for(let y=0;y<256;y+=8){for(let x=0;x<256;x+=8){
+    const v=(Math.random()*26-13)|0;
+    g.fillStyle=shade(hex,v+((x+y)%16===0?10:0));g.fillRect(x,y,7,7);
+  }}
+  g.strokeStyle="rgba(0,0,0,.25)";g.lineWidth=2;g.strokeRect(8,8,240,240);
+  const tx=new THREE.CanvasTexture(c);tx.wrapS=tx.wrapT=THREE.RepeatWrapping;tx.repeat.set(7,7);return tx;
+}
+function shade(hex,amt){
+  const n=parseInt(hex.slice(1),16);
+  let r=(n>>16)+amt,g=((n>>8)&255)+amt,b=(n&255)+amt;
+  r=Math.max(0,Math.min(255,r));g=Math.max(0,Math.min(255,g));b=Math.max(0,Math.min(255,b));
+  return"rgb("+r+","+g+","+b+")";
+}
+function M(color,opt){return new THREE.MeshStandardMaterial(Object.assign({color,roughness:.7},opt||{}));}
+function mesh(geo,mat,x,y,z){const m=new THREE.Mesh(geo,mat);m.position.set(x||0,y||0,z||0);m.castShadow=true;return m;}
+function makeLoom(x,z){
+  const g=new THREE.Group(),wood=M(0x6b4a2a),wood2=M(0x553a20);
+  g.add(mesh(new THREE.BoxGeometry(.3,3,.3),wood,-2.6,1.5,0));
+  g.add(mesh(new THREE.BoxGeometry(.3,3,.3),wood,2.6,1.5,0));
+  g.add(mesh(new THREE.BoxGeometry(5.5,.28,.35),wood2,0,2.9,0));
+  g.add(mesh(new THREE.BoxGeometry(5.5,.28,.35),wood2,0,.6,0));
+  for(let i=0;i<13;i++)g.add(mesh(new THREE.CylinderGeometry(.022,.022,2.05,5),M(0xd8c9a8,{roughness:.4}),-2.28+i*.38,1.75,0));
+  g.add(mesh(new THREE.BoxGeometry(4.9,1.05,.14),M(0x8e1f2f),0,1.05,.02));
+  g.position.set(x,0,z);return g;
+}
+function makeSpoolShelf(x,z){
+  const g=new THREE.Group();
+  g.add(mesh(new THREE.BoxGeometry(1.5,3.2,1.1),M(0x4a3524),0,1.6,0));
+  const cols=[0x8e1f2f,0xe8b94a,0x3f74c9,0x3fa05c,0xc94f8a,0xd8d0c0];
+  for(let i=0;i<6;i++){
+    const s=mesh(new THREE.CylinderGeometry(.24,.24,.6,10),M(cols[i],{roughness:.5}),(i%2?.38:-.38),.75+Math.floor(i/2)*.95,.45);
+    s.rotation.x=Math.PI/2;g.add(s);
+  }
+  g.position.set(x,0,z);g.lookAt(0,0,0);return g;
+}
+function makeBanner(){
+  const c=document.createElement("canvas");c.width=512;c.height=128;
+  const g=c.getContext("2d");
+  g.fillStyle="#5e121e";g.fillRect(0,0,512,128);
+  g.strokeStyle="#e8b94a";g.lineWidth=6;g.strokeRect(6,6,500,116);
+  g.fillStyle="#f5d98b";g.font="bold 52px Arial";g.textAlign="center";g.textBaseline="middle";
+  g.fillText("XƯỞNG DỆT GOMA",256,64);
+  return new THREE.Mesh(new THREE.PlaneGeometry(6.6,1.65),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(c)}));
+}
+function makeCatBanner(){
+  const c=document.createElement("canvas");c.width=512;c.height=128;
+  const g=c.getContext("2d");
+  g.fillStyle="#0a1e35";g.fillRect(0,0,512,128);
+  g.strokeStyle="#3a7acc";g.lineWidth=6;g.strokeRect(6,6,500,116);
+  g.fillStyle="#93c5fd";g.font="bold 48px Arial";g.textAlign="center";g.textBaseline="middle";
+  g.fillText("✂️ XƯỞNG CẮT THẢM",256,64);
+  const tex=new THREE.CanvasTexture(c);
+  const mat=new THREE.MeshBasicMaterial({map:tex,side:THREE.DoubleSide});
+  return new THREE.Mesh(new THREE.PlaneGeometry(5.12,1.28),mat);
+}
+
+function buildWorker(){
+  const g=new THREE.Group();
+  const skin=M(0xf0c8a0),red=M(0xa32638),dark=M(0x3a2a28),yellow=M(0xe8b94a,{roughness:.45});
+  g.add(mesh(new THREE.BoxGeometry(.26,.62,.3),dark,-.19,.31,0));
+  g.add(mesh(new THREE.BoxGeometry(.26,.62,.3),dark,.19,.31,0));
+  g.add(mesh(new THREE.CylinderGeometry(.42,.52,1.05,10),red,0,1.15,0));
+  const lc=document.createElement("canvas");lc.width=lc.height=64;
+  const lg=lc.getContext("2d");
+  lg.fillStyle="#fff";lg.beginPath();lg.arc(32,32,26,0,7);lg.fill();
+  lg.fillStyle="#a32638";lg.font="bold 30px Arial";lg.textAlign="center";lg.textBaseline="middle";lg.fillText("G",32,34);
+  const logo=new THREE.Mesh(new THREE.CircleGeometry(.13,16),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(lc)}));
+  logo.position.set(0,1.32,.47);g.add(logo);
+  const head=new THREE.Group();
+  head.add(mesh(new THREE.SphereGeometry(.36,14,12),skin,0,0,0));
+  head.add(mesh(new THREE.SphereGeometry(.07,8,8),M(0xffffff,{roughness:.2}),-.13,.05,.3));
+  head.add(mesh(new THREE.SphereGeometry(.07,8,8),M(0xffffff,{roughness:.2}),.13,.05,.3));
+  head.add(mesh(new THREE.SphereGeometry(.033,6,6),dark,-.13,.05,.365));
+  head.add(mesh(new THREE.SphereGeometry(.033,6,6),dark,.13,.05,.365));
+  head.add(mesh(new THREE.SphereGeometry(.4,12,8,0,Math.PI*2,0,Math.PI/2.2),yellow,0,.12,0));
+  head.add(mesh(new THREE.CylinderGeometry(.46,.5,.07,14),yellow,0,.1,0));
+  head.position.set(0,2.02,0);g.add(head);
+  const leftArm=new THREE.Group();
+  leftArm.add(mesh(new THREE.CylinderGeometry(.1,.12,.75,8),red,0,-.34,0));
+  leftArm.add(mesh(new THREE.SphereGeometry(.12,8,8),skin,0,-.72,0));
+  leftArm.position.set(-.52,1.62,0);leftArm.rotation.z=.25;g.add(leftArm);
+  const rightArm=new THREE.Group();
+  rightArm.add(mesh(new THREE.CylinderGeometry(.1,.12,.75,8),red,0,-.34,0));
+  rightArm.add(mesh(new THREE.SphereGeometry(.12,8,8),skin,0,-.72,0));
+  const shuttle=new THREE.Group();
+  const sh=mesh(new THREE.CylinderGeometry(.09,.02,.9,8),M(0x8a5c2e,{roughness:.35}),0,0,0);
+  sh.rotation.x=Math.PI/2;shuttle.add(sh);
+  const thread=mesh(new THREE.CylinderGeometry(.12,.12,.3,8),M(0xe8b94a,{roughness:.5}),0,0,-.05);
+  thread.rotation.x=Math.PI/2;shuttle.add(thread);
+  shuttle.position.set(0,-.78,.28);rightArm.add(shuttle);
+  rightArm.position.set(.52,1.62,0);rightArm.rotation.z=-.25;g.add(rightArm);
+  g.traverse(o=>{if(o.isMesh)o.castShadow=true;});
+  return{group:g,head,leftArm,rightArm,baseY:0};
+}
+function buildMonster(n,isBoss){
+  const st=STAGES[n-1];const g=new THREE.Group();const col=st.color;
+  const mat=M(col,{roughness:.6});const dark=M(0x241818);let bodyH=1.05;
+  if(n===1){
+    g.add(mesh(new THREE.SphereGeometry(.85,14,12),mat,0,1.0,0));
+    for(let i=0;i<4;i++){const ring=mesh(new THREE.TorusGeometry(.86,.07,8,26),M(shadeHex(col,-30)),0,1.0,0);ring.rotation.set(Math.random()*3,Math.random()*3,Math.random()*3);g.add(ring);}
+    g.add(mesh(new THREE.CylinderGeometry(.05,.05,1.1,6),M(shadeHex(col,25)),.6,.45,.35)).rotation.z=.9;bodyH=1.15;
+  }else if(n===2){
+    g.add(mesh(new THREE.SphereGeometry(.82,14,12),mat,0,1.0,0));
+    const c2=[0xe8b94a,0x3fa05c,0x3f74c9];
+    for(let i=0;i<3;i++){const ring=mesh(new THREE.TorusGeometry(.72-.18*i,.09,8,24),M(c2[i]),0,.72+.38*i,0);ring.rotation.x=Math.PI/2+(i-1)*.3;g.add(ring);}
+    bodyH=1.1;
+  }else if(n===3){
+    g.add(mesh(new THREE.BoxGeometry(1.5,.5,1.0),mat,0,.25,0));
+    g.add(mesh(new THREE.BoxGeometry(1.3,.5,.9),M(shadeHex(col,-25)),.3,.75,.05));
+    g.add(mesh(new THREE.BoxGeometry(1.15,.5,.8),M(shadeHex(col,20)),-.28,1.25,-.03));bodyH=1.5;
+  }else if(n===4){
+    g.add(mesh(new THREE.ConeGeometry(.85,1.7,12),mat,0,.85,0));
+    for(let i=0;i<3;i++){const ring=mesh(new THREE.TorusGeometry(.66-.17*i,.07,8,22),M(shadeHex(col,35)),0,.5+.45*i,0);ring.rotation.x=Math.PI/2;ring.rotation.z=i*.4;g.add(ring);}
+    bodyH=1.35;
+  }else if(n===5){
+    g.add(mesh(new THREE.IcosahedronGeometry(.92,0),M(col,{roughness:.25,metalness:.75,emissive:0x222228}),0,1.05,0));bodyH=1.2;
+  }else{
+    g.add(mesh(new THREE.SphereGeometry(.72,14,12),mat,0,1.0,0));
+    for(let i=0;i<14;i++){
+      const spike=mesh(new THREE.ConeGeometry(.09,.5,6),M(shadeHex(col,40)),0,1.0,0);
+      const th=Math.random()*Math.PI*2,ph=Math.acos(2*Math.random()-1);
+      const dx=Math.sin(ph)*Math.cos(th),dy2=Math.cos(ph),dz=Math.sin(ph)*Math.sin(th);
+      spike.position.set(dx*.75,1.0+dy2*.75,dz*.75);spike.lookAt(dx*3,1.0+dy2*3,dz*3);spike.rotateX(Math.PI/2);g.add(spike);
+    }
+    bodyH=1.15;
+  }
+  const eyeMat=M(0xffffff,{roughness:.15}),puMat=M(isBoss?0xd42020:0x241818,{emissive:isBoss?0x661010:0x000000});
+  const ey=bodyH+.05;
+  g.add(mesh(new THREE.SphereGeometry(.13,10,10),eyeMat,-.26,ey,.62));
+  g.add(mesh(new THREE.SphereGeometry(.13,10,10),eyeMat,.26,ey,.62));
+  g.add(mesh(new THREE.SphereGeometry(.06,8,8),puMat,-.26,ey,.73));
+  g.add(mesh(new THREE.SphereGeometry(.06,8,8),puMat,.26,ey,.73));
+  const b1=mesh(new THREE.BoxGeometry(.22,.05,.05),dark,-.26,ey+.15,.66);
+  const b2=mesh(new THREE.BoxGeometry(.22,.05,.05),dark,.26,ey+.15,.66);
+  b1.rotation.z=-.5;b2.rotation.z=.5;g.add(b1,b2);
+  if(isBoss){
+    const hornM=M(0xd8d0c0,{roughness:.35});
+    const h1=mesh(new THREE.ConeGeometry(.14,.6,8),hornM,-.42,bodyH+.55,0);
+    const h2=mesh(new THREE.ConeGeometry(.14,.6,8),hornM,.42,bodyH+.55,0);
+    h1.rotation.z=.35;h2.rotation.z=-.35;g.add(h1,h2);g.scale.setScalar(1.75);
+  }
+  g.traverse(o=>{if(o.isMesh)o.castShadow=true;});
+  return{group:g,baseY:0,isBoss};
+}
+function shadeHex(hex,amt){
+  let r=((hex>>16)&255)+amt,g=((hex>>8)&255)+amt,b=(hex&255)+amt;
+  r=Math.max(0,Math.min(255,r));g=Math.max(0,Math.min(255,g));b=Math.max(0,Math.min(255,b));
+  return(r<<16)|(g<<8)|b;
+}
+function tw(target,to,dur,opts){
+  const from={};for(const k in to)from[k]=target[k];
+  tweens.push({target,from,to,dur,t:0,ease:(opts&&opts.ease)||"io",done:(opts&&opts.done)||null});
+}
+function easeF(k,type){
+  if(type==="out")return 1-Math.pow(1-k,3);if(type==="in")return k*k*k;
+  return k<.5?4*k*k*k:1-Math.pow(-2*k+2,3)/2;
+}
+function stepTweens(dt){
+  for(let i=tweens.length-1;i>=0;i--){
+    const t=tweens[i];t.t+=dt;const k=Math.min(1,t.t/t.dur),e=easeF(k,t.ease);
+    for(const p in t.to)t.target[p]=t.from[p]+(t.to[p]-t.from[p])*e;
+    if(k>=1){tweens.splice(i,1);if(t.done)t.done();}
+  }
+}
+function spawnBurst(pos,colorHex,count,power){
+  if(!HAS3D||!scene)return;
+  const geo=new THREE.SphereGeometry(.06,6,6);
+  for(let i=0;i<count;i++){
+    const m=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({color:colorHex,transparent:true}));
+    m.position.copy(pos);m.userData.vel=new THREE.Vector3((Math.random()-.5)*power,(Math.random()*.7+.3)*power,(Math.random()-.5)*power);
+    m.userData.life=.8;scene.add(m);particles.push(m);
+  }
+}
+function stepParticles(dt){
+  for(let i=particles.length-1;i>=0;i--){
+    const p=particles[i];p.userData.life-=dt;p.userData.vel.y-=9*dt;
+    p.position.addScaledVector(p.userData.vel,dt);p.material.opacity=Math.max(0,p.userData.life/.8);
+    if(p.userData.life<=0||p.position.y<0){scene.remove(p);particles.splice(i,1);}
+  }
+}
+function dmgSprite(pos,text,color,big){
+  if(!HAS3D||!scene)return;
+  const c=document.createElement("canvas");c.width=256;c.height=128;
+  const g=c.getContext("2d");g.font="bold "+(big?86:64)+"px Arial";
+  g.textAlign="center";g.textBaseline="middle";g.lineWidth=10;g.strokeStyle="rgba(0,0,0,.85)";
+  g.strokeText(text,128,64);g.fillStyle=color;g.fillText(text,128,64);
+  const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),transparent:true}));
+  sp.position.copy(pos);sp.scale.set(big?2.6:1.9,big?1.3:.95,1);sp.userData.life=1.0;
+  scene.add(sp);sprites3d.push(sp);
+}
+function stepSprites(dt){
+  for(let i=sprites3d.length-1;i>=0;i--){
+    const s=sprites3d[i];s.userData.life-=dt;s.position.y+=dt*1.4;s.material.opacity=Math.max(0,s.userData.life);
+    if(s.userData.life<=0){scene.remove(s);sprites3d.splice(i,1);}
+  }
+}
+let idleT=0;
+function animate3D(){
+  requestAnimationFrame(animate3D);
+  if(!clock3d)return;
+  const dt=Math.min(clock3d.getDelta(),.05);idleT+=dt;
+  stepTweens(dt);stepParticles(dt);stepSprites(dt);
+  if(world3d&&world3d.player&&!world3d.player.dead)
+    world3d.player.group.position.y=world3d.player.baseY+Math.sin(idleT*2.4)*.05;
+  // Thanh nộ 3D billboard — luôn quay mặt về phía camera
+  if(world3d&&world3d.rageBar3D&&camera){
+    world3d.rageBar3D.group.lookAt(camera.position);
+  }
+  if(world3d&&world3d.enemies){
+    world3d.enemies.forEach((e,i)=>{
+      if(!e.dead3d){
+        e.group.position.y=e.baseY+Math.sin(idleT*3.1+(i+1)*1.2)*.08;
+        e.group.rotation.y=Math.sin(idleT*1.2+i*.7)*.12;
+      }
+    });
+  }
+  if(shake>0){
+    shake=Math.max(0,shake-dt*3.2);
+    camera.position.set((Math.random()-.5)*shake,4.2+(Math.random()-.5)*shake,11.0);camera.lookAt(0,1.0,0);
+    if(shake===0){camera.position.set(0,4.2,11.0);camera.lookAt(0,1.0,0);}
+  }
+  if(HAS3D&&renderer&&scene&&camera)renderer.render(scene,camera);
+}
+/* === MULTI-ENEMY 3D HELPERS === */
+function getEnemyPositions3D(count){
+  if(count===1)return[{x:2.3,z:-0.2}];
+  if(count===2)return[{x:0.9,z:0.3},{x:3.7,z:-0.5}];
+  return[{x:0.4,z:0.4},{x:2.3,z:-0.9},{x:4.2,z:0.25}];
+}
+function getEnemy3DCenter(e3d){
+  if(!e3d||!e3d.pos3D)return new THREE.Vector3(EN3D.x,1.2,EN3D.z);
+  return new THREE.Vector3(e3d.pos3D.x,(e3d.isBoss||e3d.big)?2.0:1.2,e3d.pos3D.z);
+}
+function firstAliveE3D(){
+  if(!world3d||!world3d.enemies)return null;
+  return world3d.enemies.find(e=>!e.dead3d)||null;
+}
+function removeDeadEnemies3D(){
+  if(!HAS3D||!world3d||!world3d.enemies)return;
+  world3d.enemies.forEach((e3d,i)=>{
+    if(!e3d.dead3d&&B.enemies[i]&&B.enemies[i].dead){
+      e3d.dead3d=true;
+      const st=STAGES[B.n-1];
+      spawnBurst(getEnemy3DCenter(e3d),st.color,20,5);
+      spawnBurst(getEnemy3DCenter(e3d),0xe8b94a,10,4);
+      tw(e3d.group.scale,{x:.01,y:.01,z:.01},.4,{ease:"in"});
+      tw(e3d.group.rotation,{z:1.4},.4,{});
+    }
+  });
+}
+function setupArena(n,isBoss){
+  if(!HAS3D||!world3d)return;
+  const st=(B&&B.mode==="cat"?STAGES_CAT:STAGES)[n-1];
+  const isCatArena=B&&B.mode==="cat";
+  // Tint floor & hide/show det-world-specific 3D props for cat battles
+  world3d.floorMat.map=makeCarpetTex(st.floor);
+  // color tint removed — handled by floor texture directly
+  world3d.floorMat.needsUpdate=true;
+  // Toggle det-world props (banner/looms/shelves) — double-safe: remove from scene + traverse hide
+  if(world3d.props){
+    if(isCatArena){
+      scene.remove(world3d.props);
+      world3d.props.traverse(o=>{if(o.isMesh||o.isLine)o.visible=false;});
+    }else{
+      world3d.props.traverse(o=>{if(o.isMesh||o.isLine)o.visible=true;});
+      if(!scene.children.includes(world3d.props))scene.add(world3d.props);
+    }
+  }
+  // Swap cat/det banners
+  if(!world3d.catBanner){
+    world3d.catBanner=makeCatBanner();
+    world3d.catBanner.position.set(0,4.05,-7.9);
+    scene.add(world3d.catBanner);
+  }
+  if(world3d.catBanner) world3d.catBanner.visible=isCatArena;
+  // Scene background & fog: warm for det, cool for cat
+  scene.background.setHex(isCatArena?0x0d1a2a:0x181112);
+  if(scene.fog){scene.fog.color.setHex(isCatArena?0x0d1a2a:0x181112);}
+  if(world3d.player)scene.remove(world3d.player.group);
+  if(world3d.enemies)world3d.enemies.forEach(e=>scene.remove(e.group));
+  world3d.player=buildWorker();
+  world3d.player.group.position.set(PLAYER_POS.x-4,0,PLAYER_POS.z);
+  world3d.player.group.rotation.y=1.1;scene.add(world3d.player.group);
+  // Thanh nộ 3D gắn trên đầu nhân vật
+  world3d.rageBar3D=buildRageBar3D();
+  world3d.player.group.add(world3d.rageBar3D.group);
+  updateRageBar3D();
+  tw(world3d.player.group.position,{x:PLAYER_POS.x},.55,{ease:"out"});
+  // Build enemy 3D models
+  const positions=getEnemyPositions3D(B.enemies.length);
+  // Scale factor: thu nhỏ khi nhiều quái hơn để nhìn toàn bộ
+  const scaleFactor=B.enemies.length===1?1.0:B.enemies.length===2?0.65:0.52;
+  world3d.enemies=B.enemies.map((be,i)=>{
+    const e3d=buildMonster(n,be.isBoss);
+    e3d.pos3D=positions[i];e3d.dead3d=false;e3d.isBoss=be.isBoss;
+    // Ghi lại base scale để dùng trong VFX hit
+    e3d.baseScale=(be.isBoss?1.75:1.0)*scaleFactor;
+    e3d.group.scale.setScalar(e3d.baseScale);
+    e3d.group.position.set(e3d.pos3D.x,6,e3d.pos3D.z);
+    e3d.group.rotation.y=-1.1;scene.add(e3d.group);
+    const delay=i*120;
+    setTimeout(()=>{
+      tw(e3d.group.position,{y:0},.5,{ease:"in",done:()=>{
+        spawnBurst(new THREE.Vector3(e3d.pos3D.x,.2,e3d.pos3D.z),st.color,14,3);
+        shake=Math.max(shake,be.isBoss?.5:.25);
+      }});
+    },delay);
+    return e3d;
+  });
+}
+/* ===== RAGE BAR 3D — thanh nộ trên đầu nhân vật ===== */
+function buildRageBar3D(){
+  const W=0.88, H=0.10;
+  const grp=new THREE.Group();
+  grp.position.set(0, 2.65, 0);   // trên đầu nhân vật
+  // Background (khung tối)
+  const bgMesh=new THREE.Mesh(
+    new THREE.PlaneGeometry(W+0.04,H+0.04),
+    new THREE.MeshBasicMaterial({color:0x111111,transparent:true,opacity:0.7,depthTest:false})
+  );bgMesh.renderOrder=9;grp.add(bgMesh);
+  // Track (nền xám)
+  const trackMesh=new THREE.Mesh(
+    new THREE.PlaneGeometry(W,H),
+    new THREE.MeshBasicMaterial({color:0x3a1a00,transparent:true,opacity:0.9,depthTest:false})
+  );trackMesh.position.z=0.001;trackMesh.renderOrder=10;grp.add(trackMesh);
+  // Fill (cam → đỏ khi đầy)
+  const fillMesh=new THREE.Mesh(
+    new THREE.PlaneGeometry(W,H),
+    new THREE.MeshBasicMaterial({color:0xff7800,transparent:true,opacity:0.95,depthTest:false})
+  );fillMesh.position.z=0.002;fillMesh.renderOrder=11;grp.add(fillMesh);
+  return{group:grp, fill:fillMesh, W};
+}
+function updateRageBar3D(){
+  if(!HAS3D||!world3d||!world3d.rageBar3D||!B)return;
+  const pct=Math.min(1,Math.max(0,B.rage/B.rageMax));
+  const rb=world3d.rageBar3D;
+  rb.fill.scale.x=Math.max(0.001,pct);
+  rb.fill.position.x=rb.W/2*(pct-1); // căn trái
+  // đổi màu cam → đỏ khi gần đầy
+  const c=pct>=1?0xff2200:(pct>0.7?0xff5500:0xff7800);
+  rb.fill.material.color.setHex(c);
+}
+// enemyCenter() — dùng first alive enemy (backward compat)
+function enemyCenter(){
+  const e3d=firstAliveE3D();
+  return getEnemy3DCenter(e3d||(world3d&&world3d.enemies&&world3d.enemies[0])||null);
+}
+function playerCenter(){return new THREE.Vector3(PLAYER_POS.x,1.4,PLAYER_POS.z);}
+
+/* ======================================================
+   COMBAT v0.4 — Căn Thời Gian
+   ====================================================== */
+let B=null,busy=false;
+let _tRaf=null,_tStop=null,_archRaf=null,_archStop=null;
+
+function startBattle(n,isBoss){
+  stopWorldLoop();
+  const st=STAGES[n-1],p=playerStats();
+  // Build enemies array — 2 quái thường, hoặc 2 quái + boss
+  const normalEnemy=()=>({
+    hp:F.mobHp(n),maxHp:F.mobHp(n),dmg:F.mobDmg(n),
+    name:st.icon+" "+st.mob,dead:false,isBoss:false
+  });
+  let enemies;
+  if(isBoss){
+    enemies=[
+      normalEnemy(),normalEnemy(),
+      {hp:F.bossHp(n),maxHp:F.bossHp(n),dmg:F.bossDmg(n),
+       name:"👹 Thảm Lỗi Khổng Lồ · "+st.line,dead:false,isBoss:true}
+    ];
+  }else{
+    enemies=[normalEnemy(),normalEnemy()];
+  }
+  B={n,isBoss,over:false,pHp:p.maxHp,pMax:p.maxHp,enemies,rage:0,rageMax:100};
+  $("rageRow").style.display="";
+  updateRageUI();updateBars();
+  const intro=isBoss?"👹 Boss + 2 quái khiêu chiến! Diệt quái nhỏ trước!":"⚔️ 2 quái xuất hiện! Tấn công bắt đầu!";
+  battleMsg(intro);
+  setActions(false);
+  showScreen("battle");
+  setupArena(n,isBoss);
+  wait(HAS3D?700:0,()=>setActions(true));
+}
+function battleMsg(t){$("battleMsg").textContent=t;}
+function updateBars(){
+  $("pHpFill").style.width=Math.max(0,B.pHp/B.pMax*100)+"%";
+  $("pHpTxt").textContent=Math.max(0,Math.ceil(B.pHp))+" / "+B.pMax;
+  // Multi-enemy bars
+  const eDiv=$("enemyBars");
+  if(eDiv&&B.enemies){
+    const icons=["🔴","🟠","👹"];
+    const isCatBars=B&&B.mode==="cat";
+    eDiv.innerHTML=B.enemies.map((en,i)=>{
+      const pct=Math.max(0,en.hp/en.maxHp*100);
+      const lbl=en.isBoss?(isCatBars?"👔 Kiểm Tra Viên":"👹 Boss"):
+                (icons[i]+(isCatBars?" Lỗi ":" Quái ")+(i+1));
+      const col=en.isBoss?"#ff7a63":"#ffb3a7";
+      const op=en.dead?"0.38":"1";
+      return`<div class="obar enemy" style="opacity:${op};margin-bottom:2px">
+        <div class="onm" style="color:${col};font-size:10px">${lbl}</div>
+        <div class="track"><div class="fill" style="width:${pct}%"></div>
+        <div class="htx">${fmt(Math.max(0,Math.ceil(en.hp)))}/${fmt(en.maxHp)}</div></div>
+      </div>`;
+    }).join("");
+  }
+  if(B&&B.mode==="cat")updateCatCombatUI();
+}
+function updateRageUI(){
+  if(!B)return;
+  const pct=Math.min(100,Math.round(B.rage/B.rageMax*100));
+  $("rageFill").style.width=pct+"%";
+  $("rageTxt").textContent=B.rage+"/"+B.rageMax;
+  updateRageBar3D();
+  const btn=$("btnAtk");
+  const isCatUI=B&&B.mode==="cat";
+  if(B.rage>=B.rageMax){
+    btn.innerHTML=(isCatUI?"✂️ Tung Chiêu! Cắt AOE <kbd>1</kbd>":"⚡ Tung Chiêu! (×2) <kbd>1</kbd>");btn.classList.add("skill-glow");
+  }else{
+    btn.innerHTML=(isCatUI?"✂️ Cắt <kbd>1</kbd>":"⚔️ Tấn công <kbd>1</kbd>");btn.classList.remove("skill-glow");
+  }
+}
+function setActions(on){
+  if(on){$("actions").style.display="flex";}
+  $("btnAtk").disabled=!on;$("btnDef").disabled=!on;$("btnRun").disabled=!on;
+}
+
+/* ===== TIMING BAR v0.4 ===== */
+function showTimingBar(label,isDefense,defYellowW,callback){
+  // Build zone layout
+  const SPEED=F.timingSpeed(B.n);
+  const isBoss=B.isBoss;
+  let zones;
+  if(isDefense){
+    // Layout: 2 ô CAM nhỏ xíu (né siêu cấp) + 3 ô VÀNG (né 1 đòn) + đỏ còn lại
+    const yw=isBoss?defYellowW*0.5:defYellowW;
+    const zw=yw/3;          // độ rộng ô vàng mỗi cái
+    const ow=zw*0.55;       // ô cam nhỏ hơn ô vàng
+    // Sorted zone definitions (centers)
+    const defs=[
+      {c:0.07, hw:ow/2, color:"#ff8c00", result:"super"},  // cam trái
+      {c:0.25, hw:zw/2, color:"#e8b94a", result:"dodge"},  // vàng 1
+      {c:0.50, hw:zw/2, color:"#e8b94a", result:"dodge"},  // vàng 2
+      {c:0.75, hw:zw/2, color:"#e8b94a", result:"dodge"},  // vàng 3
+      {c:0.93, hw:ow/2, color:"#ff8c00", result:"super"},  // cam phải
+    ];
+    zones=[];let prev=0;
+    defs.forEach(d=>{
+      const s=d.c-d.hw,e=d.c+d.hw;
+      if(prev<s)zones.push({from:prev,to:s,color:"#e05545",result:"hit"});
+      zones.push({from:s,to:e,color:d.color,result:d.result});
+      prev=e;
+    });
+    if(prev<1)zones.push({from:prev,to:1,color:"#e05545",result:"hit"});
+  }else{
+    // 2 ô vàng nhỏ (mỗi ô = 50% gốc), tại 1/3 và 2/3 vùng xanh
+    const yw=isBoss?0.025:0.05;
+    const zw=yw/2; // mỗi ô vàng = 50% độ rộng gốc
+    const gs=0.325,ge=0.675;
+    const c1=gs+(ge-gs)/3;   // ~0.442
+    const c2=gs+(ge-gs)*2/3; // ~0.558
+    zones=[
+      {from:0,to:gs,color:"#e05545",result:"miss"},
+      {from:gs,to:c1-zw/2,color:"#4caf6e",result:"hit"},
+      {from:c1-zw/2,to:c1+zw/2,color:"#e8b94a",result:"crit"},
+      {from:c1+zw/2,to:c2-zw/2,color:"#4caf6e",result:"hit"},
+      {from:c2-zw/2,to:c2+zw/2,color:"#e8b94a",result:"crit"},
+      {from:c2+zw/2,to:ge,color:"#4caf6e",result:"hit"},
+      {from:ge,to:1,color:"#e05545",result:"miss"},
+    ];
+  }
+  // Render zones
+  const track=$("timingTrack");track.innerHTML="";
+  zones.forEach(z=>{
+    const el=document.createElement("div");
+    el.style.cssText=`position:absolute;top:0;bottom:0;left:${z.from*100}%;width:${(z.to-z.from)*100}%;background:${z.color};`;
+    track.appendChild(el);
+  });
+  // Cursor
+  const cur=document.createElement("div");
+  cur.style.cssText="position:absolute;top:0;bottom:0;width:4px;background:#fff;border-radius:2px;transform:translateX(-50%);box-shadow:0 0 12px rgba(255,255,255,.95);pointer-events:none;z-index:2;left:0%";
+  track.appendChild(cur);
+  $("timingLabel").textContent=label;
+  $("timingHint").innerHTML=isDefense
+    ?"🟠 Né siêu cấp (né TẤT CẢ + phản đòn) &nbsp;·&nbsp; 🟡×3 Né 1 đòn &nbsp;·&nbsp; 🔴 Ăn đòn"
+    :"🟡×2 Chí mạng &nbsp;·&nbsp; 🟢 Trúng &nbsp;·&nbsp; 🔴 Miss &nbsp;|&nbsp; <kbd>Space</kbd> để bấm";
+  $("timingHint").style.display="";
+  $("timingWrap").style.display="block";
+  $("actions").style.display="none";
+
+  let pos=0,dir=1,lastTs2=null,done2=false;
+  function frame2(ts){
+    if(done2)return;
+    if(lastTs2===null)lastTs2=ts;
+    const dt2=Math.min((ts-lastTs2)/1000,0.05);lastTs2=ts;
+    pos+=dir*SPEED*dt2;
+    if(pos>=1){pos=1;dir=-1;}if(pos<=0){pos=0;dir=1;}
+    cur.style.left=(pos*100)+"%";
+    _tRaf=requestAnimationFrame(frame2);
+  }
+  _tRaf=requestAnimationFrame(frame2);
+
+  function stop(e){
+    if(done2)return;done2=true;
+    if(e)e.preventDefault();
+    cancelAnimationFrame(_tRaf);_tRaf=null;
+    track.removeEventListener("click",stop);track.removeEventListener("touchstart",stop);
+    document.removeEventListener("keydown",stop);_tStop=null;
+    // Flash
+    cur.style.boxShadow="0 0 24px rgba(255,255,255,1)";
+    const result=zones.find(z=>pos>=z.from&&pos<z.to)?.result||"miss";
+    setTimeout(()=>{
+      $("timingWrap").style.display="none";
+      callback(result,pos);
+    },110);
+  }
+  _tStop=stop;
+  track.addEventListener("click",stop);
+  track.addEventListener("touchstart",stop,{passive:false});
+  document.addEventListener("keydown",stop);
+}
+function cleanupTiming(){
+  if(_tRaf){cancelAnimationFrame(_tRaf);_tRaf=null;}
+  if(_tStop){document.removeEventListener("keydown",_tStop);_tStop=null;}
+  $("timingWrap").style.display="none";
+  cleanupArchery();
+}
+/* ===== 🏹 ARCHERY MINI-GAME (Cat Mode Attack) ===== */
+function drawArcheryBg(ctx,W,H){
+  const cx=W/2,cy=H/2,maxR=W/2-2;
+  // 10 rings — FULLY INTERLEAVED: every hit zone surrounded by miss on both sides!
+  // Outer→Inner: MISS | HIT80 | MISS | HIT100 | MISS | HIT80 | MISS | HIT100 | MISS | CRIT(tiny)
+  const rings=[
+    {r:maxR,      c:"#f2ede3"},  // white+black outer  MISS   79-100%
+    {r:maxR*.79,  c:"#1552a8"},  // blue  outer         HIT80  70-79%
+    {r:maxR*.70,  c:"#ddd8cc"},  // white trap          MISS   61-70%
+    {r:maxR*.61,  c:"#b01a1a"},  // red   outer         HIT100 52-61%
+    {r:maxR*.52,  c:"#151515"},  // black trap          MISS   43-52%
+    {r:maxR*.43,  c:"#1e6acd"},  // blue  inner         HIT80  34-43%
+    {r:maxR*.34,  c:"#e8e0d0"},  // white trap          MISS   25-34%
+    {r:maxR*.25,  c:"#d42828"},  // red   inner         HIT100 16-25%
+    {r:maxR*.16,  c:"#111111"},  // black trap          MISS    7-16%
+    {r:maxR*.07,  c:"#f4c430"},  // gold  center        CRIT    0-7%  (tiny!)
+  ];
+  ctx.clearRect(0,0,W,H);
+  rings.forEach(r=>{
+    ctx.beginPath();ctx.arc(cx,cy,r.r,0,Math.PI*2);
+    ctx.fillStyle=r.c;ctx.fill();
+    ctx.strokeStyle="rgba(0,0,0,.18)";ctx.lineWidth=.6;ctx.stroke();
+  });
+  // Right-side labels for each visible band
+  const lbl=[
+    {mid:.895,t:"MISS", col:"rgba(210,200,185,.6)"},
+    {mid:.745,t:"80%",  col:"rgba(80,160,255,.85)"},
+    {mid:.655,t:"MISS", col:"rgba(210,200,185,.6)"},
+    {mid:.565,t:"100%", col:"rgba(255,110,110,.9)"},
+    {mid:.475,t:"MISS", col:"rgba(140,140,140,.7)"},
+    {mid:.385,t:"80%",  col:"rgba(80,160,255,.85)"},
+    {mid:.295,t:"MISS", col:"rgba(210,200,185,.6)"},
+    {mid:.205,t:"100%", col:"rgba(255,110,110,.9)"},
+    {mid:.115,t:"MISS", col:"rgba(140,140,140,.7)"},
+  ];
+  ctx.font="bold 7px Arial";ctx.textAlign="right";ctx.textBaseline="middle";
+  lbl.forEach(l=>{
+    ctx.fillStyle=l.col;
+    ctx.fillText(l.t,cx+maxR*.97,cy-maxR*l.mid);
+  });
+  // CRIT label
+  if(maxR*.07>5){
+    ctx.textAlign="center";ctx.font="bold 5px Arial";ctx.fillStyle="rgba(0,0,0,.7)";
+    ctx.fillText("★",cx,cy);
+  }
+  ctx.beginPath();ctx.arc(cx,cy,1.8,0,Math.PI*2);ctx.fillStyle="#111";ctx.fill();
+}
+function drawArcheryReticle(ctx,x,y,glowCol){
+  const r=15,gap=5;
+  ctx.save();
+  ctx.shadowColor=glowCol;ctx.shadowBlur=18;
+  ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);
+  ctx.strokeStyle=glowCol==="rgba(255,255,255,.6)"?"rgba(255,255,255,.85)":"#fff";
+  ctx.lineWidth=2.5;ctx.stroke();
+  ctx.shadowBlur=0;
+  // Inner dot
+  ctx.beginPath();ctx.arc(x,y,3.5,0,Math.PI*2);ctx.fillStyle=glowCol;ctx.fill();
+  // Crosshair lines (outside ring)
+  ctx.strokeStyle="rgba(255,255,255,.7)";ctx.lineWidth=1.5;
+  [[x-r-9,y,x-r-gap,y],[x+r+gap,y,x+r+9,y],[x,y-r-9,x,y-r-gap],[x,y+r+gap,x,y+r+9]].forEach(([x1,y1,x2,y2])=>{
+    ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
+  });
+  ctx.restore();
+}
+function showArcheryMini(callback){
+  const isBoss=B&&B.isBoss,n=B?B.n:1;
+  const canv=$("archeryCanv");const ctx=canv.getContext("2d");
+  const W=canv.width,H=canv.height,cx=W/2,cy=H/2,maxR=W/2-2;
+  // Hide old line divs
+  $("archVLine").style.display="none";$("archHLine").style.display="none";
+  // Lissajous params — ALL integer freq pairs pass through (cx,cy) at t=0,π,2π
+  // Key: NO phase offset on Y axis, so sin(fa*t)=0 AND sin(fb*t)=0 at t=0,π simultaneously
+  const freqs=[[1,2],[1,3],[2,3],[3,4],[3,5],[5,7]];
+  const [fa,fb]=freqs[Math.min(n-1,5)];
+  const speed=(1.2+(n-1)*0.22)*(isBoss?1.6:1);   // faster: 1.2→2.3× at stage 6
+  const amp=0.93+(n-1)*0.01;                        // 0.93→0.98: always reaches white zone
+  const wobble=Math.max(0,n-3)*0.05;               // stages 4+ perturbation
+  // 10-ring fully interleaved thresholds (inner→outer):
+  // CRIT | MISS | HIT100 | MISS | HIT80 | MISS | HIT100 | MISS | HIT80 | MISS
+  const critR =maxR*.07;   //  0- 7%: gold    CRIT  (tiny!)
+  const miss1R=maxR*.16;   //  7-16%: black   MISS
+  const red2R =maxR*.25;   // 16-25%: red in  HIT100
+  const miss2R=maxR*.34;   // 25-34%: white   MISS
+  const blue2R=maxR*.43;   // 34-43%: blue in HIT80
+  const miss3R=maxR*.52;   // 43-52%: black   MISS
+  const red1R =maxR*.61;   // 52-61%: red out HIT100
+  const miss4R=maxR*.70;   // 61-70%: white   MISS
+  const blue1R=maxR*.79;   // 70-79%: blue out HIT80
+  // >79%: outer black+white MISS
+  let t=Math.random()*Math.PI,lastTs=null,done=false,curX=cx,curY=cy;
+  // Dynamic label
+  const stageNames=["Màn 1 — Khởi Động","Màn 2 — Vào Nhịp","Màn 3 — Áp Lực","Màn 4 — Rung Tay","Màn 5 — Thử Thách","Màn 6 — Huyền Thoại"];
+  $("archeryLabel").textContent="🏹 BẮN VÀO HỒNG TÂM!";
+  const diffTxt=["★☆☆☆☆","★★☆☆☆","★★★☆☆","★★★★☆","★★★★★","★★★★★+"];
+  $("archeryPhase").textContent=isBoss?("👔 Boss — "+diffTxt[5]+" — Vùng vàng CỰC NHỎ!"):(diffTxt[n-1]+" "+(stageNames[n-1]||""));
+  $("archeryHint").innerHTML='⌨️ <kbd>Space</kbd> / Chạm → Bắn khi reticle đúng vàng!';
+  $("archeryWrap").style.display="block";$("actions").style.display="none";
+  // Border glow (default blue, turns gold when near bullseye)
+  const wrapEl=$("archeryWrap");
+  function frame(ts){
+    if(done)return;
+    if(lastTs===null)lastTs=ts;
+    const dt=Math.min((ts-lastTs)/1000,.05);lastTs=ts;
+    t+=speed*dt;
+    // Lissajous: both axes use integer multiples, NO phase → passes through center at t=0,π,2π
+    curX=cx+amp*cx*Math.sin(fa*t)+(wobble*cx*Math.sin(17.3*t+0.7));
+    curY=cy+amp*cy*Math.sin(fb*t)+(wobble*cy*Math.cos(13.1*t+1.9));
+    // Clamp inside target circle
+    const dr=Math.sqrt((curX-cx)**2+(curY-cy)**2);
+    if(dr>maxR-2){const sc=(maxR-2)/dr;curX=cx+(curX-cx)*sc;curY=cy+(curY-cy)*sc;}
+    const dx=curX-cx,dy=curY-cy;
+    const dist=Math.sqrt(dx*dx+dy*dy);
+    // Glow: gold=crit, red=hit100, blue=hit80, grey=miss
+    const inCrit=dist<=critR;
+    const inRed =(dist>miss1R&&dist<=red2R)||(dist>miss3R&&dist<=red1R);
+    const inBlue=(dist>miss2R&&dist<=blue2R)||(dist>miss4R&&dist<=blue1R);
+    const glowCol=inCrit?"#ffd700":inRed?"#ff5555":inBlue?"#4488ff":"rgba(160,160,160,.4)";
+    wrapEl.style.borderColor=inCrit?"#ffd700":inRed?"#ff4444":inBlue?"#3b82f6":"#444";
+    wrapEl.style.boxShadow=inCrit?"0 0 26px rgba(255,215,0,.75)":inRed?"0 0 14px rgba(255,68,68,.45)":"";
+    drawArcheryBg(ctx,W,H);
+    drawArcheryReticle(ctx,curX,curY,glowCol);
+    _archRaf=requestAnimationFrame(frame);
+  }
+  _archRaf=requestAnimationFrame(frame);
+  const _archOpenTime=Date.now();
+  function press(e){
+    if(done)return;
+    if(Date.now()-_archOpenTime<200)return;  // ignore events within 200ms of opening
+    if(e&&e.type==="keydown"&&e.code!=="Space")return;
+    if(e)e.preventDefault();
+    done=true;
+    cancelAnimationFrame(_archRaf);_archRaf=null;
+    document.removeEventListener("keydown",press);
+    wrapEl.removeEventListener("click",press);
+    wrapEl.removeEventListener("touchstart",press);
+    _archStop=null;
+    wrapEl.style.borderColor="#3b82f6";wrapEl.style.boxShadow="";
+    // Draw frozen impact
+    drawArcheryBg(ctx,W,H);
+    drawArcheryReticle(ctx,curX,curY,"#ff6600");
+    // Impact burst ring
+    ctx.beginPath();ctx.arc(curX,curY,22,0,Math.PI*2);
+    ctx.strokeStyle="rgba(255,100,0,.7)";ctx.lineWidth=3;
+    ctx.shadowColor="#ff6600";ctx.shadowBlur=14;ctx.stroke();ctx.shadowBlur=0;
+    // Arrow emoji
+    ctx.font="bold 13px Arial";ctx.textAlign="center";ctx.textBaseline="middle";
+    ctx.fillText("🏹",curX,curY);
+    // Result
+    const dx=curX-cx,dy=curY-cy,dist=Math.sqrt(dx*dx+dy*dy);
+    let result,ringTxt,hint2;
+    // 10-ring fully interleaved: CRIT|MISS|HIT100|MISS|HIT80|MISS|HIT100|MISS|HIT80|MISS
+    if     (dist<=critR ) {result="crit";    ringTxt="🏅 HỒNG TÂM! Chí mạng!";    hint2="★ XUẤT SẮC!";}
+    else if(dist<=miss1R) {result="miss";    ringTxt="⬛ Đen trong — MISS!";        hint2="Sát tâm mà trượt!";}
+    else if(dist<=red2R ) {result="hit_100"; ringTxt="🎯 Đỏ trong — 100% dame!";   hint2="Vòng đỏ!";}
+    else if(dist<=miss2R) {result="miss";    ringTxt="⬜ Trắng — MISS!";            hint2="Sập bẫy!";}
+    else if(dist<=blue2R) {result="hit_80";  ringTxt="💙 Xanh trong — 80% dame!";  hint2="Vòng xanh!";}
+    else if(dist<=miss3R) {result="miss";    ringTxt="⬛ Đen — MISS!";              hint2="Sập bẫy!";}
+    else if(dist<=red1R ) {result="hit_100"; ringTxt="🎯 Đỏ ngoài — 100% dame!";   hint2="Vòng đỏ!";}
+    else if(dist<=miss4R) {result="miss";    ringTxt="⬜ Trắng — MISS!";            hint2="Sập bẫy!";}
+    else if(dist<=blue1R) {result="hit_80";  ringTxt="💙 Xanh ngoài — 80% dame!";  hint2="Vòng xanh!";}
+    else                  {result="miss";    ringTxt="⬛⬜ Ngoài bia — MISS!";       hint2="Trượt hoàn toàn!";}
+    $("archeryPhase").textContent=ringTxt;
+    $("archeryHint").textContent=hint2;
+    setTimeout(()=>{
+      wrapEl.style.display="none";
+      callback(result,curX/W);
+    },500);
+  }
+  _archStop=press;
+  document.addEventListener("keydown",press);
+  // Delay touch/click by 250ms to prevent propagation from attack button tap
+  setTimeout(()=>{
+    if(!done){
+      wrapEl.addEventListener("click",press);
+      wrapEl.addEventListener("touchstart",press,{passive:false});
+    }
+  },250);
+}
+function cleanupArchery(){
+  if(_archRaf){cancelAnimationFrame(_archRaf);_archRaf=null;}
+  if(_archStop){document.removeEventListener("keydown",_archStop);_archStop=null;}
+  const w=$("archeryWrap");
+  if(w){w.style.display="none";w.style.borderColor="";w.style.boxShadow="";}
+  const h=$("archHLine");if(h)h.style.display="none";
+}
+
+/* ===== PLAYER ACTION ===== */
+function playerAct(act){
+  if(!B||B.over||busy)return;
+  busy=true;setActions(false);
+  const p=currentStats();
+  const isCat=B.mode==="cat";
+
+  // Rage/Nộ skill overrides normal attack
+  if(act==="atk"&&B.rage>=B.rageMax){act="skill";}
+
+  if(act==="skill"){
+    // AOE x1.7 TẤT CẢ quái còn sống
+    const dmgEach=Math.round(p.atk*1.7);
+    const aliveE=B.enemies.filter(e=>!e.dead);
+    aliveE.forEach(en=>{en.hp=Math.max(0,en.hp-dmgEach);if(en.hp<=0)en.dead=true;});
+    B.rage=0;updateRageUI();
+    // Cat: AOE resets waste to 0
+    if(isCat){B.waste=0;B.catCombo=Math.min(5,B.catCombo+2);updateCatCombatUI();}
+    if(HAS3D&&world3d&&world3d.enemies){
+      world3d.enemies.forEach((e3d,i)=>{
+        if(!e3d.dead3d){
+          spawnBurst(getEnemy3DCenter(e3d),0xff9a4a,20,5.5);
+          dmgSprite(getEnemy3DCenter(e3d).add(new THREE.Vector3(0,.8,0)),"⚡"+fmt(dmgEach),"#ff9a4a",true);
+          const s0=e3d.baseScale||(e3d.isBoss?1.75:1);
+          e3d.group.scale.set(s0*1.28,s0*.68,s0*1.28);tw(e3d.group.scale,{x:s0,y:s0,z:s0},.35,{ease:"out"});
+        }
+      });
+      shake=Math.max(shake,.65);
+    }
+    battleMsg(isCat?"✂️ TUNG CHIÊU! Cắt AOE "+fmt(dmgEach)+" × "+aliveE.length+" lỗi! Hao phí RESET!":
+                     "⚡ TUNG CHIÊU! AOE "+fmt(dmgEach)+" dame × "+aliveE.length+" quái!");
+    removeDeadEnemies3D();updateBars();
+    if(B.enemies.every(e=>e.dead)){winBattle();return;}
+    wait(HAS3D?500:0,()=>doEnemyTurn());
+    return;
+  }
+
+  if(act==="def"){
+    const gain=30;B.rage=Math.min(B.rageMax,B.rage+gain);updateRageUI();
+    battleMsg(isCat?"✂️ Nạp lực! +"+gain+" Nộ ("+B.rage+"/"+B.rageMax+") — lỗi tấn công!":
+                     "🔥 Nạp nộ! +"+gain+" Nộ ("+B.rage+"/"+B.rageMax+") — quái tấn công!");
+    if(HAS3D&&world3d&&world3d.player){
+      tw(world3d.player.leftArm.rotation,{x:-1.3},.18,{ease:"out"});
+      tw(world3d.player.rightArm.rotation,{x:-1.3},.18,{ease:"out"});
+    }
+    wait(HAS3D?300:0,()=>doEnemyTurn());
+    return;
+  }
+
+  // Normal attack — cat mode uses archery mini-game; det uses timing bar
+  if(isCat){
+    showArcheryMini((result)=>{
+      B.rage=Math.min(B.rageMax,B.rage+15);updateRageUI();
+      B.catTurnCount++;
+      const p2=currentStats();
+      const target=B.enemies.find(e=>!e.dead);
+      if(!target){winBattle();return;}
+      let dmg=0,crit=false,missed=false,evaded=false;
+      if(result==="crit"||result==="hit_100"||result==="hit_80"){
+        const ev=currentEnemyEvasion(target);
+        if(ev>0&&Math.random()*100<ev){evaded=true;}
+        else{
+          const comboBonus=B.catCombo>=5;
+          const comboMult=B.catCombo>=3?1.25:1;
+          // Blue zone = 80% damage multiplier
+          const zoneMult=result==="hit_80"?0.8:1.0;
+          if(result==="crit"||comboBonus){crit=true;dmg=Math.round(p2.atk*p2.critMult*comboMult);}
+          else{dmg=Math.round(p2.atk*comboMult*zoneMult);}
+          target.hp=Math.max(0,target.hp-dmg);
+          if(target.hp<=0)target.dead=true;
+        }
+      }else{missed=true;}
+      if(B)B._lastRes=result;
+      updateCatAfterAttack(dmg>0,crit,missed||evaded);
+      const targetIdx=B.enemies.indexOf(target);
+      const targetE3d=world3d&&world3d.enemies?world3d.enemies[targetIdx]:null;
+      vfxPlayerAttack(dmg,crit,missed||evaded,targetE3d,evaded,()=>{
+        removeDeadEnemies3D();updateBars();
+        if(B.enemies.every(e=>e.dead)){winBattle();return;}
+        wait(HAS3D?350:0,()=>doEnemyTurn());
+      });
+    });
+    return;
+  }
+  // Det mode: timing bar
+  showTimingBar("⚔️ BẤM để tấn công!",false,0,(result)=>{
+    B.rage=Math.min(B.rageMax,B.rage+15);updateRageUI();
+    const p2=currentStats();
+    const target=B.enemies.find(e=>!e.dead);
+    if(!target){winBattle();return;}
+    let dmg=0,crit=false,missed=false,evaded=false;
+    if(result==="crit"||result==="hit"){
+      const ev=currentEnemyEvasion(target);
+      if(ev>0&&Math.random()*100<ev){evaded=true;}
+      else{
+        if(result==="crit"){crit=true;dmg=Math.round(p2.atk*p2.critMult);}
+        else{dmg=Math.round(p2.atk);}
+        target.hp=Math.max(0,target.hp-dmg);
+        if(target.hp<=0)target.dead=true;
+      }
+    }else{missed=true;}
+    const targetIdx=B.enemies.indexOf(target);
+    const targetE3d=world3d&&world3d.enemies?world3d.enemies[targetIdx]:null;
+    vfxPlayerAttack(dmg,crit,missed||evaded,targetE3d,evaded,()=>{
+      removeDeadEnemies3D();updateBars();
+      if(B.enemies.every(e=>e.dead)){winBattle();return;}
+      wait(HAS3D?350:0,()=>doEnemyTurn());
+    });
+  });
+}
+
+function vfxPlayerAttack(dmg,crit,missed,targetE3d,evaded,done){
+  if(!HAS3D||!world3d||!world3d.player){
+    if(evaded) battleMsg("💨 Quái né được đòn!");
+    else battleMsg(missed?"💨 Miss! Trượt hoàn toàn!":(crit?"🎯 CHÍ MẠNG! "+fmt(dmg)+" dame!":"⚔️ Trúng: "+fmt(dmg)+" dame"));
+    done();return;
+  }
+  const pl=world3d.player;
+  const e3d=targetE3d||firstAliveE3D()||world3d.enemies[0];
+  const eCenter=getEnemy3DCenter(e3d);
+  const ePos=e3d?e3d.pos3D:EN3D;
+  const s0=e3d&&e3d.baseScale?e3d.baseScale:(e3d&&e3d.isBoss?1.75:1);
+  const isCatVfx=B&&B.mode==="cat";
+  if(evaded) battleMsg(isCatVfx?"💨 Lỗi né đòn!":"💨 Quái né đòn! ("+enemyEvasion(B.enemies.find(e=>!e.dead)||B.enemies[0])+"% né)");
+  else battleMsg(missed?(isCatVfx?"💨 MISS! Ra ngoài bia!":"💨 MISS! Trượt ô đỏ..."):(crit?(isCatVfx?"🏅 HỒNG TÂM! "+fmt(dmg)+" chí mạng!":"🎯 CHÍ MẠNG! "+fmt(dmg)+" dame!"):(isCatVfx?(B&&B._lastRes==="hit_80"?"💙 Vòng xanh: "+fmt(dmg)+" (80%)":"🎯 Vòng đỏ: "+fmt(dmg)):"⚔️ Trúng: "+fmt(dmg)+" dame")));
+  tw(pl.group.position,{x:ePos.x-1.5,z:(ePos.z||EN3D.z)+.35},.22,{ease:"in",done:()=>{
+    tw(pl.rightArm.rotation,{x:-2.4},.09,{ease:"out",done:()=>{
+      tw(pl.rightArm.rotation,{x:.5},.11,{ease:"in",done:()=>{
+        const st=(B&&B.mode==="cat"?STAGES_CAT:STAGES)[B.n-1];
+        if(e3d&&!e3d.dead3d){
+          const eg=e3d.group;
+          if(missed||evaded){
+            dmgSprite(eCenter.clone().add(new THREE.Vector3(0,.6,0)),evaded?"🌀NÉ!":"NÉ!","#8fd7ff",false);
+            tw(eg.position,{z:ePos.z-1.6},.15,{ease:"out",done:()=>tw(eg.position,{z:ePos.z},.25,{ease:"io"})});
+          }else{
+            spawnBurst(eCenter,crit?0xffd24a:st.color,crit?22:12,crit?5:3.4);
+            dmgSprite(eCenter.clone().add(new THREE.Vector3(0,.6,0)),fmt(dmg),crit?"#ffd24a":"#ffffff",crit);
+            shake=Math.max(shake,crit?.55:.22);
+            eg.scale.set(s0*1.15,s0*.8,s0*1.15);tw(eg.scale,{x:s0,y:s0,z:s0},.3,{ease:"out"});
+          }
+        }
+        tw(pl.rightArm.rotation,{x:0},.18,{});
+        tw(pl.group.position,{x:PLAYER_POS.x,z:PLAYER_POS.z},.26,{ease:"io",done});
+      }});
+    }});
+  }});
+}
+
+/* ===== ENEMY TURN — từng quái tấn công lần lượt ===== */
+function doEnemyTurn(){
+  const p=currentStats();
+  const isCat=B&&B.mode==="cat";
+  const alive=B.enemies.filter(e=>!e.dead);
+  if(!alive.length){winBattle();return;}
+  let idx=0;
+  function attackNext(){
+    if(idx>=alive.length){
+      regenTick(p);
+      resetArms();busy=false;setActions(true);
+      return;
+    }
+    const enemy=alive[idx];
+    const enemyNum=B.enemies.indexOf(enemy)+1;
+    const eName=enemy.isBoss?(isCat?"👔 Kiểm Tra Viên":"👹 Boss"):(isCat?"🧶 Lỗi "+enemyNum:"Quái "+enemyNum);
+    idx++;
+    showTimingBar((isCat?"🛡️ "+eName+" tấn công! Né đòn!":"🛡️ "+eName+" tấn công! Né đòn!"),true,p.yellowDef,(result)=>{
+      if(result==="super"){
+        const counterDmg=Math.round(p.atk*1.5);
+        enemy.hp=Math.max(0,enemy.hp-counterDmg);
+        if(enemy.hp<=0)enemy.dead=true;
+        B.rage=Math.min(B.rageMax,B.rage+12);updateRageUI();
+        if(HAS3D&&world3d&&world3d.enemies){
+          const eIdx=B.enemies.indexOf(enemy);
+          const e3d=world3d.enemies[eIdx];
+          if(e3d&&!e3d.dead3d){
+            spawnBurst(getEnemy3DCenter(e3d),0xff8c00,18,5);
+            dmgSprite(getEnemy3DCenter(e3d).add(new THREE.Vector3(0,.9,0)),"⭐"+fmt(counterDmg),"#ff8c00",true);
+            shake=Math.max(shake,.38);
+          }
+        }
+        vfxEnemyAttack(0,true,enemy,()=>{
+          removeDeadEnemies3D();updateBars();
+          if(B.enemies.every(e=>e.dead)){winBattle();return;}
+          battleMsg("⭐ NÉ SIÊU CẤP "+eName+"! Phản đòn "+fmt(counterDmg)+"!"+(enemy.dead?" Hạ gục!":""));
+          attackNext();
+        });
+      }else if(result==="dodge"){
+        B.rage=Math.min(B.rageMax,B.rage+5);updateRageUI();
+        vfxEnemyAttack(0,true,enemy,()=>{
+          updateBars();
+          battleMsg("💨 Né đòn "+eName+"!");
+          attackNext();
+        });
+      }else{
+        const baseDmg=Math.max(1,Math.round(enemy.dmg*(1-p.def/100)));
+        const wb=isCat?(B.waste>=70?.3:B.waste>=30?.15:0):0;
+        const dmg=Math.max(1,Math.round(baseDmg*(1+wb)));
+        B.pHp=Math.max(0,B.pHp-dmg);
+        B.rage=Math.min(B.rageMax,B.rage+9);updateRageUI();
+        vfxEnemyAttack(dmg,false,enemy,()=>{
+          updateBars();
+          if(B.pHp<=0){loseBattle();return;}
+          battleMsg(eName+(isCat?" gây "+fmt(dmg)+(wb>0?" ⚠️ Hao phí Lv"+(wb>=.3?"3":"2"):"")+" dame!":
+                              " gây "+fmt(dmg)+" dame!"));
+          attackNext();
+        });
+      }
+    });
+  }
+  attackNext();
+}
+function regenTick(p){
+  if(p.regen>0&&B.pHp<B.pMax){
+    const heal=Math.min(p.regen,B.pMax-B.pHp);B.pHp+=heal;
+    if(HAS3D&&world3d&&world3d.player){
+      spawnBurst(playerCenter(),0x6fdc8f,8,2.2);
+      dmgSprite(playerCenter().add(new THREE.Vector3(0,.7,0)),"+"+heal,"#6fdc8f",false);
+    }
+  }
+  if(B&&B.mode==="cat"&&p.wasteRed>0){
+    B.waste=Math.max(0,B.waste-p.wasteRed);
+    updateCatCombatUI();
+  }
+  updateBars();
+}
+function resetArms(){
+  if(HAS3D&&world3d&&world3d.player){
+    tw(world3d.player.leftArm.rotation,{x:0},.2,{});
+    tw(world3d.player.rightArm.rotation,{x:0},.2,{});
+  }
+}
+function vfxEnemyAttack(dmg,dodged,specificEnemy,done){
+  let e3d=null;
+  if(specificEnemy&&HAS3D&&world3d&&world3d.enemies){
+    const idx=B.enemies.indexOf(specificEnemy);
+    if(idx>=0)e3d=world3d.enemies[idx];
+  }
+  if(!e3d||e3d.dead3d)e3d=firstAliveE3D();
+  if(!HAS3D||!world3d||!e3d){done();return;}
+  const eg=e3d.group,ep=e3d.pos3D;
+  tw(eg.position,{x:PLAYER_POS.x+1.4,z:PLAYER_POS.z-.2},.24,{ease:"in",done:()=>{
+    if(dodged){
+      dmgSprite(playerCenter().add(new THREE.Vector3(0,.6,0)),"NÉ!","#8fd7ff",false);
+      if(world3d.player)tw(world3d.player.group.position,{z:PLAYER_POS.z+1.5},.16,{ease:"out",done:()=>tw(world3d.player.group.position,{z:PLAYER_POS.z},.24,{ease:"io"})});
+    }else{
+      spawnBurst(playerCenter(),0xe05545,12,3.4);
+      dmgSprite(playerCenter().add(new THREE.Vector3(0,.6,0)),"-"+fmt(dmg),"#ff8f7d",false);
+      shake=Math.max(shake,.3);$("vignette").style.opacity=1;setTimeout(()=>$("vignette").style.opacity=0,180);
+    }
+    tw(eg.position,{x:ep.x,z:ep.z},.3,{ease:"io",done});
+  }});
+}
+
+/* ===== WIN / LOSE ===== */
+function winBattle(){
+  if(B&&B.mode==="cat"){winCatBattle();return;}
+  B.over=true;setActions(false);updateBars();cleanupTiming();
+  const n=B.n;
+  if(HAS3D&&world3d&&world3d.enemies){
+    const st=STAGES[n-1];
+    world3d.enemies.forEach(e3d=>{
+      if(!e3d.dead3d){
+        e3d.dead3d=true;
+        spawnBurst(getEnemy3DCenter(e3d),st.color,20,5);
+        spawnBurst(getEnemy3DCenter(e3d),0xffd24a,10,3.5);
+        tw(e3d.group.scale,{x:.01,y:.01,z:.01},.5,{ease:"in"});
+        tw(e3d.group.rotation,{z:1.4},.5,{});
+      }
+    });shake=Math.max(shake,.45);
+  }
+  battleMsg("🏆 CHIẾN THẮNG!");
+  wait(HAS3D?750:0,()=>{
+    busy=false;$("rageRow").style.display="none";
+    if(B.isBoss){
+      const reward=F.bossReward(n);S.pts+=reward;S.bossDown[n]=true;S.lv+=1;
+      const openedNew=n<STAGES.length&&S.unlocked<n+1;if(openedNew)S.unlocked=n+1;
+      save();
+      const msg=`Hạ <b>Boss ${n}</b>!<br>+<b>${fmt(reward)}</b> Điểm Dệt<br>🏅 Lên Cấp Thợ Dệt <b>${S.lv}</b> (+25 HP tối đa)`
+        +(openedNew?`<br>🔓 Mở Màn <b>${n+1}</b> · <b>${STAGES[n].line}</b>!`:`<br>👑 Bạn đã hoàn thành tất cả màn dệt!`);
+      askModal("🏆","BOSS ĐÃ BỊ HẠ!",msg,[["Tuyệt vời!",()=>{closeModal();returnToWorld();}]]);
+    }else{
+      let reward=F.mobReward(n);
+      S.pts+=reward;save();
+      const dropDay=S.dropDay||"";
+      if(dropDay!==todayStr()&&Math.random()<DROP_RATE){
+        S.drops+=1;S.dropDay=todayStr();save();
+        askModal("🎉","THƯỞNG HIỆN VẬT!",
+          "Hoàn thành đơn xuất sắc!<br><b>Chụp màn hình gửi admin nhé.</b>",
+          [["🥤 Admin mời ly nước",()=>{closeModal();returnToWorld();}],
+           ["⚙️ Nâng cấp miễn phí 1 món",freeUpgradePick]]);
+        return;
+      }
+      askModal("✅","CHIẾN THẮNG!",`+<b>${fmt(reward)}</b> Điểm Dệt`,[
+        ["⚔️ Đánh tiếp",()=>{closeModal();startBattle(n,false);}],
+        ["🏭 Về Xưởng",()=>{closeModal();returnToWorld();}],
+      ]);
+    }
+  });
+}
+function loseBattle(){
+  if(B&&B.mode==="cat"){loseCatBattle();return;}
+  B.over=true;setActions(false);cleanupTiming();
+  if(HAS3D&&world3d&&world3d.player){
+    world3d.player.dead=true;
+    tw(world3d.player.group.rotation,{z:-1.5},.5,{ease:"in"});
+    tw(world3d.player.group.position,{y:.15},.5,{ease:"in"});
+  }
+  let penalty=0;
+  if(!B.isBoss){penalty=Math.round(F.mobReward(B.n)*0.5);S.pts=Math.max(0,S.pts-penalty);save();}
+  battleMsg("💀 Ngã xuống rồi...");
+  wait(HAS3D?700:0,()=>{
+    busy=false;$("rageRow").style.display="none";
+    const penMsg=penalty>0?`<br>💸 Phạt thua: −${fmt(penalty)} Điểm Dệt.`:"";
+    askModal("💀","THUA TRẬN...",
+      `Luyện tập thêm rồi thử lại!${penMsg}<br>Nâng cấp đồ nghề rồi chiến tiếp!`,
+      [["⚔️ Thử lại",()=>{closeModal();startBattle(B.n,B.isBoss);}],
+       ["🏭 Về Xưởng",()=>{closeModal();returnToWorld();}]]);
+  });
+}
+function fleeBattle(){
+  if(!B||B.over||busy)return;
+  B.over=true;cleanupTiming();
+  $("rageRow").style.display="none";$("catCombatUI").style.display="none";
+  returnToWorld();
+}
+function returnToWorld(){
+  if(B&&B.mode==="cat"){returnToCatWorldFn();return;}
+  rebuildWorldNpcs();renderHud();showScreen("world");
+}
+function freeUpgradePick(){
+  const up=EQUIP.filter(e=>S.tiers[e.id]<MAX_LV);
+  if(!up.length){closeModal();returnToWorld();return;}
+  askModal("⚙️","Chọn món nâng miễn phí","Nâng 1 cấp miễn phí cho món nào?",
+    up.map(e=>[`${e.icon} ${e.name} (Cấp ${S.tiers[e.id]}→${S.tiers[e.id]+1})`,()=>{
+      S.tiers[e.id]+=1;save();closeModal();returnToWorld();
+    }]));
+}
+
+/* =====================================================
+   ✂️ KHU CẮT THẢM — RPG extension
+   ===================================================== */
+const SAVE_KEY_CAT="gomaCatV1";
+const MAX_LV_CAT=15;
+const DROP_RATE_CAT=0.08;
+const STAGES_CAT=[
+  {n:1,line:"Thảm Nhàu Cơ Bản",  mob:"Cuộn Nhàu",   icon:"🧻",color:0x4488cc,floor:"#1a4a8a"},
+  {n:2,line:"Thảm Tấm Sai Kích", mob:"Tấm Lệch",    icon:"📐",color:0x5599dd,floor:"#1a5a9a"},
+  {n:3,line:"Đơn Gấp Áp Lực",    mob:"Đơn Hỏa Tốc", icon:"⚡",color:0x66aaee,floor:"#2266aa"},
+  {n:4,line:"Máy Cắt Già Hỏng",  mob:"Máy Phá",     icon:"🔧",color:0x7799cc,floor:"#334466"},
+  {n:5,line:"Thảm Cao Cấp Khó",  mob:"Thảm VIP Lỗi",icon:"💎",color:0x88bbff,floor:"#5566aa"},
+  {n:6,line:"Kiểm Tra Toàn Xưởng",mob:"Lỗi Tổng",   icon:"🔍",color:0x99ccff,floor:"#6677bb"},
+];
+const EQUIP_CAT=[
+  {id:"dao",  name:"Lưỡi Dao Cắt",  real:"Steel Blade",   stat:"atk",     icon:"🔪",base:72, descr:"Sát thương cắt"},
+  {id:"thuoc",name:"Thước Inox",     real:"Steel Ruler",   stat:"crit",    icon:"📏",base:135,descr:"Hệ số chí mạng"},
+  {id:"ban",  name:"Bàn Hút Chân K.",real:"Vacuum Table",  stat:"def",     icon:"🧲",base:65, descr:"Giảm dame nhận"},
+  {id:"mai",  name:"Đá Mài Dao",     real:"Whetstone",     stat:"regen",   icon:"🔧",base:88, descr:"Hồi máu/lượt"},
+  {id:"kinh2",name:"Kính Lúp",       real:"Magnifier",     stat:"dodge",   icon:"👁️",base:102,descr:"Ô vàng né đòn"},
+  {id:"thu",  name:"Máy Thu Hồi",    real:"Waste Recycler",stat:"wasteRed",icon:"♻️",base:110,descr:"Giảm hao phí/lượt"},
+];
+const F_CAT={
+  atk:      l=>18+l*2,
+  crit:     l=>1.30+l*0.05,
+  def:      l=>l*2,
+  regen:    l=>l,
+  dodge:    l=>0.15+l*0.025,
+  wasteRed: l=>l*1,
+  maxHp:    lv=>100+lv*25,
+  lvCost:   (base,l)=>Math.round(base*Math.pow(1.55,l-1)),
+  mobHp:    n=>Math.round(70*Math.pow(1.3,n-1)),
+  mobDmg:   n=>Math.round(7*Math.pow(1.32,n-1)),
+  bossHp:   n=>Math.round(220*Math.pow(1.3,n-1)),
+  bossDmg:  n=>Math.round(Math.round(7*Math.pow(1.32,n-1))*2.0),
+  mobReward: n=>Math.round(18*Math.pow(1.4,n-1)),
+  bossReward:n=>Math.round(90*Math.pow(1.5,n-1)),
+  mobEvasion:n=>4+(n-1)*2,
+  bossEvasion:n=>Math.min(20,Math.round((4+(n-1)*2)*1.4)),
+};
+const ORDER_CARDS=[
+  {id:"crit3",   text:"Chí mạng ≥ 3 lần",         check:b=>b.catCritCount>=3},
+  {id:"nomiss3", text:"Cắt sạch 3 lần liên tiếp",  check:b=>b.catMissStreak>=3},
+  {id:"fast5",   text:"Hạ gục trong ≤ 5 lượt",     check:b=>b.catTurnCount<=5},
+  {id:"lowwaste",text:"Hao phí cuối < 30%",        check:b=>b.waste<30},
+  {id:"nomiss",  text:"Không miss cả trận",         check:b=>b.catTotalMiss===0},
+];
+
+let SC;
+function defaultCatSave(){
+  return{pts:0,lv:0,unlocked:1,
+    tiers:{dao:0,thuoc:0,ban:0,mai:0,kinh2:0,thu:0},
+    bossDown:{},drops:0,dropDay:""};
+}
+function loadCat(){
+  try{
+    const r=localStorage.getItem(SAVE_KEY_CAT);
+    if(r){
+      const d=defaultCatSave(),saved=JSON.parse(r);
+      const defTiers={...d.tiers};
+      SC=Object.assign(d,saved);
+      SC.tiers=Object.assign(defTiers,saved.tiers||{});
+    }else{SC=defaultCatSave();}
+  }catch(e){SC=defaultCatSave();}
+}
+function saveCat(){try{localStorage.setItem(SAVE_KEY_CAT,JSON.stringify(SC));}catch(e){}}
+
+function playerCatStats(){
+  const t=SC.tiers;
+  return{
+    atk:F_CAT.atk(t.dao??0),
+    critMult:F_CAT.crit(t.thuoc??0),
+    def:F_CAT.def(t.ban??0),
+    regen:F_CAT.regen(t.mai??0),
+    yellowDef:F_CAT.dodge(t.kinh2??0),
+    wasteRed:F_CAT.wasteRed(t.thu??0),
+    maxHp:F_CAT.maxHp(SC.lv),
+    acc:0,
+  };
+}
+function statCatPreview(stat,l){
+  if(stat==="atk")    return F_CAT.atk(l)+" ATK";
+  if(stat==="crit")   return"×"+F_CAT.crit(l).toFixed(2);
+  if(stat==="def")    return F_CAT.def(l)+"%";
+  if(stat==="regen")  return F_CAT.regen(l)+"/lt";
+  if(stat==="dodge")  return(F_CAT.dodge(l)*100).toFixed(0)+"%";
+  if(stat==="wasteRed")return"-"+F_CAT.wasteRed(l)+"%/lt";
+  return l;
+}
+
+function updateCatCombatUI(){
+  if(!B||B.mode!=="cat")return;
+  const cPct=Math.min(100,B.catCombo/5*100);
+  $("comboFill").style.width=cPct+"%";
+  $("comboTxt").textContent=B.catCombo+"/5";
+  const comboClr=B.catCombo>=5?"#ffd700":B.catCombo>=3?"#60a5fa":"#3b82f6";
+  $("comboFill").style.background=comboClr;
+  const wPct=Math.min(100,B.waste);
+  $("wasteFill").style.width=wPct+"%";
+  $("wasteTxt").textContent=Math.round(wPct)+"%";
+  const wClr=wPct>=70?"#ef4444":wPct>=30?"#f59e0b":"#22c55e";
+  $("wasteFill").style.background=wClr;
+  if(B.catOrderCard){
+    $("orderCardRow").style.display="block";
+    const done=B.catOrderCard.check(B);
+    $("orderCardTxt").textContent=B.catOrderCard.text+(done?" ✅":"");
+    $("orderCardRow").style.background=done?"rgba(0,80,30,0.6)":"rgba(0,60,20,0.5)";
+  }
+}
+function updateCatAfterAttack(hit,crit,miss){
+  if(B.mode!=="cat")return;
+  if(miss){
+    B.catCombo=0;B.catMissStreak=0;B.catTotalMiss++;
+    B.waste=Math.min(100,B.waste+20);
+  }else{
+    B.catCombo=Math.min(5,B.catCombo+1);
+    B.catMissStreak++;
+    if(crit){B.catCritCount++;B.waste=Math.max(0,B.waste-8);}
+    else{B.waste=Math.max(0,B.waste-3);}
+  }
+  updateCatCombatUI();
+}
+function catEnemyEvasion(enemy){
+  const base=enemy.isBoss?F_CAT.bossEvasion(B.n):F_CAT.mobEvasion(B.n);
+  return Math.max(0,base);
+}
+
+/* --- Cat World UI --- */
+function switchToDetWorld(){
+  WL.map="det";
+  WL.openPanel=null;
+  WL.player.x=270;WL.player.y=365;WL.vx=0;WL.vy=0;
+  rebuildWorldNpcs();
+  showScreen("world");  // renderHud called inside showScreen
+}
+function switchToCatWorld(){
+  if(!SC)loadCat();
+  WL.map="cat";
+  WL.openPanel=null;
+  WL.player.x=270;WL.player.y=365;WL.vx=0;WL.vy=0;
+  rebuildWorldNpcs();
+  showScreen("world");  // renderHud called inside showScreen
+}
+// Legacy: returnToCatWorldFn now uses switchToCatWorld
+function returnToCatWorldFn(){switchToCatWorld();}
+function renderCatWorld(){renderHud();}
+function renderCatHud(){renderHud();}
+function openCatPanel(which){
+  if(which==="shop"){
+    WL.openPanel="catShop";
+    renderCatShopPanel();
+    $("catShopOverlay").classList.add("on");
+  }
+}
+function closeCatPanel(){
+  $("catShopOverlay").classList.remove("on");
+  WL.openPanel=null;
+}
+
+/* --- Cat Battle --- */
+let B_CAT_NEXT=null;
+function startCatBattle(n,isBoss){
+  const catExtras={
+    mode:"cat",catCombo:0,waste:0,
+    catOrderCard:ORDER_CARDS[Math.floor(Math.random()*ORDER_CARDS.length)],
+    catCritCount:0,catTurnCount:0,catMissStreak:0,catTotalMiss:0,
+  };
+  B_CAT_NEXT=catExtras;
+  startBattleMode(n,isBoss,"cat");
+}
+function startBattleMode(n,isBoss,mode){
+  stopWorldLoop();
+  const isC=(mode==="cat");
+  const stArr=isC?STAGES_CAT:STAGES;
+  const Fc=isC?F_CAT:F;
+  const pStats=isC?playerCatStats():playerStats();
+  const st=stArr[n-1];
+  const normalEnemy=()=>({
+    hp:Fc.mobHp(n),maxHp:Fc.mobHp(n),dmg:Fc.mobDmg(n),
+    name:st.icon+" "+st.mob,dead:false,isBoss:false
+  });
+  let enemies;
+  if(isBoss){
+    enemies=[normalEnemy(),normalEnemy(),
+      {hp:Fc.bossHp(n),maxHp:Fc.bossHp(n),dmg:Fc.bossDmg(n),
+       name:"👔 Kiểm Tra Viên · "+st.line,dead:false,isBoss:true}
+    ];
+  }else{
+    enemies=[normalEnemy(),normalEnemy()];
+  }
+  const extras=B_CAT_NEXT||{};B_CAT_NEXT=null;
+  B={n,isBoss,over:false,pHp:pStats.maxHp,pMax:pStats.maxHp,enemies,rage:0,rageMax:100,...extras};
+  $("catCombatUI").style.display=isC?"block":"none";
+  $("rageRow").style.display="";
+  if(isC)updateCatCombatUI();
+  updateRageUI();updateBars();
+  const meNm=$("battle").querySelector(".obar.me .onm");
+  if(meNm)meNm.textContent=isC?"✂️ Thợ Cắt":"👷 Thợ Dệt";
+  $("btnDef").innerHTML=isC?"✂️ Nạp Lực (+30) <kbd>2</kbd>":"🔥 Nạp Nộ (+30) <kbd>2</kbd>";
+  battleMsg(isBoss?(isC?"👔 Kiểm Tra Viên + 2 lỗi khiêu chiến!":"👹 Boss + 2 quái khiêu chiến! Diệt quái nhỏ trước!")
+                   :(isC?"✂️ 2 lỗi cắt xuất hiện! Cắt sạch bắt đầu!":"⚔️ 2 quái xuất hiện! Tấn công bắt đầu!"));
+  // Update keyboard hint for cat/det mode
+  $("kbHint").innerHTML=isC?"⌨️ PC: <kbd>1</kbd> 🏹 Bắn cung &nbsp;<kbd>2</kbd> Nạp Lực &nbsp;<kbd>3</kbd>/<kbd>Esc</kbd> Rút &nbsp;<kbd>Space</kbd>×2 Căn góc→Bắn":
+    "⌨️ PC: <kbd>1</kbd> Đánh &nbsp;<kbd>2</kbd> Nạp Nộ &nbsp;<kbd>3</kbd> / <kbd>Esc</kbd> Rút &nbsp;<kbd>Space</kbd> Bấm căn lực";
+  setActions(false);
+  showScreen("battle");
+  setupArena(n,isBoss);
+  wait(HAS3D?700:0,()=>setActions(true));
+}
+/* startBattle for det mode routes through startBattleMode */
+function startBattle(n,isBoss){startBattleMode(n,isBoss,"det");}
+
+/* Win/Lose for cat mode */
+function winCatBattle(){
+  B.over=true;setActions(false);updateBars();cleanupTiming();
+  const n=B.n;
+  if(HAS3D&&world3d&&world3d.enemies){
+    const st=STAGES_CAT[n-1];
+    world3d.enemies.forEach(e3d=>{
+      if(!e3d.dead3d){
+        e3d.dead3d=true;
+        spawnBurst(getEnemy3DCenter(e3d),st.color,20,5);
+        spawnBurst(getEnemy3DCenter(e3d),0x60a5fa,10,3.5);
+        tw(e3d.group.scale,{x:.01,y:.01,z:.01},.5,{ease:"in"});
+        tw(e3d.group.rotation,{z:1.4},.5,{});
+      }
+    });shake=Math.max(shake,.45);
+  }
+  const orderMet=B.catOrderCard&&B.catOrderCard.check(B);
+  battleMsg("🏆 CẮT THÀNH CÔNG!"+(orderMet?" 📋 Đơn Hàng Hoàn Thành!":""));
+  wait(HAS3D?750:0,()=>{
+    busy=false;$("rageRow").style.display="none";$("catCombatUI").style.display="none";
+    if(B.isBoss){
+      const reward=F_CAT.bossReward(n);SC.pts+=reward;SC.bossDown[n]=true;SC.lv+=1;
+      const openedNew=n<STAGES_CAT.length&&SC.unlocked<n+1;if(openedNew)SC.unlocked=n+1;
+      saveCat();
+      const msg=`Hạ <b>Kiểm Tra Viên màn ${n}</b>!<br>+<b>${fmt(reward)}</b> Điểm Cắt<br>✂️ Lên Cấp Thợ Cắt <b>${SC.lv}</b> (+25 HP tối đa)`
+        +(openedNew?`<br>🔓 Mở <b>Màn ${n+1} · ${STAGES_CAT[n].line}</b>!`:`<br>👑 Bạn đã hoàn thành tất cả màn cắt!`);
+      askModal("🏆","KIỂM TRA HOÀN TẤT!",msg,[["Xuất sắc!",()=>{closeModal();returnToCatWorldFn();}]]);
+    }else{
+      let reward=F_CAT.mobReward(n);
+      if(orderMet)reward=Math.round(reward*1.5);
+      SC.pts+=reward;saveCat();
+      const orderMsg=orderMet?`📋 <b>Đơn hoàn thành!</b> Thưởng ×1.5 → +<b>${fmt(reward)}</b> Điểm Cắt`:
+                              `+<b>${fmt(reward)}</b> Điểm Cắt`;
+      if(SC.dropDay!==todayStr()&&Math.random()<DROP_RATE_CAT){
+        SC.drops+=1;SC.dropDay=todayStr();saveCat();
+        askModal("🎉","THƯỞNG HIỆN VẬT!",
+          "Cắt xuất sắc!<br><b>Chụp màn hình gửi admin nhé.</b>",
+          [["🥤 Admin mời ly nước",()=>{closeModal();returnToCatWorldFn();}],
+           ["⚙️ Nâng cấp miễn phí 1 món",freeCatUpgradePick]]);
+        return;
+      }
+      askModal("✅","CẮT THÀNH CÔNG!",orderMsg,[
+        ["✂️ Cắt tiếp",()=>{closeModal();startCatBattle(n,false);}],
+        ["🏭 Về Xưởng Cắt",()=>{closeModal();returnToCatWorldFn();}],
+      ]);
+    }
+  });
+}
+function loseCatBattle(){
+  B.over=true;setActions(false);cleanupTiming();
+  if(HAS3D&&world3d&&world3d.player){
+    world3d.player.dead=true;
+    tw(world3d.player.group.rotation,{z:-1.5},.5,{ease:"in"});
+    tw(world3d.player.group.position,{y:.15},.5,{ease:"in"});
+  }
+  let penalty=0;
+  if(!B.isBoss){penalty=Math.round(F_CAT.mobReward(B.n)*0.5);SC.pts=Math.max(0,SC.pts-penalty);saveCat();}
+  battleMsg("💀 Thợ Cắt gục rồi...");
+  wait(HAS3D?700:0,()=>{
+    busy=false;$("rageRow").style.display="none";$("catCombatUI").style.display="none";
+    const penMsg=penalty>0?`<br>💸 Phạt thua: −${fmt(penalty)} Điểm Cắt.`:"";
+    askModal("💀","THUA TRẬN...",
+      `Căn lực hơn lần sau!${penMsg}<br>Nâng dụng cụ rồi thử lại!`,
+      [["✂️ Thử lại",()=>{closeModal();startCatBattle(B.n,B.isBoss);}],
+       ["🏭 Về Xưởng Cắt",()=>{closeModal();returnToCatWorldFn();}]]);
+  });
+}
+/* returnToCatWorldFn defined above (switchToCatWorld) */
+function freeCatUpgradePick(){
+  const up=EQUIP_CAT.filter(e=>SC.tiers[e.id]<MAX_LV_CAT);
+  if(!up.length){closeModal();returnToCatWorldFn();return;}
+  askModal("⚙️","Chọn món nâng miễn phí","Nâng 1 cấp miễn phí cho món nào?",
+    up.map(e=>[`${e.icon} ${e.name} (Cấp ${SC.tiers[e.id]}→${SC.tiers[e.id]+1})`,()=>{
+      SC.tiers[e.id]+=1;saveCat();closeModal();returnToCatWorldFn();
+    }]));
+}
+
+/* --- Cat Shop --- */
+function renderCatShopPanel(){
+  const p=playerCatStats();
+  $("catShopList").innerHTML=EQUIP_CAT.map(eq=>{
+    const l=SC.tiers[eq.id]??0,maxed=l>=MAX_LV_CAT;
+    const cost=maxed?0:F_CAT.lvCost(eq.base,l+1);
+    return`<div class="card-mini">
+      <div class="ic">${eq.icon}</div>
+      <div class="inf">
+        <div class="nm">${eq.name} <span style="color:var(--chu-mo);font-size:10px">· ${eq.real}</span></div>
+        <div class="sub">${eq.descr}: ${statCatPreview(eq.stat,l)}${maxed?"":" → <b>"+statCatPreview(eq.stat,l+1)+"</b>"}</div>
+        <div class="tier">Cấp ${l}/${MAX_LV_CAT}${l>0?" · "+MAT_NAMES[l-1]:""}</div>
+        <div class="lvbar"><div class="lf" style="width:${l/MAX_LV_CAT*100}%"></div></div>
+      </div>
+      ${maxed?`<button class="ghost" disabled>💎 MAX`
+             :`<button ${SC.pts<cost?"disabled":""} onclick="buyCatTier('${eq.id}')">⬆️ ${fmt(cost)} 🧶</button>`}
+    </div>`;
+  }).join("");
+  $("catShopStats").innerHTML=`<div class="statgrid" style="margin-bottom:8px">
+    ${[["⚔️ ATK",p.atk],["🎯 Crit×","×"+p.critMult.toFixed(2)],
+      ["🥢 Ô Vàng",(p.yellowDef*100).toFixed(0)+"%"],["🛡️ DEF",p.def+"%"],
+      ["💚 Regen",p.regen+"/lt"],["♻️ -Hao","-"+p.wasteRed+"%/lt"]]
+     .map(([k,v])=>`<div class="st"><div class="v">${v}</div><div class="k">${k}</div></div>`).join("")}
+    <div class="st" style="grid-column:span 6"><div class="v">${p.maxHp} HP</div><div class="k">Máu tối đa</div></div>
+  </div>`;
+}
+function buyCatTier(id){
+  const eq=EQUIP_CAT.find(e=>e.id===id),l=SC.tiers[id]??0;
+  if(l>=MAX_LV_CAT)return;
+  const cost=F_CAT.lvCost(eq.base,l+1);
+  if(SC.pts<cost)return;
+  SC.pts-=cost;SC.tiers[id]=l+1;saveCat();renderCatShopPanel();renderCatHud();
+}
+
+/* Route to cat or det stats based on current battle mode */
+function currentStats(){return B&&B.mode==="cat"?playerCatStats():playerStats();}
+function currentEnemyEvasion(enemy){return B&&B.mode==="cat"?catEnemyEvasion(enemy):enemyEvasion(enemy);}
+
+/* ======================================================
+   INIT
+   ====================================================== */
+load();
+loadCat();
+rebuildWorldNpcs();
+renderHud();
+showScreen("world");
+try{init3D();}catch(e){console.warn("3D init lỗi:",e);world3d=null;}
+</script>
+</body>
+</html>
