@@ -227,7 +227,7 @@
   <header>
     <img src="https://gomacarpet.com/wp-content/uploads/2023/09/logo-min.png" alt="GOMA" onerror="this.style.display='none'">
     <div class="ttl">
-      <h1>THỢ DỆT GOMA <span id="headerVer" style="font-size:10px;color:var(--chu-mo)">v0.4 RPG Xưởng Dệt</span></h1>
+      <h1>THỢ DỆT GOMA <span id="headerVer" style="font-size:10px;color:var(--chu-mo)">v0.4 RPG Xưởng Dệt</span> <button id="btnMute" onclick="toggleMute()" title="Bật/Tắt âm thanh" style="background:none;border:1px solid rgba(255,255,255,.3);border-radius:6px;color:#fff;font-size:12px;padding:0 6px;cursor:pointer;line-height:1.6;vertical-align:middle;margin-left:4px">🔊</button></h1>
       <small id="headerSub">Khâu Dệt · "Trải niềm tin cho mọi thành công"</small>
     </div>
   </header>
@@ -499,6 +499,99 @@ function enemyEvasion(enemy){
 const $=id=>document.getElementById(id);
 function fmt(n){return Number(n).toLocaleString("vi-VN");}
 function wait(ms,fn){if(ms<=0){fn();}else{setTimeout(fn,ms);}}
+
+/* ======================================================
+   🔊 AUDIO ENGINE — Web Audio API (no files needed)
+   ====================================================== */
+let _AC=null,_muteAll=false,_bgmNode=null,_bgmPlaying=false,_bgmTO=null;
+function AC(){
+  if(!_AC)try{_AC=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}
+  if(_AC&&_AC.state==="suspended")_AC.resume();
+  return _AC;
+}
+function _tone(freq,type,dur,vol,delay=0,freqEnd=null){
+  if(_muteAll)return;const ctx=AC();if(!ctx)return;
+  const o=ctx.createOscillator(),g=ctx.createGain();
+  o.connect(g);g.connect(ctx.destination);
+  o.type=type;o.frequency.setValueAtTime(freq,ctx.currentTime+delay);
+  if(freqEnd)o.frequency.exponentialRampToValueAtTime(freqEnd,ctx.currentTime+delay+dur);
+  g.gain.setValueAtTime(0,ctx.currentTime+delay);
+  g.gain.linearRampToValueAtTime(vol,ctx.currentTime+delay+0.01);
+  g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+delay+dur);
+  o.start(ctx.currentTime+delay);o.stop(ctx.currentTime+delay+dur+0.05);
+}
+const SFX={
+  click:()=>_tone(900,"sine",.05,.08),
+  hit:  ()=>{_tone(330,"square",.09,.22);_tone(440,"sine",.06,.15,.07);},
+  hit80:()=>{_tone(280,"square",.09,.18);_tone(360,"sine",.06,.12,.07);},
+  crit: ()=>{[440,554,659,880].forEach((f,i)=>_tone(f,"sine",.18,.22,i*.055));},
+  miss: ()=>{_tone(160,"sawtooth",.14,.18);_tone(110,"sine",.16,.12,.06);},
+  dodge:()=>{_tone(700,"sine",.05,.12);_tone(450,"sine",.07,.08,.04);},
+  enemyAtk:()=>{_tone(220,"sawtooth",.12,.2);},
+  superDodge:()=>{[600,750,900].forEach((f,i)=>_tone(f,"sine",.12,.18,i*.04));},
+  archeryShoot:()=>{_tone(700,"sawtooth",.18,.25,0,90);_tone(300,"sine",.1,.1,.05);},
+  archeryCrit: ()=>{[1047,1319,1568].forEach((f,i)=>_tone(f,"sine",.35,.28,i*.07));},
+  archeryHit:  ()=>{_tone(660,"sine",.2,.22);_tone(440,"sine",.12,.1,.08);},
+  archeryMiss: ()=>{_tone(180,"square",.18,.2);_tone(120,"sine",.15,.15,.08);},
+  win:()=>{
+    [[523,.15],[659,.15],[784,.15],[1047,.4]].forEach(([f,d],i)=>_tone(f,"sine",d,.28,i*.18));
+    _tone(1319,"sine",.5,.2,.72+.18);
+  },
+  lose:()=>{[400,330,262,196].forEach((f,i)=>_tone(f,"sawtooth",.22,.18,i*.16));},
+  levelUp:()=>{
+    [523,659,784,1047,784,1047,1319].forEach((f,i)=>_tone(f,"sine",.18,.28,i*.1));
+  },
+  aoe:()=>{[220,330,440,550,660].forEach((f,i)=>_tone(f,"square",.2,.18,i*.04));},
+  step:()=>{if(Math.random()>.85)_tone(80+(Math.random()*30),"sine",.04,.04);},
+};
+
+/* —— Background Music (chiptune procedural loop) —— */
+function _bgmLoop(){
+  if(!_bgmPlaying||_muteAll)return;
+  const ctx=AC();if(!ctx)return;
+  const bpm=125,bt=60/bpm;
+  // Melody: cheerful C-major feel
+  const mel=[[523,.5],[659,.5],[784,.5],[880,.5],[784,.5],[659,.5],[523,1],
+             [440,.5],[523,.5],[659,.5],[784,.5],[659,.5],[523,.5],[440,1],
+             [392,.5],[523,.5],[659,.5],[784,.5],[523,.5],[659,.5],[784,1],
+             [880,.5],[784,.5],[659,.5],[523,.5],[440,.5],[392,.5],[523,2]];
+  // Bass: simple root notes
+  const bass=[[130,1],[130,1],[174,1],[174,1],[146,1],[146,1],[130,1],[130,1],
+              [98,1],[98,1],[110,1],[110,1],[98,1],[110,1],[130,1],[130,2]];
+  let t=ctx.currentTime+.05;
+  mel.forEach(([f,d])=>{
+    const o=ctx.createOscillator(),g=ctx.createGain();
+    o.connect(g);g.connect(ctx.destination);
+    o.type="square";o.frequency.value=f;
+    g.gain.setValueAtTime(.028,t);g.gain.setValueAtTime(.028,t+d*bt*.75);
+    g.gain.linearRampToValueAtTime(0,t+d*bt);
+    o.start(t);o.stop(t+d*bt+.05);t+=d*bt;
+  });
+  let tb=ctx.currentTime+.05;
+  bass.forEach(([f,d])=>{
+    const o=ctx.createOscillator(),g=ctx.createGain();
+    o.connect(g);g.connect(ctx.destination);
+    o.type="triangle";o.frequency.value=f;
+    g.gain.setValueAtTime(.04,tb);g.gain.linearRampToValueAtTime(0,tb+d*bt*.8);
+    o.start(tb);o.stop(tb+d*bt+.05);tb+=d*bt;
+  });
+  const totalBt=mel.reduce((s,[,d])=>s+d,0);
+  _bgmTO=setTimeout(_bgmLoop,(totalBt*bt-.08)*1000);
+}
+function BGM_start(mode){
+  if(_muteAll)return;
+  _bgmPlaying=true;_bgmLoop();
+}
+function BGM_stop(){
+  _bgmPlaying=false;if(_bgmTO){clearTimeout(_bgmTO);_bgmTO=null;}
+}
+function toggleMute(){
+  _muteAll=!_muteAll;
+  const btn=$("btnMute");
+  if(btn)btn.textContent=_muteAll?"🔇":"🔊";
+  if(_muteAll)BGM_stop();else BGM_start();
+  SFX.click();
+}
 function showScreen(name){
   ["world","battle","info"].forEach(s=>{const el=$(s);if(el)el.classList.toggle("on",s===name);});
   ["tabWorld","tabInfo"].forEach(b=>$(b).classList.remove("act"));
@@ -1553,7 +1646,7 @@ function startBattle(n,isBoss){
   setActions(false);
   showScreen("battle");
   setupArena(n,isBoss);
-  wait(HAS3D?700:0,()=>setActions(true));
+  BGM_start("battle");wait(HAS3D?700:0,()=>setActions(true));
 }
 function battleMsg(t){$("battleMsg").textContent=t;}
 function updateBars(){
@@ -1772,28 +1865,31 @@ function showArcheryMini(callback){
   // Key: NO phase offset on Y axis, so sin(fa*t)=0 AND sin(fb*t)=0 at t=0,π simultaneously
   const freqs=[[1,2],[1,3],[2,3],[3,4],[3,5],[5,7]];
   const [fa,fb]=freqs[Math.min(n-1,5)];
-  const speed=(1.2+(n-1)*0.22)*(isBoss?1.6:1);   // faster: 1.2→2.3× at stage 6
+  const speed=(1.2+(n-1)*0.22)*(isBoss?1.6:1)*(isMobile?.75:1);  // mobile: 25% slower
   const amp=0.93+(n-1)*0.01;                        // 0.93→0.98: always reaches white zone
   const wobble=Math.max(0,n-3)*0.05;               // stages 4+ perturbation
-  // 10-ring fully interleaved thresholds (inner→outer):
-  // CRIT | MISS | HIT100 | MISS | HIT80 | MISS | HIT100 | MISS | HIT80 | MISS
-  const critR =maxR*.07;   //  0- 7%: gold    CRIT  (tiny!)
-  const miss1R=maxR*.16;   //  7-16%: black   MISS
-  const red2R =maxR*.25;   // 16-25%: red in  HIT100
-  const miss2R=maxR*.34;   // 25-34%: white   MISS
-  const blue2R=maxR*.43;   // 34-43%: blue in HIT80
-  const miss3R=maxR*.52;   // 43-52%: black   MISS
-  const red1R =maxR*.61;   // 52-61%: red out HIT100
-  const miss4R=maxR*.70;   // 61-70%: white   MISS
-  const blue1R=maxR*.79;   // 70-79%: blue out HIT80
-  // >79%: outer black+white MISS
+  // Detect mobile → wider hit zones, thinner miss zones (more forgiving on small screen)
+  const isMobile=window.innerWidth<=820||/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+  // 10-ring fully interleaved thresholds — mobile gets ~40% wider hit zones
+  const critR =maxR*(isMobile?.11:.07);   // gold CRIT: 7%→11% mobile
+  const miss1R=maxR*(isMobile?.14:.16);   // black MISS: thin on mobile
+  const red2R =maxR*(isMobile?.29:.25);   // red in HIT100: wider on mobile
+  const miss2R=maxR*(isMobile?.33:.34);   // white MISS: thin on mobile
+  const blue2R=maxR*(isMobile?.48:.43);   // blue in HIT80: wider on mobile
+  const miss3R=maxR*(isMobile?.52:.52);   // black MISS (same)
+  const red1R =maxR*(isMobile?.67:.61);   // red out HIT100: wider on mobile
+  const miss4R=maxR*(isMobile?.70:.70);   // white MISS (same)
+  const blue1R=maxR*(isMobile?.84:.79);   // blue out HIT80: wider on mobile
+  // >blue1R: outer MISS
   let t=Math.random()*Math.PI,lastTs=null,done=false,curX=cx,curY=cy;
   // Dynamic label
   const stageNames=["Màn 1 — Khởi Động","Màn 2 — Vào Nhịp","Màn 3 — Áp Lực","Màn 4 — Rung Tay","Màn 5 — Thử Thách","Màn 6 — Huyền Thoại"];
   $("archeryLabel").textContent="🏹 BẮN VÀO HỒNG TÂM!";
   const diffTxt=["★☆☆☆☆","★★☆☆☆","★★★☆☆","★★★★☆","★★★★★","★★★★★+"];
   $("archeryPhase").textContent=isBoss?("👔 Boss — "+diffTxt[5]+" — Vùng vàng CỰC NHỎ!"):(diffTxt[n-1]+" "+(stageNames[n-1]||""));
-  $("archeryHint").innerHTML='⌨️ <kbd>Space</kbd> / Chạm → Bắn khi reticle đúng vàng!';
+  $("archeryHint").innerHTML=isMobile
+    ?'📱 Chạm màn hình để bắn! (Vùng rộng hơn cho mobile)'
+    :'⌨️ <kbd>Space</kbd> / Chạm → Bắn khi reticle đúng vùng!';
   $("archeryWrap").style.display="block";$("actions").style.display="none";
   // Border glow (default blue, turns gold when near bullseye)
   const wrapEl=$("archeryWrap");
@@ -1861,6 +1957,13 @@ function showArcheryMini(callback){
     else                  {result="miss";    ringTxt="⬛⬜ Ngoài bia — MISS!";       hint2="Trượt hoàn toàn!";}
     $("archeryPhase").textContent=ringTxt;
     $("archeryHint").textContent=hint2;
+    // SFX based on archery result
+    SFX.archeryShoot();
+    setTimeout(()=>{
+      if(result==="crit")SFX.archeryCrit();
+      else if(result==="hit_100"||result==="hit_80")SFX.archeryHit();
+      else SFX.archeryMiss();
+    },120);
     setTimeout(()=>{
       wrapEl.style.display="none";
       callback(result,curX/W);
@@ -1899,7 +2002,7 @@ function playerAct(act){
     const dmgEach=Math.round(p.atk*1.7);
     const aliveE=B.enemies.filter(e=>!e.dead);
     aliveE.forEach(en=>{en.hp=Math.max(0,en.hp-dmgEach);if(en.hp<=0)en.dead=true;});
-    B.rage=0;updateRageUI();
+    SFX.aoe();B.rage=0;updateRageUI();
     // Cat: AOE resets waste to 0
     if(isCat){B.waste=0;B.catCombo=Math.min(5,B.catCombo+2);updateCatCombatUI();}
     if(HAS3D&&world3d&&world3d.enemies){
@@ -2009,6 +2112,8 @@ function vfxPlayerAttack(dmg,crit,missed,targetE3d,evaded,done){
   const isCatVfx=B&&B.mode==="cat";
   if(evaded) battleMsg(isCatVfx?"💨 Lỗi né đòn!":"💨 Quái né đòn! ("+enemyEvasion(B.enemies.find(e=>!e.dead)||B.enemies[0])+"% né)");
   else battleMsg(missed?(isCatVfx?"💨 MISS! Ra ngoài bia!":"💨 MISS! Trượt ô đỏ..."):(crit?(isCatVfx?"🏅 HỒNG TÂM! "+fmt(dmg)+" chí mạng!":"🎯 CHÍ MẠNG! "+fmt(dmg)+" dame!"):(isCatVfx?(B&&B._lastRes==="hit_80"?"💙 Vòng xanh: "+fmt(dmg)+" (80%)":"🎯 Vòng đỏ: "+fmt(dmg)):"⚔️ Trúng: "+fmt(dmg)+" dame")));
+  // SFX
+  if(missed)SFX.miss(); else if(crit)SFX.crit(); else if(B&&B._lastRes==="hit_80")SFX.hit80(); else SFX.hit();
   tw(pl.group.position,{x:ePos.x-1.5,z:(ePos.z||EN3D.z)+.35},.22,{ease:"in",done:()=>{
     tw(pl.rightArm.rotation,{x:-2.4},.09,{ease:"out",done:()=>{
       tw(pl.rightArm.rotation,{x:.5},.11,{ease:"in",done:()=>{
@@ -2049,8 +2154,8 @@ function doEnemyTurn(){
     const enemyNum=B.enemies.indexOf(enemy)+1;
     const eName=enemy.isBoss?(isCat?"👔 Kiểm Tra Viên":"👹 Boss"):(isCat?"🧶 Lỗi "+enemyNum:"Quái "+enemyNum);
     idx++;
-    showTimingBar((isCat?"🛡️ "+eName+" tấn công! Né đòn!":"🛡️ "+eName+" tấn công! Né đòn!"),true,p.yellowDef,(result)=>{
-      if(result==="super"){
+    SFX.enemyAtk();showTimingBar((isCat?"🛡️ "+eName+" tấn công! Né đòn!":"🛡️ "+eName+" tấn công! Né đòn!"),true,p.yellowDef,(result)=>{
+      if(result==="super"){SFX.superDodge();
         const counterDmg=Math.round(p.atk*1.5);
         enemy.hp=Math.max(0,enemy.hp-counterDmg);
         if(enemy.hp<=0)enemy.dead=true;
@@ -2138,7 +2243,7 @@ function vfxEnemyAttack(dmg,dodged,specificEnemy,done){
 }
 
 /* ===== WIN / LOSE ===== */
-function winBattle(){
+function winBattle(){SFX.win();BGM_stop();
   if(B&&B.mode==="cat"){winCatBattle();return;}
   B.over=true;setActions(false);updateBars();cleanupTiming();
   const n=B.n;
@@ -2158,7 +2263,7 @@ function winBattle(){
   wait(HAS3D?750:0,()=>{
     busy=false;$("rageRow").style.display="none";
     if(B.isBoss){
-      const reward=F.bossReward(n);S.pts+=reward;S.bossDown[n]=true;S.lv+=1;
+      const reward=F.bossReward(n);S.pts+=reward;S.bossDown[n]=true;S.lv+=1;SFX.levelUp();
       const openedNew=n<STAGES.length&&S.unlocked<n+1;if(openedNew)S.unlocked=n+1;
       save();
       const msg=`Hạ <b>Boss ${n}</b>!<br>+<b>${fmt(reward)}</b> Điểm Dệt<br>🏅 Lên Cấp Thợ Dệt <b>${S.lv}</b> (+25 HP tối đa)`
@@ -2183,7 +2288,7 @@ function winBattle(){
     }
   });
 }
-function loseBattle(){
+function loseBattle(){SFX.lose();BGM_stop();
   if(B&&B.mode==="cat"){loseCatBattle();return;}
   B.over=true;setActions(false);cleanupTiming();
   if(HAS3D&&world3d&&world3d.player){
@@ -2350,14 +2455,14 @@ function catEnemyEvasion(enemy){
 }
 
 /* --- Cat World UI --- */
-function switchToDetWorld(){
+function switchToDetWorld(){BGM_start("world");
   WL.map="det";
   WL.openPanel=null;
   WL.player.x=270;WL.player.y=365;WL.vx=0;WL.vy=0;
   rebuildWorldNpcs();
   showScreen("world");  // renderHud called inside showScreen
 }
-function switchToCatWorld(){
+function switchToCatWorld(){BGM_start("world");
   if(!SC)loadCat();
   WL.map="cat";
   WL.openPanel=null;
@@ -2435,7 +2540,7 @@ function startBattleMode(n,isBoss,mode){
 function startBattle(n,isBoss){startBattleMode(n,isBoss,"det");}
 
 /* Win/Lose for cat mode */
-function winCatBattle(){
+function winCatBattle(){SFX.win();BGM_stop();
   B.over=true;setActions(false);updateBars();cleanupTiming();
   const n=B.n;
   if(HAS3D&&world3d&&world3d.enemies){
@@ -2455,7 +2560,7 @@ function winCatBattle(){
   wait(HAS3D?750:0,()=>{
     busy=false;$("rageRow").style.display="none";$("catCombatUI").style.display="none";
     if(B.isBoss){
-      const reward=F_CAT.bossReward(n);SC.pts+=reward;SC.bossDown[n]=true;SC.lv+=1;
+      const reward=F_CAT.bossReward(n);SC.pts+=reward;SC.bossDown[n]=true;SC.lv+=1;SFX.levelUp();
       const openedNew=n<STAGES_CAT.length&&SC.unlocked<n+1;if(openedNew)SC.unlocked=n+1;
       saveCat();
       const msg=`Hạ <b>Kiểm Tra Viên màn ${n}</b>!<br>+<b>${fmt(reward)}</b> Điểm Cắt<br>✂️ Lên Cấp Thợ Cắt <b>${SC.lv}</b> (+25 HP tối đa)`
@@ -2482,7 +2587,7 @@ function winCatBattle(){
     }
   });
 }
-function loseCatBattle(){
+function loseCatBattle(){SFX.lose();BGM_stop();
   B.over=true;setActions(false);cleanupTiming();
   if(HAS3D&&world3d&&world3d.player){
     world3d.player.dead=true;
