@@ -1,0 +1,1960 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ông Goma Biết Tuốt</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --gold: #C5A059;
+    --gold-light: #E8D5A3;
+    --dark: #0F172A;
+    --dark2: #1E293B;
+    --bg: #F8F6F1;
+    --bg2: #FFFFFF;
+    --border: #E2DDD6;
+    --text: #1a1a1a;
+    --text2: #666;
+    --text3: #999;
+    --green: #1D9E75;
+    --green-bg: #E8F7F2;
+    --amber-bg: #FEF9EE;
+    --amber: #B07C1E;
+    --red: #C0392B;
+    --red-bg: #FEF0EE;
+  }
+  body {
+    font-family: 'Be Vietnam Pro', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    min-height: 100vh;
+  }
+  /* HEADER */
+  .header {
+    background: var(--dark);
+    padding: 0 24px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+    position: sticky; /* keep sticky */
+  }
+  .header-left { display: flex; align-items: center; gap: 12px; }
+  .logo { width: 36px; height: 36px; border-radius: 50%; background: var(--gold); display: flex; align-items: center; justify-content: center; color: white; font-size: 16px; font-style: italic; font-weight: 700; flex-shrink: 0; }
+  .header-title { color: var(--gold); font-size: 15px; font-weight: 700; line-height: 1.2; }
+  .header-sub { color: #64748B; font-size: 11px; }
+  .loc-badge { background: var(--dark2); color: var(--gold); border: 1px solid var(--gold); padding: 4px 14px; border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: 0.05em; }
+
+  /* LAYOUT */
+  .main { max-width: 1100px; margin: 0 auto; padding: 20px 16px 40px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 700px) { .main { grid-template-columns: 1fr; } }
+  
+  /* CARD */
+  .card { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 18px; margin-bottom: 14px; }
+  .card:last-child { margin-bottom: 0; }
+  .card-title { font-size: 10px; font-weight: 700; color: var(--gold); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 14px; }
+
+  /* LOCATION TABS */
+  .loc-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1.5px solid var(--border); border-radius: 8px; overflow: hidden; margin-bottom: 12px; }
+  .loc-tab { padding: 10px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; background: var(--bg2); color: var(--text2); transition: all 0.15s; text-align: center; }
+  .loc-tab:first-child { border-right: 1px solid var(--border); }
+  .loc-tab.active { background: var(--dark); color: var(--gold); }
+  .loc-tab:hover:not(.active) { background: var(--bg); }
+  .warehouse-info { background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 8px; padding: 8px 12px; font-size: 11px; color: #1D4ED8; line-height: 1.5; }
+
+  /* CATEGORY PILLS */
+  .cat-row { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px; }
+  .cat-pill { padding: 4px 11px; border-radius: 20px; font-size: 11px; font-weight: 600; cursor: pointer; border: 1.5px solid var(--border); background: var(--bg2); color: var(--text2); transition: all 0.15s; line-height: 1.6; }
+  .cat-pill.active { background: var(--gold); color: white; border-color: var(--gold); }
+  .cat-pill:hover:not(.active) { border-color: var(--gold); color: var(--gold); }
+
+  /* FORM FIELDS */
+  .field { margin-bottom: 12px; }
+  .field label { font-size: 11px; font-weight: 600; color: var(--text2); display: block; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.06em; }
+  .field input[type=text],
+  .field input[type=number],
+  .field select {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 13px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.15s;
+    appearance: auto;
+  }
+  .field input:focus,
+  .field select:focus { border-color: var(--gold); background: #FFFEF9; }
+  .field select { cursor: pointer; }
+  .product-info-badge {
+    display: inline-block;
+    margin-top: 4px;
+    background: #F0F9FF;
+    border: 1px solid #BAE6FD;
+    color: #0369A1;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+
+  .add-btn {
+    width: 100%; padding: 11px; background: var(--gold); color: white; border: none; border-radius: 8px;
+    font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.15s; letter-spacing: 0.02em;
+    font-family: inherit;
+  }
+  .add-btn:hover:not(:disabled) { background: #B08D47; transform: translateY(-1px); }
+  .add-btn:active { transform: translateY(0); }
+  .add-btn:disabled { background: #D1C9B8; color: #9D9488; cursor: not-allowed; }
+
+  .checkbox-row { display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: var(--bg); border-radius: 8px; margin-top: 8px; cursor: pointer; border: 1px solid var(--border); }
+  .checkbox-row input[type=checkbox] { accent-color: var(--gold); width: 15px; height: 15px; cursor: pointer; }
+  .checkbox-row label { font-size: 12px; color: var(--text); cursor: pointer; }
+
+  /* CART */
+  .cart-empty { text-align: center; padding: 20px; color: var(--text3); font-size: 13px; }
+  .cart-item {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 10px 12px; background: var(--bg); border-radius: 8px;
+    margin-bottom: 6px; border: 1px solid var(--border);
+  }
+  .cart-item-body { flex: 1; min-width: 0; }
+  .cart-item-name { font-size: 12px; font-weight: 600; color: var(--text); line-height: 1.3; }
+  .cart-item-qty { font-size: 11px; color: var(--gold); font-weight: 600; margin-top: 2px; }
+  .cart-item-detail { font-size: 10px; color: var(--text2); margin-top: 3px; }
+  .badge-green { display:inline-block; background:#E8F7F2; color:#0F6E56; border:1px solid #5DCAA5; border-radius:4px; padding:1px 6px; font-size:10px; font-weight:700; }
+  .badge-blue { display:inline-block; background:#EFF6FF; color:#1D4ED8; border:1px solid #93C5FD; border-radius:4px; padding:1px 6px; font-size:10px; font-weight:700; }
+  .remove-btn { background: none; border: none; color: var(--text3); cursor: pointer; font-size: 18px; line-height: 1; padding: 0 2px; flex-shrink: 0; }
+  .remove-btn:hover { color: var(--red); }
+
+  /* RESULT */
+  .result-placeholder { text-align: center; padding: 24px 12px; color: var(--text3); font-size: 13px; }
+  .metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+  .metric { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; }
+  .metric.full { grid-column: 1/-1; }
+  .metric-label { font-size: 10px; font-weight: 700; color: var(--gold); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+  .metric-val { font-size: 20px; font-weight: 700; color: var(--text); line-height: 1.1; }
+  .metric-sub { font-size: 10px; color: var(--text2); margin-top: 3px; }
+
+  .notes-box { background: var(--green-bg); border: 1px solid #5DCAA5; border-radius: 8px; padding: 10px 12px; margin-bottom: 10px; }
+  .notes-box.warn { background: var(--amber-bg); border-color: #EF9F27; }
+  .note-item { font-size: 11px; color: #085041; margin-bottom: 3px; padding-left: 14px; position: relative; line-height: 1.4; }
+  .note-item::before { content: "•"; position: absolute; left: 2px; color: var(--green); }
+  .note-item.warn { color: var(--amber); }
+  .note-item.warn::before { color: var(--amber); }
+
+  .upgrade-section { margin: 8px 0; }
+  .upgrade-fee { display: inline-flex; align-items: center; gap: 5px; background: var(--amber-bg); color: var(--amber); border: 1px solid #EF9F27; border-radius: 6px; padding: 5px 10px; font-size: 11px; font-weight: 600; margin-top: 6px; }
+
+  .ship-card {
+    background: var(--dark); color: white; border-radius: 10px; padding: 16px 18px;
+    margin: 10px 0;
+    position: relative; overflow: hidden;
+  }
+  .ship-card::after { content: ''; position: absolute; right: -20px; top: -20px; width: 80px; height: 80px; background: rgba(197,160,89,0.12); border-radius: 50%; }
+  .ship-label { font-size: 10px; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 6px; }
+  .ship-val { font-size: 22px; font-weight: 700; color: white; line-height: 1.2; }
+  .ship-note { font-size: 10px; color: #64748B; margin-top: 6px; font-style: italic; }
+  .freeship-badge { display: inline-block; background: var(--green); color: white; font-size: 9px; font-weight: 700; padding: 2px 8px; border-radius: 20px; margin-left: 8px; vertical-align: middle; }
+
+  .copy-btn {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    width: 100%; padding: 9px; background: var(--bg); border: 1.5px solid var(--border);
+    border-radius: 8px; font-size: 12px; font-weight: 600; color: var(--text2);
+    cursor: pointer; transition: all 0.15s; font-family: inherit;
+  }
+  .copy-btn:hover { border-color: var(--gold); color: var(--gold); }
+  .copy-btn.copied { background: var(--green-bg); border-color: #5DCAA5; color: #085041; }
+
+  .policy-box { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; margin-top: 10px; }
+  .policy-title { font-size: 10px; font-weight: 700; color: var(--gold); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
+  .policy-row { font-size: 11px; color: var(--text2); margin-bottom: 3px; padding-left: 10px; position: relative; line-height: 1.4; }
+  .policy-row::before { content: "•"; position: absolute; left: 0; color: var(--gold); }
+
+  .header-cart { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .clear-link { font-size: 11px; color: var(--red); background: none; border: none; cursor: pointer; font-family: inherit; }
+  .clear-link:hover { text-decoration: underline; }
+
+  .divider { height: 1px; background: var(--border); margin: 12px 0; }
+
+  /* SCROLL */
+  .cart-scroll { max-height: 280px; overflow-y: auto; }
+  .cart-scroll::-webkit-scrollbar { width: 4px; }
+  .cart-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="logo">G</div>
+    <div>
+      <div class="header-title">Ông Goma Biết Tuốt</div>
+      <div class="header-sub">Tư vấn & Tính phí vận chuyển</div>
+    </div>
+  </div>
+  <div style="position:absolute;left:50%;transform:translateX(-50%);display:flex;background:#1E293B;border-radius:8px;overflow:hidden;border:1px solid #334155;">
+      <button id="tabBtnCalc" onclick="switchTab('calc')" style="padding:7px 16px;font-size:12px;font-weight:600;font-family:inherit;border:none;cursor:pointer;background:transparent;color:#94A3B8;">Tư vấn</button>
+      <button id="tabBtnStock" onclick="switchTab('stock')" style="padding:7px 16px;font-size:12px;font-weight:600;font-family:inherit;border:none;cursor:pointer;background:transparent;color:#94A3B8;">Tồn kho HCM</button>
+      <button id="tabBtnImages" onclick="switchTab('images')" style="padding:7px 16px;font-size:12px;font-weight:600;font-family:inherit;border:none;cursor:pointer;background:transparent;color:#94A3B8;">🖼️ Ảnh SP</button>
+      <button id="tabBtnAssistant" onclick="switchTab('assistant')" style="padding:7px 16px;font-size:12px;font-weight:600;font-family:inherit;border:none;cursor:pointer;background:#C5A059;color:white;">🤖 Trợ lý</button>
+    </div>
+    <div class="loc-badge" id="locBadge">HCM</div>
+</div>
+
+<div id="tabCalc" style="display:none;">
+<div class="main">
+  <!-- LEFT COLUMN -->
+  <div>
+    <!-- Location -->
+    <div class="card">
+      <div class="card-title">Khu vực</div>
+      <div class="loc-tabs">
+        <button class="loc-tab active" id="btnHCM" onclick="setLocation('HCM')">Hồ Chí Minh</button>
+        <button class="loc-tab" id="btnHN" onclick="setLocation('HN')">Hà Nội</button>
+      </div>
+      <div class="warehouse-info" id="warehouseInfo">
+        📦 Kho HCM: 326 Nguyễn Thị Tú, Bình Hưng Hòa B, Q. Bình Tân, TP.HCM
+      </div>
+    </div>
+
+    <!-- Add Product -->
+    <div class="card">
+      <div class="card-title">Thêm sản phẩm</div>
+      <div class="cat-row" id="catRow"></div>
+      <div class="field">
+        <label>Tìm tên / mã sản phẩm</label>
+        <input type="text" id="searchInput" placeholder="Nhập tên hoặc mã (vd: C101, Rainbow...)" oninput="filterAndRender()" />
+      </div>
+      <div class="field">
+        <label>Chọn sản phẩm</label>
+        <select id="productSelect" onchange="onProductChange()"></select>
+        <div id="productInfoBadge"></div>
+      </div>
+      <div class="field">
+        <label id="qtyLabel">Số lượng (m²)</label>
+        <input type="number" id="qtyInput" min="0" step="0.25" placeholder="Nhập số lượng..." />
+      </div>
+      <button class="add-btn" id="addBtn" onclick="addToCart()">+ Thêm vào đơn</button>
+      <input type="hidden" id="chkFolding" />
+    </div>
+
+    <!-- Distance -->
+    <div class="card">
+      <div class="card-title">Khoảng cách giao hàng</div>
+      <div class="field">
+        <label>Số km từ kho đến nơi nhận hàng</label>
+        <input type="number" id="distanceInput" min="0" step="1" placeholder="Nhập số km..." value="0" oninput="recalculate()" />
+      </div>
+      <div class="field" id="ahamoveField" style="display:none;">
+        <label>Địa chỉ giao hàng (để check phí Ahamove thật — chỉ áp dụng khu vực HCM)</label>
+        <div style="position:relative;">
+          <input type="text" id="diaChiAhamove" placeholder="Gõ ít nhất 3 ký tự rồi chọn địa chỉ trong gợi ý..." autocomplete="off" />
+          <div id="diaChiGoiYBox" style="position:absolute;left:0;right:0;top:100%;z-index:50;background:#fff;border:1.5px solid var(--border);border-top:none;border-radius:0 0 8px 8px;max-height:220px;overflow-y:auto;display:none;"></div>
+        </div>
+        <div id="diaChiDaChonBadge" style="display:none;margin-top:5px;font-size:11px;color:#1D9E75;font-weight:600;">✓ Đã chọn địa chỉ từ gợi ý</div>
+        <button type="button" style="margin-top:8px;padding:9px;background:#0F172A;color:#C5A059;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;width:100%;" id="btnCheckAhamove" onclick="checkPhiAhamoveThat()">🔎 Check phí Ahamove thật (thay số km ước lượng)</button>
+        <div id="ahamoveResult" style="font-size:11px;margin-top:6px;color:#666;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT COLUMN -->
+  <div>
+    <!-- Cart -->
+    <div class="card">
+      <div class="header-cart">
+        <div class="card-title" style="margin-bottom:0;">Đơn hàng</div>
+        <button class="clear-link" onclick="clearCart()">Xóa hết</button>
+      </div>
+      <div class="cart-scroll" id="cartList">
+        <div class="cart-empty">Chưa có sản phẩm nào trong đơn</div>
+      </div>
+    </div>
+
+    <!-- Result -->
+    <div class="card">
+      <div class="card-title">Kết quả tính toán</div>
+      <div id="resultContent">
+        <div class="result-placeholder">Thêm sản phẩm để Ông Goma tính toán 🧮</div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+
+<div id="tabImages" style="display:none;max-width:1100px;margin:0 auto;padding:20px 16px 40px;">
+  <div style="background:#fff;border:1px solid #E2DDD6;border-radius:12px;padding:20px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+      <div>
+        <div style="font-size:10px;font-weight:700;color:#C5A059;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:4px;">Ảnh sản phẩm</div>
+        <div style="font-size:12px;color:#666;" id="imgSubtitle">Đang tải...</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        <select id="imgFilterLoai" onchange="filterImages()" style="padding:7px 12px;border:1.5px solid #E2DDD6;border-radius:8px;font-size:12px;font-family:inherit;outline:none;background:#F8F6F1;cursor:pointer;">
+          <option value="">Tất cả loại</option>
+          <option value="thảm tấm">Thảm tấm</option>
+          <option value="thảm cuộn">Thảm cuộn</option>
+          <option value="thảm mỹ thuật">Thảm mỹ thuật</option>
+        </select>
+        <button onclick="loadImages(true)" style="padding:7px 12px;border:1.5px solid #E2DDD6;border-radius:8px;font-size:12px;background:#F8F6F1;cursor:pointer;font-family:inherit;color:#666;">🔄 Làm mới</button>
+      </div>
+    </div>
+    <div style="margin-bottom:14px;">
+      <input type="text" id="imgSearch" placeholder="Tìm mã màu (vd: C01, Rainbow...)" oninput="filterImages()" style="width:100%;padding:9px 14px;border:1.5px solid #E2DDD6;border-radius:8px;font-size:13px;font-family:inherit;outline:none;background:#F8F6F1;" />
+    </div>
+    <div id="imgGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;"></div>
+  </div>
+</div>
+<div id="tabStock" style="display:none;max-width:1100px;margin:0 auto;padding:20px 16px 40px;">
+  <div style="background:#fff;border:1px solid #E2DDD6;border-radius:12px;padding:20px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+      <div>
+        <div style="font-size:10px;font-weight:700;color:#C5A059;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:4px;">Tồn kho HCM</div>
+        <div style="font-size:12px;color:#666;">Dữ liệu từ Google Sheets · Cập nhật mỗi 30 phút</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div id="stockTotal" style="background:#0F172A;color:#C5A059;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:700;"></div>
+        <button onclick="loadStock(true)" style="display:flex;align-items:center;gap:6px;padding:8px 14px;background:#F8F6F1;border:1.5px solid #E2DDD6;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;color:#1a1a1a;" id="refreshBtn">🔄 Làm mới</button>
+      </div>
+    </div>
+    <div style="margin-bottom:14px;">
+      <input type="text" id="stockSearch" placeholder="Tìm mã hàng (vd: 866-02, C101...)" oninput="filterStock()" style="width:100%;padding:9px 14px;border:1.5px solid #E2DDD6;border-radius:8px;font-size:13px;font-family:inherit;outline:none;background:#F8F6F1;" />
+    </div>
+    <div id="stockGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;"></div>
+  </div>
+</div>
+
+<div id="tabAssistant" style="max-width:700px;margin:0 auto;padding:20px 16px 40px;">
+  <div id="geminiKeySetup" style="background:#fff;border:1px solid #E2DDD6;border-radius:12px;padding:20px;">
+    <div style="font-size:10px;font-weight:700;color:#C5A059;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:10px;">Thiết lập trợ lý (1 lần)</div>
+    <div style="font-size:12px;color:#666;margin-bottom:10px;line-height:1.6;">
+      Cần API key Gemini miễn phí (không cần thẻ). Lấy tại
+      <a href="https://aistudio.google.com/apikey" target="_blank" style="color:#0369A1;font-weight:600;">aistudio.google.com/apikey</a>,
+      dán vào đây — key chỉ lưu trên trình duyệt máy này, không gửi đi đâu khác ngoài Google.
+    </div>
+    <input type="text" id="geminiKeyInput" placeholder="Dán Gemini API key vào đây..." style="width:100%;padding:9px 12px;border:1.5px solid #E2DDD6;border-radius:8px;font-size:13px;font-family:inherit;outline:none;margin-bottom:8px;" />
+    <button onclick="saveGeminiKey()" style="width:100%;padding:10px;background:#0F172A;color:#C5A059;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">Lưu & bắt đầu chat</button>
+  </div>
+
+  <div id="chatBox" style="display:none;background:#fff;border:1px solid #E2DDD6;border-radius:12px;padding:0;overflow:hidden;">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid #E2DDD6;background:#F8F6F1;">
+      <div style="font-size:12px;font-weight:700;color:#1a1a1a;">🤖 Trợ lý tính đơn hàng (kho HCM)</div>
+      <div style="display:flex;gap:8px;">
+        <button onclick="xoaHoiThoai()" style="font-size:11px;color:#999;background:none;border:none;cursor:pointer;">Xóa hội thoại</button>
+        <button onclick="doiGeminiKey()" style="font-size:11px;color:#999;background:none;border:none;cursor:pointer;">Đổi key</button>
+      </div>
+    </div>
+    <div id="chatMessages" style="height:420px;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:10px;"></div>
+    <div style="display:flex;gap:8px;padding:12px 16px;border-top:1px solid #E2DDD6;">
+      <input type="text" id="chatInput" placeholder="VD: check 67m2 mã 866 đi 727 Âu Cơ Tân Phú" style="flex:1;padding:10px 12px;border:1.5px solid #E2DDD6;border-radius:8px;font-size:13px;font-family:inherit;outline:none;" onkeydown="if(event.key==='Enter')guiChat()" />
+      <button onclick="guiChat()" id="btnGuiChat" style="padding:10px 18px;background:#C5A059;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">Gửi</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===================== DATA =====================
+const PT = { TILE:'TILE', ROLL:'ROLL', ART:'ART', ACCESSORY:'ACCESSORY' };
+
+const PRODUCTS = [
+  // Thảm tấm
+  {id:"SAPPHIRE_C",name:"Sapphire C (C01/C02/C05/C09/C10/C11)",type:"TILE",boxSize:6,wpu:4.0,price:156000,unit:"m²",boxType:"square"},
+  {id:"MELODY_C",name:"Melody C (C2/C3/C4/C5/C6)",type:"TILE",boxSize:6,wpu:4.0,price:215000,unit:"m²",boxType:"square"},
+  {id:"MELODY_X",name:"Melody X (X01/X02/X05/X09)",type:"TILE",boxSize:6,wpu:4.0,price:174000,unit:"m²",boxType:"square"},
+  {id:"MELODY_DK",name:"Melody DK (DK-01/02/03/04)",type:"TILE",boxSize:6,wpu:4.0,price:198000,unit:"m²",boxType:"square"},
+  {id:"MELODY_FOREST",name:"Melody Forest (F-01/02/03/04/05)",type:"TILE",boxSize:7,wpu:4.0,price:198000,unit:"m²",boxType:"long_forest"},
+  {id:"SHINING_AL",name:"Shining AL (AL-01/02/03/04/05)",type:"TILE",boxSize:6,wpu:4.0,price:288000,unit:"m²",boxType:"square"},
+  {id:"SHINING_KN",name:"Shining KN (KN-01/02/03/04/05/06)",type:"TILE",boxSize:6,wpu:4.0,price:290000,unit:"m²",boxType:"long_kn"},
+  // Thảm cuộn – bổ sung: thick(m), kBase, kMax, dLoi(cm)
+  {id:"RAINBOW_C100",name:"Rainbow C101-C106 (khổ 3.66m)",type:"ROLL",width:3.66,wpu:1.9,price:88000,unit:"m²",thick:0.0055,kBase:0.911,kMax:1.002,dLoi:10.11,maxM2:146},
+  {id:"RAINBOW_C200",name:"Rainbow C201-C207 (khổ 4.0m)",type:"ROLL",width:4.0,wpu:1.9,price:88000,unit:"m²",thick:0.0055,kBase:0.928,kMax:1.021,dLoi:10.11,maxM2:160},
+  {id:"RAINBOW_866",name:"Rainbow 866 - Mỏng (khổ 4.0m)",type:"ROLL",width:4.0,wpu:1.4,price:69000,unit:"m²",isThin:true,thick:0.005,kBase:0.974,kMax:1.169,dLoi:10.11,maxM2:240},
+  {id:"RAINBOW_PT",name:"Rainbow PT 03-08 (khổ 3.66m)",type:"ROLL",width:3.66,wpu:1.65,price:176000,unit:"m²",thick:0.010,kBase:0.882,kMax:0.970,dLoi:10.11,maxM2:138},
+  {id:"MANILA",name:"Manila Sunset/Sea/M (khổ 4.0m)",type:"ROLL",width:4.0,wpu:1.85,price:245000,unit:"m²",thick:0.0075,kBase:1.038,kMax:1.142,dLoi:10.11,maxM2:100},
+  {id:"THAISILK_SHR",name:"ThaiSilk SHR (khổ 3.98m)",type:"ROLL",width:3.98,wpu:1.55,price:168000,unit:"m²",thick:0.007,kBase:0.864,kMax:0.951,dLoi:10.11,maxM2:139},
+  {id:"DIAMOND",name:"Diamond D01-D18 (khổ 4.0m)",type:"ROLL",width:4.0,wpu:1.4,price:150000,unit:"m²",thick:0.006,kBase:0.854,kMax:0.939,dLoi:10.11,maxM2:140},
+  {id:"SKY_BASIC",name:"Sky QD/BG/JZ/T (khổ 3.66-4m)",type:"ROLL",width:4.0,wpu:2.2,price:126000,unit:"m²",thick:0.008,kBase:1.003,kMax:1.103,dLoi:10.11,maxM2:151},
+  {id:"SKY_CLP",name:"Sky CL-P (khổ 3.66-4m)",type:"ROLL",width:4.0,wpu:2.6,price:205000,unit:"m²",thick:0.009,kBase:0.993,kMax:1.092,dLoi:10.11,maxM2:151},
+  {id:"WILTON",name:"Wilton RP/VG (khổ 4.0m)",type:"ROLL",width:4.0,wpu:2.0,price:260000,unit:"m²",thick:0.010,kBase:0.960,kMax:1.056,dLoi:10.11,maxM2:100},
+  {id:"BROADWAY",name:"Broadway BRW-01~04 (khổ 4.0m)",type:"ROLL",width:4.0,wpu:1.865,price:258000,unit:"m²",thick:0.0075,kBase:0.986,kMax:1.134,dLoi:10.11,maxM2:103.24},
+  {id:"BORDEAUX_01",name:"Bordeaux BOD-01 (khổ 4.0m)",type:"ROLL",width:4.0,wpu:1.865,price:258000,unit:"m²",thick:0.0075,kBase:0.986,kMax:1.134,dLoi:10.11,maxM2:103.24},
+  {id:"BORDEAUX_02",name:"Bordeaux BOD-02 (khổ 3.66m)",type:"ROLL",width:3.66,wpu:1.865,price:258000,unit:"m²",thick:0.0075,kBase:0.986,kMax:1.134,dLoi:10.11,maxM2:103.24},
+  // Thảm mỹ thuật
+  {id:"ART_MS_16",name:"Thảm MT MS (1.6m × 2.3m)",type:"ART",wpu:8.1,price:1868000,unit:"tấm"},
+  {id:"ART_MS_20",name:"Thảm MT MS (2m × 3m)",type:"ART",wpu:13.2,price:3084000,unit:"tấm"},
+  {id:"ART_SN_16",name:"Thảm MT SN (1.6m × 2.3m)",type:"ART",wpu:6.8,price:1600000,unit:"tấm"},
+  {id:"ART_SN_20",name:"Thảm MT SN (2m × 3m)",type:"ART",wpu:11.1,price:2610000,unit:"tấm"},
+  {id:"ART_LY_16",name:"Thảm MT LY (1.6m × 2.3m)",type:"ART",wpu:6.3,price:1390000,unit:"tấm"},
+  {id:"ART_LY_20",name:"Thảm MT LY (2m × 3m)",type:"ART",wpu:10.2,price:2268000,unit:"tấm"},
+  {id:"ART_MOKA_16",name:"Thảm MT MOKA (1.6m × 2.3m)",type:"ART",wpu:8.6,price:1790000,unit:"tấm"},
+  {id:"ART_MOKA_20",name:"Thảm MT MOKA (2m × 3m)",type:"ART",wpu:14.1,price:2910000,unit:"tấm"},
+  {id:"ART_MOUSSE_16",name:"Thảm MT MOUSSE (1.6m × 2.3m)",type:"ART",wpu:8.3,price:1900000,unit:"tấm"},
+  {id:"ART_MOUSSE_20",name:"Thảm MT MOUSSE (2m × 3m)",type:"ART",wpu:13.6,price:3090000,unit:"tấm"},
+  {id:"ART_NATURAL_16",name:"Thảm MT NATURAL (1.6m × 2.3m)",type:"ART",wpu:7.0,price:1400000,unit:"tấm"},
+  {id:"ART_NATURAL_20",name:"Thảm MT NATURAL (2m × 3m)",type:"ART",wpu:11.4,price:2280000,unit:"tấm"},
+  {id:"ART_SILENT_16",name:"Thảm MT SILENT (1.6m × 2.3m)",type:"ART",wpu:8.3,price:1900000,unit:"tấm"},
+  {id:"ART_SILENT_20",name:"Thảm MT SILENT (2m × 3m)",type:"ART",wpu:13.6,price:3090000,unit:"tấm"},
+  // Phụ kiện
+  {id:"ACC_UL5",name:"Underlay 5mm",type:"ACCESSORY",wpu:0.55,price:50000,unit:"m²"},
+  {id:"ACC_UL8",name:"Underlay 8mm",type:"ACCESSORY",wpu:0.88,price:63000,unit:"m²"},
+  {id:"ACC_UL10",name:"Underlay 10mm",type:"ACCESSORY",wpu:1.1,price:76000,unit:"m²"},
+  {id:"ACC_KICH",name:"Kích thảm",type:"ACCESSORY",wpu:5.0,price:2160000,unit:"cái"},
+  {id:"ACC_CONLAN",name:"Con lăn 15cm",type:"ACCESSORY",wpu:1.0,price:350000,unit:"cái"},
+  {id:"ACC_LUOIRANG",name:"Lưỡi răng kích (hộp 3 cái)",type:"ACCESSORY",wpu:0.5,price:351000,unit:"hộp"},
+  {id:"ACC_BANLA",name:"Bàn là băng keo",type:"ACCESSORY",wpu:2.0,price:2300000,unit:"cái"},
+  {id:"ACC_BANGKEO",name:"Băng keo (cuộn 20m)",type:"ACCESSORY",wpu:0.5,price:200000,unit:"cuộn"},
+  {id:"ACC_NEPDINH",name:"Nẹp đinh (hộp 84md)",type:"ACCESSORY",wpu:10.0,price:595000,unit:"hộp"},
+];
+
+const V = {
+  HCM: {
+    MOTORBIKE: {label:"Xe máy",maxShip:150000,ppk:7500,maxW:100},
+    VAN_500:   {label:"Xe Van 500kg",maxShip:300000,ppk:15000,maxW:460},
+    VAN_1000:  {label:"Xe Van 1000kg",maxShip:400000,ppk:20000,maxW:950},
+    TRUCK_2T:  {label:"Xe Tải 2 Tấn",maxShip:600000,ppk:30000,maxW:2000},
+  },
+  HN: {
+    MOTORBIKE: {label:"Xe máy (HN)",maxShip:300000,ppk:15000,maxW:240},
+    VAN_SMALL: {label:"Xe tải nhỏ (HN)",maxShip:500000,ppk:25000,maxW:1080},
+    TRUCK_BIG: {label:"Xe tải 2–2.5T (HN)",maxShip:700000,ppk:35000,maxW:2500},
+  }
+};
+
+// ===================== STATE =====================
+let loc = 'HCM';
+let cart = [];
+let selCat = 'ALL';
+let upgradeKey = null;
+let copyTm = null;
+let ahamoveRealFee = null; // khách trả thêm theo phí Ahamove thật (đã check API) — null = chưa check, dùng giá dự kiến
+
+const CATS = [
+  {id:'ALL',label:'Tất cả'},
+  {id:'TILE',label:'Thảm tấm'},
+  {id:'ROLL',label:'Thảm cuộn'},
+  {id:'ART',label:'Mỹ thuật'},
+  {id:'ACCESSORY',label:'Vật tư'},
+];
+
+// ===================== UTILS =====================
+function fmt(n) {
+  return new Intl.NumberFormat('vi-VN').format(Math.round(n)) + 'đ';
+}
+function fmtUp10k(n) {
+  return new Intl.NumberFormat('vi-VN').format(Math.ceil((n||0) / 10000) * 10000) + 'đ';
+}
+function fmtRange(fee) {
+  if (fee === 0) return 'Miễn phí';
+  let min, max;
+  if (loc === 'HCM') {
+    min = Math.round(fee / 10000) * 10000;
+    max = Math.round(fee * 1.2 / 10000) * 10000;
+  } else {
+    min = Math.round(fee * 0.9 / 10000) * 10000;
+    max = Math.round(fee * 1.1 / 10000) * 10000;
+  }
+  return min === max ? fmt(min) : fmt(min) + ' – ' + fmt(max);
+}
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ===================== LOCATION =====================
+function setLocation(l) {
+  loc = l;
+  upgradeKey = null;
+  document.getElementById('btnHCM').className = 'loc-tab' + (l==='HCM'?' active':'');
+  document.getElementById('btnHN').className = 'loc-tab' + (l==='HN'?' active':'');
+  document.getElementById('locBadge').textContent = l;
+  document.getElementById('warehouseInfo').innerHTML = l === 'HCM'
+    ? '📦 Kho HCM: 326 Nguyễn Thị Tú, Bình Hưng Hòa B, Q. Bình Tân, TP.HCM'
+    : '📦 Kho HN: Số 109 ngõ 53 Đức Giang, Long Biên, Hà Nội';
+  document.getElementById('ahamoveField').style.display = l === 'HCM' ? 'block' : 'none'; // check Ahamove chỉ hỗ trợ HCM (chưa có mapping service_id cho kho HN)
+  recalculate();
+}
+
+// ===================== CATEGORY =====================
+function renderCats() {
+  document.getElementById('catRow').innerHTML = CATS.map(c =>
+    `<button class="cat-pill${c.id===selCat?' active':''}" onclick="selCat='${c.id}';renderCats();filterAndRender()">${c.label}</button>`
+  ).join('');
+}
+
+// ===================== PRODUCTS =====================
+function getFiltered() {
+  const q = (document.getElementById('searchInput').value || '').toLowerCase().trim();
+  return PRODUCTS.filter(p => {
+    if (selCat !== 'ALL' && p.type !== selCat) return false;
+    if (!q) return true;
+    return p.name.toLowerCase().includes(q) || p.id.toLowerCase().includes(q);
+  });
+}
+
+function filterAndRender() {
+  const prods = getFiltered();
+  const sel = document.getElementById('productSelect');
+  const prev = sel.value;
+  sel.innerHTML = prods.length === 0
+    ? '<option value="">-- Không tìm thấy sản phẩm --</option>'
+    : prods.map(p => `<option value="${p.id}">${p.name}  [${p.unit}]</option>`).join('');
+  // try restore previous selection
+  if (prev && prods.find(p=>p.id===prev)) sel.value = prev;
+  onProductChange();
+}
+
+function onProductChange() {
+  const p = getSelectedProduct();
+  if (!p) { document.getElementById('qtyLabel').textContent = 'Số lượng'; document.getElementById('productInfoBadge').innerHTML=''; return; }
+  document.getElementById('qtyLabel').textContent = `Số lượng (${p.unit})`;
+  let info = '';
+  if (p.type === 'ROLL' && p.width) info = `Khổ: ${p.width}m | ${p.wpu}kg/m²`;
+  else if (p.type === 'TILE' && p.boxSize) info = `${p.boxSize} m²/thùng | ${p.wpu}kg/m²`;
+  else if (p.type === 'ART') info = `${p.wpu}kg/tấm`;
+  else info = `${p.wpu}kg/${p.unit}`;
+  document.getElementById('productInfoBadge').innerHTML = info ? `<span class="product-info-badge">${info}</span>` : '';
+  const hasRoll = cart.some(i=>i.product.type==='ROLL') || p.type==='ROLL';
+}
+
+function getSelectedProduct() {
+  const id = document.getElementById('productSelect').value;
+  return PRODUCTS.find(p=>p.id===id) || null;
+}
+
+// ===================== CART =====================
+function addToCart() {
+  const p = getSelectedProduct();
+  const qty = parseFloat(document.getElementById('qtyInput').value);
+  if (!p || !qty || qty <= 0) { alert('Vui lòng chọn sản phẩm và nhập số lượng hợp lệ.'); return; }
+  cart.push({ id: Date.now()+'', product: p, quantity: qty, price: p.price });
+  document.getElementById('qtyInput').value = '';
+  renderCart();
+  recalculate();
+  const hasRoll = cart.some(i=>i.product.type==='ROLL');
+}
+
+function removeItem(id) {
+  cart = cart.filter(i=>i.id!==id);
+  upgradeKey = null;
+  renderCart();
+  recalculate();
+  const hasRoll = cart.some(i=>i.product.type==='ROLL');
+}
+
+function clearCart() {
+  cart = []; upgradeKey = null;
+  renderCart(); recalculate();
+}
+
+function renderCart() {
+  const el = document.getElementById('cartList');
+  if (cart.length === 0) {
+    el.innerHTML = '<div class="cart-empty">Chưa có sản phẩm nào trong đơn</div>';
+    return;
+  }
+  el.innerHTML = cart.map(item => {
+    const p = item.product, qty = item.quantity;
+    let detail = '';
+    if (p.type==='TILE' && p.boxSize) {
+      const boxes = Math.floor(qty/p.boxSize);
+      const tiles = Math.round((qty%p.boxSize)/0.25);
+      detail = `<span class="badge-green">${boxes} thùng${tiles>0?' + '+tiles+' tấm lẻ':''}</span>`;
+    } else if (p.type==='ROLL' && p.width) {
+      const md = (qty/p.width).toFixed(1);
+      detail = `<span class="badge-blue">${md} mét dài</span>`;
+    }
+    const thanhTien = qty * item.price;
+    return `<div class="cart-item">
+      <div class="cart-item-body">
+        <div class="cart-item-name">${esc(p.name)}</div>
+        <div class="cart-item-qty">${qty} ${p.unit}</div>
+        ${detail ? '<div class="cart-item-detail">'+detail+'</div>' : ''}
+        <div class="cart-item-detail price-row" data-id="${item.id}" data-qty="${qty}" style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-top:4px;">
+          <span>Đơn giá:</span>
+          <input type="number" class="f-dongia" value="${Math.round(item.price)}" oninput="suaDonGia(this)" style="width:85px;padding:3px 6px;font-size:11px;border:1.5px solid #E2DDD6;border-radius:4px;">
+          <span>/${p.unit} · Thành tiền:</span>
+          <input type="number" class="f-thanhtien" value="${Math.round(thanhTien)}" oninput="suaThanhTien(this)" style="width:100px;padding:3px 6px;font-size:11px;border:1.5px solid #E2DDD6;border-radius:4px;font-weight:600;">
+        </div>
+      </div>
+      <button class="remove-btn" onclick="removeItem('${item.id}')" title="Xóa">×</button>
+    </div>`;
+  }).join('');
+}
+
+function suaDonGia(inputEl) {
+  const row = inputEl.closest('.price-row');
+  const item = cart.find(i => i.id === row.dataset.id);
+  if (!item) return;
+  const qty = parseFloat(row.dataset.qty) || 0;
+  const gia = parseFloat(inputEl.value) || 0;
+  item.price = gia;
+  const ttInput = row.querySelector('.f-thanhtien');
+  if (ttInput) ttInput.value = Math.round(gia * qty);
+  recalculate();
+}
+
+function suaThanhTien(inputEl) {
+  const row = inputEl.closest('.price-row');
+  const item = cart.find(i => i.id === row.dataset.id);
+  if (!item) return;
+  const qty = parseFloat(row.dataset.qty) || 0;
+  const tien = parseFloat(inputEl.value) || 0;
+  item.price = qty > 0 ? tien / qty : 0;
+  const dgInput = row.querySelector('.f-dongia');
+  if (dgInput) dgInput.value = Math.round(item.price);
+  recalculate();
+}
+
+// ===================== CALCULATION =====================
+let lastResult = null;
+
+// Hàm THUẦN — không đụng DOM/biến toàn cục, nhận tham số → trả kết quả.
+// Dùng chung cho cả UI (calculateOrder() bên dưới) và trợ lý chat (execTinhGiaShip()).
+function tinhDonHangThuan(cartArr, distance, locVal) {
+  if (!cartArr || cartArr.length === 0) return null;
+  const allowFolding = true;
+  const isHCM = locVal === 'HCM';
+
+  let totalWeight=0, totalValue=0, totalM2=0;
+  const notes=[];
+  let hasLargeRoll=false, hasUnderlay=false;
+
+  for (const item of cartArr) {
+    const {product:p, quantity:qty, price} = item;
+    totalWeight += qty * p.wpu;
+    totalValue += qty * price;
+    if (p.unit==='m²') totalM2 += qty;
+    if (p.type==='TILE' && p.boxSize) {
+      const boxes=Math.floor(qty/p.boxSize), tiles=Math.round((qty%p.boxSize)/0.25);
+      notes.push(`${p.name}: ${boxes} thùng${tiles>0?' + '+tiles+' tấm lẻ':''}`);
+    }
+    if (p.type==='ROLL' && p.width && p.width>=3.66) hasLargeRoll=true;
+    if (p.id.startsWith('ACC_UL')) hasUnderlay=true;
+  }
+  const totalIncVat = totalValue*1.08;
+
+  let optKey, actKey, maxMD=0, capXeMay=null;
+
+  if (isHCM) {
+    let moto=true, v500=true, v1000=true;
+    let totalBoxes=0, hasThin=false, hasCDia=false, hasOtherThick=false;
+    let maxThinM2=0, maxCDiaM2=0, maxOtherM2=0, maxThinMD=0, maxCDiaMD=0, maxOtherMD=0;
+    for (const item of cartArr) {
+      const p=item.product, qty=item.quantity, md=qty/(p.width||4);
+      if (p.type==='TILE' && p.boxSize) totalBoxes+=qty/p.boxSize;
+      else if (p.type==='ROLL') {
+        if (p.isThin) { hasThin=true; maxThinM2+=qty; maxThinMD=Math.max(maxThinMD,md); }
+        else {
+          const isCDia = p.id.startsWith('RAINBOW_C')||p.id==='DIAMOND';
+          if (isCDia) { hasCDia=true; maxCDiaM2+=qty; maxCDiaMD=Math.max(maxCDiaMD,md); }
+          else { hasOtherThick=true; maxOtherM2+=qty; maxOtherMD=Math.max(maxOtherMD,md); }
+        }
+      }
+    }
+    // Theo dõi riêng thảm tấm hộp vuông/dài theo m² (khớp skill v2.2 — sale tính m², không đếm tấm nữa)
+    let hasSquareTile=false, hasLongTile=false, maxSquareM2=0, maxLongM2=0;
+    for (const item of cartArr) {
+      const p=item.product, qty=item.quantity;
+      if (p.type==='TILE' && p.boxSize) {
+        if (p.boxType==='square') { hasSquareTile=true; maxSquareM2+=qty; }
+        else { hasLongTile=true; maxLongM2+=qty; } // long_forest, long_kn
+      }
+    }
+    if (hasSquareTile && maxSquareM2>=24) moto=false; // thêm mốc m² mới (v2.2), giữ nguyên totalBoxes>3.5 làm lưới an toàn thứ 2
+    if (hasLongTile && maxLongM2>=13) moto=false;
+
+    maxMD = Math.max(maxThinMD,maxCDiaMD,maxOtherMD);
+    if (totalWeight>100) moto=false;
+    if (totalBoxes>3.5) moto=false;
+    if (hasThin && maxThinM2>=60) moto=false;
+    if (hasCDia && maxCDiaM2>=40) moto=false;
+    if (hasOtherThick && maxOtherM2>=30) moto=false; // sửa: trước gộp chung ngưỡng 40 với Rainbow C/Diamond, giờ tách đúng mốc Dày khác = 30 (theo skill-dieu-phoi-xe)
+    if (!allowFolding && (hasThin||hasCDia||hasOtherThick)) moto=false;
+    if (hasUnderlay) { moto=false; notes.push('Underlay → mặc định xe Van do kích thước cồng kềnh'); }
+    if (totalWeight>460) v500=false;
+    if (hasThin && (maxThinM2>300||maxThinMD>=22)) v500=false;
+    if (hasCDia && (maxCDiaM2>200||maxCDiaMD>=15)) v500=false;
+    if (hasOtherThick && (maxOtherM2>150||maxOtherMD>=13)) v500=false; // thêm điều kiện m² cho Dày khác (trước chỉ check chiều dài, thiếu m², không đồng bộ với 866/C-Diamond)
+    if (totalWeight>950) v1000=false;
+    if (hasThin && maxThinMD>=27.5) v1000=false;
+    if (hasCDia && maxCDiaMD>=19.8) v1000=false;
+    if (hasOtherThick && maxOtherMD>=16.5) v1000=false;
+    if (hasCDia) notes.push(`Thảm C/Diamond: tấm dài nhất ${maxCDiaMD.toFixed(1)} mD`);
+    if (hasOtherThick) notes.push(`Thảm dày khác: tấm dài nhất ${maxOtherMD.toFixed(1)} mD`);
+    if (hasThin) notes.push(`Thảm mỏng 866: tấm dài nhất ${maxThinMD.toFixed(1)} mD`);
+
+    // Cấp M/L/XL/2XL — chỉ có ý nghĩa khi xe cuối cùng là Xe Máy, dùng để chọn tier SGN-BIKE-BULKY khi check Ahamove thật
+    let bulkyPct = 0;
+    if (hasThin) bulkyPct = Math.max(bulkyPct, maxThinM2/60);
+    if (hasCDia) bulkyPct = Math.max(bulkyPct, maxCDiaM2/40);
+    if (hasOtherThick) bulkyPct = Math.max(bulkyPct, maxOtherM2/30);
+    if (hasSquareTile) bulkyPct = Math.max(bulkyPct, maxSquareM2/24);
+    if (hasLongTile) bulkyPct = Math.max(bulkyPct, maxLongM2/13);
+    capXeMay = 'M';
+    if (bulkyPct>0.55) capXeMay='2XL'; else if (bulkyPct>0.30) capXeMay='XL'; else if (bulkyPct>0.10) capXeMay='L';
+    if (moto) optKey='MOTORBIKE'; else if (v500) optKey='VAN_500'; else if (v1000) optKey='VAN_1000'; else optKey='TRUCK_2T';
+    actKey=optKey;
+    if (hasLargeRoll && !allowFolding) {
+      if (optKey!=='TRUCK_2T') notes.push('Bắt buộc xe tải: không gấp thảm cuộn khổ lớn');
+      actKey='TRUCK_2T'; optKey='TRUCK_2T';
+    }
+    if (totalM2>350) {
+      if (optKey!=='TRUCK_2T') notes.push('Nâng cấp xe tải 2T: diện tích >350m²');
+      actKey='TRUCK_2T'; optKey='TRUCK_2T';
+    }
+  } else {
+    let moto=true, vanS=true;
+    let g1M2=0,g2M2=0,g3=0,g4=0,maxG1M2=0,maxG2M2=0,maxG1MD=0,maxG2MD=0,totalRolls=0;
+    for (const item of cartArr) {
+      const p=item.product, qty=item.quantity, md=qty/(p.width||4);
+      if (p.type==='ART') g3+=qty;
+      else if (p.type==='TILE' && p.boxSize) g4+=qty/p.boxSize;
+      else if (p.type==='ROLL') {
+        totalRolls++;
+        const isG2=p.id.includes('PT')||p.id.includes('CLP')||p.id.includes('WILTON')||p.name.includes('PT')||p.name.includes('CL-P')||p.name.includes('Wilton');
+        if (isG2) { g2M2+=qty; maxG2M2=Math.max(maxG2M2,qty); maxG2MD=Math.max(maxG2MD,md); }
+        else { g1M2+=qty; maxG1M2=Math.max(maxG1M2,qty); maxG1MD=Math.max(maxG1MD,md); }
+      }
+    }
+    maxMD=Math.max(maxG1MD,maxG2MD);
+    if (g1M2>100) moto=false; if (g2M2>60) moto=false;
+    if (g3>=10) moto=false; if (g4>=10||totalWeight>240) moto=false;
+    if (!allowFolding && (g1M2>0||g2M2>0)) moto=false;
+    if (g1M2>240||maxG1M2>100) vanS=false; if (g2M2>240||maxG2M2>60) vanS=false;
+    if (g3>=60) vanS=false; if (g4>=45||totalWeight>1080) vanS=false;
+    if (moto) optKey='MOTORBIKE'; else if (vanS) optKey='VAN_SMALL'; else optKey='TRUCK_BIG';
+    actKey=optKey;
+    if ((g1M2>0&&maxG1MD>25)||totalRolls>10||(!allowFolding&&(g1M2>0||g2M2>0))) {
+      if (optKey!=='TRUCK_BIG') notes.push('Nâng cấp xe tải lớn: quy cách quá khổ hoặc không gấp');
+      actKey='TRUCK_BIG'; optKey='TRUCK_BIG';
+    }
+  }
+
+  const vehicles=V[locVal];
+  const freeEligible=totalM2>=20||totalIncVat>=2000000;
+  const cfg=vehicles[actKey];
+
+  // Công thức hỗ trợ ship v2.0 (skill-dieu-phoi-xe) — thay thế hoàn toàn công thức "freeship 20km" cũ.
+  // Phí thật = đơn giá xe đang giao × TOÀN BỘ quãng đường (không trừ 20km đầu như công thức cũ).
+  // Hỗ trợ = MIN(5% tổng giá trị đơn, mốc hỗ trợ tối đa của xe đang giao); nếu không đủ điều kiện → hỗ trợ 0đ, khách trả 100% phí thật.
+  let phiThat = cfg.ppk*distance;
+  if (locVal==='HN') phiThat*=1.2;
+  let hoTro=0, shipFee=phiThat;
+  if (freeEligible) {
+    hoTro = Math.min(totalValue*0.05, cfg.maxShip);
+    shipFee = Math.max(0, phiThat-hoTro);
+  }
+
+  return {
+    totalM2,totalWeight,totalValue,totalIncVat,maxMD,
+    optKey,actKey,capXeMay,
+    optLabel: (optKey==='MOTORBIKE' && capXeMay) ? vehicles[optKey].label+' '+capXeMay : vehicles[optKey].label,
+    actLabel: (actKey==='MOTORBIKE' && capXeMay) ? vehicles[actKey].label+' '+capXeMay : vehicles[actKey].label,
+    phiThat, hoTro, shipFee,
+    isFreeship: freeEligible && shipFee===0,
+    notes, freeEligible
+  };
+}
+
+// Wrapper giữ nguyên hành vi cũ cho UI: đọc cart/distance/loc từ DOM rồi gọi hàm thuần ở trên.
+function calculateOrder() {
+  if (cart.length === 0) return null;
+  const distance = parseFloat(document.getElementById('distanceInput').value)||0;
+  return tinhDonHangThuan(cart, distance, loc);
+}
+
+function getUpgradeOptions(actKey) {
+  const ranks = loc==='HCM'
+    ? {MOTORBIKE:1,VAN_500:2,VAN_1000:3,TRUCK_2T:4}
+    : {MOTORBIKE:1,VAN_SMALL:2,TRUCK_BIG:3};
+  const mine=ranks[actKey]||0;
+  return Object.entries(ranks).filter(([k,r])=>r>mine).map(([k])=>k);
+}
+
+function calcUpgradeFee(r, upKey) {
+  // Dùng cùng công thức Phần 4 (v2.0) với xe nâng cấp, trả về phần CHÊNH LỆCH so với xe hiện tại (r.shipFee)
+  const vehicles=V[loc];
+  const up=vehicles[upKey];
+  const d=parseFloat(document.getElementById('distanceInput').value)||0;
+  let phiThatUp = up.ppk*d;
+  if (loc==='HN') phiThatUp*=1.2;
+  let feeUp = phiThatUp;
+  if (r.freeEligible) {
+    const hoTroUp = Math.min(r.totalValue*0.05, up.maxShip);
+    feeUp = Math.max(0, phiThatUp-hoTroUp);
+  }
+  return Math.max(0, feeUp - r.shipFee);
+}
+
+// ===================== KÍCH THƯỚC & THỂ TÍCH =====================
+const BOX_DIMS = {
+  square:      {w:0.50, d:0.50, h:0.12},
+  long_kn:     {w:0.25, d:1.00, h:0.12},
+  long_forest: {w:0.25, d:1.00, h:0.13},
+};
+
+function calcRollDims(p, qty) {
+  // Chia ra số cuộn, mỗi cuộn tối đa maxM2
+  const maxM2 = p.maxM2 || 200;
+  const numCuon = Math.ceil(qty / maxM2);
+  const m2PerCuon = qty / numCuon;           // m² thực tế mỗi cuộn
+  const L = m2PerCuon / p.width;             // mét dài mỗi cuộn
+  // Chiều dài cuộn = khổ thảm + 5cm dư cuộn lệch
+  const lengthCuon = p.width + 0.05;
+  // Thống nhất đơn vị cm
+  const d = p.dLoi;                          // cm
+  const thickCm = p.thick * 100;             // m → cm
+  const Lcm = L * 100;                       // m → cm
+  const dBase = Math.sqrt(d*d + (4 * thickCm * Lcm) / Math.PI); // cm
+  const dMinCm = dBase * p.kBase;
+  const dMaxCm = dBase * p.kMax;
+  const dMinM = dMinCm / 100;
+  const dMaxM = dMaxCm / 100;
+  return {
+    dMin: dMinCm,
+    dMax: dMaxCm,
+    length: lengthCuon,
+    numCuon,
+    m2PerCuon,
+    volMin: lengthCuon * dMinM * dMinM * numCuon,
+    volMax: lengthCuon * dMaxM * dMaxM * numCuon,
+  };
+}
+
+function calcTileBoxes(p, qty) {
+  const boxes = Math.floor(qty / p.boxSize);
+  const rem = Math.round((qty % p.boxSize) / 0.25);
+  const dim = BOX_DIMS[p.boxType] || BOX_DIMS.square;
+  return { boxes, rem, volTotal: boxes * dim.w * dim.d * dim.h, dim };
+}
+
+function buildDimsHTML(isTruck) {
+  const rollItems = cart.filter(i => i.product.type === 'ROLL' && i.product.thick);
+  const tileItems = cart.filter(i => i.product.type === 'TILE' && i.product.boxType);
+  if (rollItems.length === 0 && tileItems.length === 0) return '';
+
+  let rows = '';
+  let totalVolMin = 0, totalVolMax = 0;
+
+  if (isTruck && rollItems.length > 0) {
+    rows += `<div style="font-size:10px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:0.08em;margin:10px 0 6px">🔄 Cuộn thảm</div>`;
+    for (const item of rollItems) {
+      const r = calcRollDims(item.product, item.quantity);
+      totalVolMin += r.volMin;
+      totalVolMax += r.volMax;
+      const cuonLabel = r.numCuon > 1 ? `${r.numCuon} cuộn × ${r.m2PerCuon.toFixed(1)} m²` : `1 cuộn`;
+      rows += `<div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:9px 12px;margin-bottom:6px;font-size:11px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+          <div style="font-weight:700;color:var(--text);">${esc(item.product.name)}</div>
+          <div style="background:var(--dark);color:var(--gold);font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px;">${cuonLabel}</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;">
+          <div><div style="color:var(--gold);font-size:9px;font-weight:700;margin-bottom:1px;">DÀI CUỘN</div><div style="font-weight:700;">${r.length.toFixed(2)} m</div></div>
+          <div><div style="color:var(--gold);font-size:9px;font-weight:700;margin-bottom:1px;">ĐƯỜNG KÍNH</div><div style="font-weight:700;">${r.dMin.toFixed(1)}–${r.dMax.toFixed(1)} cm</div></div>
+          <div><div style="color:var(--gold);font-size:9px;font-weight:700;margin-bottom:1px;">THỂ TÍCH</div><div style="font-weight:700;">${r.volMin.toFixed(2)}–${r.volMax.toFixed(2)} m³</div></div>
+        </div>
+      </div>`;
+    }
+  }
+
+  if (tileItems.length > 0) {
+    rows += `<div style="font-size:10px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:0.08em;margin:10px 0 6px">📦 Hộp thảm tấm</div>`;
+    for (const item of tileItems) {
+      const p = item.product;
+      const r = calcTileBoxes(p, item.quantity);
+      const dimStr = `${r.dim.w*100}×${r.dim.d*100}×${r.dim.h*100} cm`;
+      totalVolMin += r.volTotal;
+      totalVolMax += r.volTotal;
+      rows += `<div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:9px 12px;margin-bottom:6px;font-size:11px;">
+        <div style="font-weight:700;color:var(--text);margin-bottom:5px;">${esc(p.name)}</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;">
+          <div><div style="color:var(--gold);font-size:9px;font-weight:700;margin-bottom:1px;">SỐ HỘP</div><div style="font-weight:700;">${r.boxes} hộp${r.rem>0?' + '+r.rem+' tấm':''}</div></div>
+          <div><div style="color:var(--gold);font-size:9px;font-weight:700;margin-bottom:1px;">KÍCH THƯỚC HỘP</div><div style="font-weight:700;">${dimStr}</div></div>
+          <div><div style="color:var(--gold);font-size:9px;font-weight:700;margin-bottom:1px;">THỂ TÍCH HỘP</div><div style="font-weight:700;">${r.volTotal.toFixed(3)} m³</div></div>
+        </div>
+      </div>`;
+    }
+  }
+
+  if (!rows) return '';
+  const volSummary = totalVolMin === totalVolMax
+    ? totalVolMin.toFixed(3) + ' m³'
+    : totalVolMin.toFixed(3) + ' – ' + totalVolMax.toFixed(3) + ' m³';
+
+  return `<div style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:10px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+      <div style="font-size:10px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:0.08em;">Kích thước & Thể tích</div>
+      <div style="background:var(--dark);color:var(--gold);font-size:11px;font-weight:700;padding:3px 10px;border-radius:6px;">${volSummary}</div>
+    </div>
+    ${rows}
+  </div>`;
+}
+
+
+function buildCustomerShipHTML(r, upgFee) {
+  const distance = parseFloat(document.getElementById('distanceInput').value)||0;
+  if (distance === 0) {
+    return `<div class="ship-card">
+      <div class="ship-label">Phí vận chuyển dự kiến (tham khảo)</div>
+      <div class="ship-val"><span style="color:#5DCAA5">Nhập khoảng cách để tính</span></div>
+      <div class="ship-note">* Chỉ mang tính tham khảo. Phí thực tế do bộ phận vận chuyển xác nhận.</div>
+    </div>`;
+  }
+  // Nếu đã check phí Ahamove thật (API) → dùng đúng số khách phải trả thêm đó, KHÔNG tính lại theo công thức ước lượng
+  // (tránh hiện 2 giá vênh nhau gây khó chịu — xem checkPhiAhamoveThat())
+  if (ahamoveRealFee !== null) {
+    if (ahamoveRealFee <= 0) {
+      return `<div class="ship-card">
+        <div class="ship-label">
+          Phí khách hàng hỗ trợ
+          <span class="freeship-badge">FREESHIP</span>
+        </div>
+        <div class="ship-val"><span style="color:#5DCAA5">Miễn phí</span></div>
+        <div class="ship-note">* Đã check phí Ahamove thật theo địa chỉ giao hàng.</div>
+      </div>`;
+    }
+    return `<div class="ship-card">
+      <div class="ship-label">Phí khách hàng hỗ trợ</div>
+      <div class="ship-val">${fmtUp10k(ahamoveRealFee)}</div>
+      <div class="ship-note">* Đã check phí Ahamove thật theo địa chỉ giao hàng.</div>
+    </div>`;
+  }
+
+  // Dùng chung r.shipFee (tính ở calculateOrder theo Phần 4 v2.0) + phí nâng cấp (nếu có) — 1 nguồn tính duy nhất
+  const finalFee = r.shipFee + (upgFee || 0);
+
+  if (finalFee <= 0) {
+    return `<div class="ship-card">
+      <div class="ship-label">
+        Phí khách hàng hỗ trợ
+        <span class="freeship-badge">FREESHIP</span>
+      </div>
+      <div class="ship-val"><span style="color:#5DCAA5">Miễn phí</span></div>
+    </div>`;
+  }
+
+  return `<div class="ship-card">
+    <div class="ship-label">Phí khách hàng hỗ trợ</div>
+    <div class="ship-val">${fmtRange(finalFee)}</div>
+    <div class="ship-note">* Chỉ mang tính tham khảo. Phí thực tế do bộ phận vận chuyển xác nhận.</div>
+  </div>`;
+}
+
+function recalculate() {
+  lastResult = calculateOrder();
+  ahamoveRealFee = null; // bất kỳ thay đổi nào (sản phẩm, km tay, xe...) → giá check Ahamove cũ không còn đúng, quay lại giá dự kiến
+  renderResult();
+}
+
+function renderResult() {
+  const el = document.getElementById('resultContent');
+  if (!lastResult) {
+    el.innerHTML = '<div class="result-placeholder">Thêm sản phẩm để Ông Goma tính toán 🧮</div>';
+    return;
+  }
+  const r=lastResult;
+  const vehicles=V[loc];
+  const upOpts=getUpgradeOptions(r.actKey);
+  let upgFee=0;
+  if (upgradeKey && upgradeKey!==r.actKey) upgFee=calcUpgradeFee(r,upgradeKey);
+
+  const isTruck = r.actKey === 'TRUCK_2T' || r.actKey === 'TRUCK_BIG'
+    || upgradeKey === 'TRUCK_2T' || upgradeKey === 'TRUCK_BIG';
+  const dimsHTML = buildDimsHTML(isTruck);
+
+  let notesHTML='';
+  if (r.notes.length) {
+    notesHTML=`<div class="notes-box">
+      ${r.notes.map(n=>`<div class="note-item">${esc(n)}</div>`).join('')}
+    </div>`;
+  }
+
+  let upgradeHTML='';
+  if (upOpts.length>0) {
+    const opts=`<option value="">Không nâng cấp</option>`
+      +upOpts.map(k=>`<option value="${k}"${upgradeKey===k?' selected':''}>${vehicles[k].label}</option>`).join('');
+    upgradeHTML=`<div class="field upgrade-section">
+      <label>Nâng cấp xe (nếu khách yêu cầu)</label>
+      <select id="upgradeSelect" onchange="upgradeKey=this.value||null;renderResult()">${opts}</select>
+    </div>`;
+    if (upgFee>0) upgradeHTML+=`<div class="upgrade-fee">▲ Phí nâng cấp xe: +${fmtRange(upgFee)}</div>`;
+  }
+
+  const policyHCM=`<div class="policy-row">Xe máy: tối đa 100kg, dưới 3.5 thùng thảm tấm</div>
+    <div class="policy-row">Van 500kg: tối đa 460kg</div>
+    <div class="policy-row">Hỗ trợ ship 5% giá trị đơn (tối đa theo mốc xe) nếu đơn ≥ 20m² hoặc ≥ 2 triệu</div>`;
+  const policyHN=`<div class="policy-row">Xe máy: tối đa 240kg, dưới 10 thùng thảm tấm</div>
+    <div class="policy-row">Xe tải nhỏ: tối đa 1080kg</div>
+    <div class="policy-row">Hỗ trợ ship 5% giá trị đơn (tối đa theo mốc xe) nếu đơn ≥ 20m² hoặc ≥ 2 triệu</div>`;
+
+  el.innerHTML = `
+    <div class="metric-grid">
+      <div class="metric">
+        <div class="metric-label">Trọng lượng</div>
+        <div class="metric-val">${r.totalWeight.toFixed(1)}<small style="font-size:13px;font-weight:500"> kg</small></div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Diện tích</div>
+        <div class="metric-val">${r.totalM2.toFixed(1)}<small style="font-size:13px;font-weight:500"> m²</small></div>
+      </div>
+      <div class="metric full">
+        <div class="metric-label">Tổng tiền hàng (chưa VAT)</div>
+        <div class="metric-val" style="font-size:16px;">${fmt(r.totalValue)}</div>
+        <div class="metric-sub">Đã gồm VAT (8%): ${fmt(r.totalIncVat)}</div>
+      </div>
+      <div class="metric full">
+        <div class="metric-label">Phương tiện đề xuất</div>
+        <div class="metric-val" style="font-size:16px;">${r.actLabel}</div>
+        ${r.maxMD>0?`<div class="metric-sub">Tấm dài nhất: ${r.maxMD.toFixed(1)} mD</div>`:''}
+        ${!r.freeEligible?'<div class="metric-sub" style="color:#C0392B;">⚠ Đơn dưới 20m² và dưới 2 triệu → không được hỗ trợ ship, khách trả 100% phí thật</div>':''}
+      </div>
+    </div>
+    ${notesHTML}
+    ${dimsHTML}
+    ${upgradeHTML}
+    ${buildCustomerShipHTML(r, upgFee)}
+    <button class="copy-btn" id="copyBtn" onclick="copySummary()">📋 Sao chép báo giá</button>
+    <div class="policy-box">
+      <div class="policy-title">Chính sách Goma ${loc}</div>
+      ${loc==='HCM'?policyHCM:policyHN}
+    </div>
+  `;
+}
+
+function copySummary() {
+  if (!lastResult) return;
+  const r=lastResult;
+  const vehicles=V[loc];
+  let upgFee=0, upgLine='', vehicleInfo=r.actLabel;
+  if (upgradeKey && upgradeKey!==r.actKey) {
+    upgFee=calcUpgradeFee(r,upgradeKey);
+    vehicleInfo+=` → nâng cấp lên ${vehicles[upgradeKey].label}`;
+    upgLine=`\n- Phí nâng cấp xe: ${fmtRange(upgFee)}`;
+  }
+  const finalFee=r.shipFee+upgFee;
+  const txt=[
+    'BÁO GIÁ GOMA CARPET',
+    `- Khu vực: ${loc==='HCM'?'Hồ Chí Minh':'Hà Nội'}`,
+    `- Sản phẩm: ${cart.map(i=>`${i.product.name} (${i.quantity} ${i.product.unit})`).join(', ')}`,
+    r.notes.length?`- Quy cách:\n  ${r.notes.join('\n  ')}`:'',
+    `- Tổng tiền hàng (chưa VAT): ${fmt(r.totalValue)}`,
+    `- Tổng tiền hàng (đã VAT 8%): ${fmt(r.totalIncVat)}`,
+    `- Trọng lượng: ${r.totalWeight.toFixed(1)} kg`,
+    r.maxMD>0?`- Tấm dài nhất: ${r.maxMD.toFixed(1)} mD`:'',
+    `- Phương tiện: ${vehicleInfo}${upgLine}`,
+    `- Phí vận chuyển (dự kiến): ${finalFee===0?'Freeship':fmtRange(finalFee)}`,
+    '* Phí vận chuyển chỉ mang tính chất tham khảo.',
+  ].filter(Boolean).join('\n');
+  navigator.clipboard.writeText(txt).then(()=>{
+    const btn=document.getElementById('copyBtn');
+    if(btn){btn.className='copy-btn copied';btn.textContent='✓ Đã sao chép!';}
+    clearTimeout(copyTm);
+    copyTm=setTimeout(()=>{
+      const b=document.getElementById('copyBtn');
+      if(b){b.className='copy-btn';b.textContent='📋 Sao chép báo giá';}
+    },2500);
+  }).catch(()=>alert('Không thể sao chép. Vui lòng thử lại.'));
+}
+
+// ===================== CHECK PHÍ AHAMOVE THẬT =====================
+const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbxV04Qdg9wtffdcR5zPmn-P_H1sV4KMfyGFsMMTDQ2K35t4sfijE8ABmo9Hpatu-4sy/exec';
+
+const VEHICLE_KEY_TO_LOAI_XE = {
+  MOTORBIKE: 'Xe Máy',
+  VAN_500: 'Van Nhỏ',
+  VAN_1000: 'Van Lớn',
+  TRUCK_2T: 'Xe Tải'
+  // VAN_SMALL, TRUCK_BIG (Hà Nội) chưa map — check Ahamove chỉ hỗ trợ khu vực HCM
+};
+
+function jsonpRequest(url, params) {
+  return new Promise((resolve, reject) => {
+    const cbName = 'jsonp_cb_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
+    params.set('callback', cbName);
+    const script = document.createElement('script');
+    script.src = url + '?' + params.toString();
+    const cleanup = () => { delete window[cbName]; script.remove(); };
+    window[cbName] = function(data) { resolve(data); cleanup(); };
+    script.onerror = function() { reject(new Error('Không tải được — kiểm tra lại link GAS_API_URL hoặc mạng')); cleanup(); };
+    document.body.appendChild(script);
+  });
+}
+
+// ===================== AUTOCOMPLETE ĐỊA CHỈ (GOONG) =====================
+const GOONG_API_KEY = 'DÁN_API_KEY_GOONG_VÀO_ĐÂY'; // đăng ký free tại https://account.goong.io
+let ahamoveLat = null, ahamoveLng = null;
+let _diaChiDebounce;
+
+const _diaChiInput = document.getElementById('diaChiAhamove');
+const _goiYBox = document.getElementById('diaChiGoiYBox');
+const _daChonBadge = document.getElementById('diaChiDaChonBadge');
+
+_diaChiInput.addEventListener('input', () => {
+  // Gõ lại sau khi đã chọn → hủy lựa chọn cũ, bắt chọn lại (tránh quay về lỗi gõ tay không khớp toạ độ)
+  ahamoveLat = null; ahamoveLng = null;
+  _daChonBadge.style.display = 'none';
+
+  clearTimeout(_diaChiDebounce);
+  const q = _diaChiInput.value.trim();
+  if (q.length < 3) { _goiYBox.style.display = 'none'; _goiYBox.innerHTML = ''; return; }
+  _diaChiDebounce = setTimeout(() => _timGoiYDiaChi(q), 300);
+});
+
+document.addEventListener('click', (e) => {
+  if (!_goiYBox.contains(e.target) && e.target !== _diaChiInput) { _goiYBox.style.display = 'none'; }
+});
+
+async function _timGoiYDiaChi(query) {
+  if (GOONG_API_KEY.indexOf('DÁN_API_KEY') === 0) {
+    _goiYBox.innerHTML = '<div style="padding:8px;font-size:11px;color:#C0392B;">Chưa gán GOONG_API_KEY trong code.</div>';
+    _goiYBox.style.display = 'block';
+    return;
+  }
+  try {
+    const url = `https://rsapi.goong.io/Place/AutoComplete?api_key=${GOONG_API_KEY}&input=${encodeURIComponent(query)}&location=10.7769,106.7009&radius=50000`;
+    const res = await fetch(url);
+    const data = await res.json();
+    _goiYBox.innerHTML = '';
+    const list = data.predictions || [];
+    if (!list.length) { _goiYBox.style.display = 'none'; return; }
+    list.forEach(p => {
+      const div = document.createElement('div');
+      div.textContent = p.description;
+      div.style.cssText = 'padding:9px 12px;font-size:12px;cursor:pointer;border-bottom:1px solid #F0EDE6;';
+      div.onmouseenter = () => div.style.background = '#F8F6F1';
+      div.onmouseleave = () => div.style.background = '#fff';
+      div.onclick = () => _chonDiaChiGoiY(p.place_id, p.description);
+      _goiYBox.appendChild(div);
+    });
+    _goiYBox.style.display = 'block';
+  } catch (e) {
+    _goiYBox.innerHTML = '<div style="padding:8px;font-size:11px;color:#C0392B;">Lỗi tìm gợi ý địa chỉ.</div>';
+    _goiYBox.style.display = 'block';
+  }
+}
+
+async function _chonDiaChiGoiY(placeId, description) {
+  try {
+    const url = `https://rsapi.goong.io/Place/Detail?place_id=${placeId}&api_key=${GOONG_API_KEY}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    const locGeo = data.result.geometry.location;
+    ahamoveLat = locGeo.lat;
+    ahamoveLng = locGeo.lng;
+    _diaChiInput.value = description;
+    _goiYBox.style.display = 'none';
+    _daChonBadge.style.display = 'block';
+  } catch (e) {
+    alert('Không lấy được tọa độ địa chỉ này, thử chọn lại.');
+  }
+}
+
+// Hàm thuần dùng chung: tính hỗ trợ + khách bù thêm từ kết quả check Ahamove thật.
+// Dùng cho cả nút "Check phí Ahamove thật" trên UI lẫn trợ lý chat.
+function tinhHoTroAhamoveThat(r, effectiveKey, data, locVal) {
+  const vehicles = V[locVal];
+  const maxShip = vehicles[effectiveKey].maxShip;
+  // v2.3: điều kiện kép - hỗ trợ không vượt quá phí thật quy đổi ra 20km đầu
+  const phi20kmQuyDoi = data.khoangCach > 0 ? (data.phiSauGiam / data.khoangCach) * 20 : data.phiSauGiam;
+  // v2.4: hỗ trợ không bao giờ vượt quá phí Ahamove GỐC (tránh khách thấy hỗ trợ > phí gốc, tưởng được bù ngược)
+  const hoTro = r.freeEligible ? Math.min(r.totalValue * 0.05, maxShip, phi20kmQuyDoi, data.phiGoc) : 0;
+  const khachTra = Math.max(0, data.phiSauGiam - hoTro);
+  return { hoTro, khachTra };
+}
+
+async function checkPhiAhamoveThat() {
+  if (!lastResult) { alert('Chưa có sản phẩm trong đơn.'); return; }
+  const diaChi = document.getElementById('diaChiAhamove').value.trim();
+  if (!diaChi) { alert('Nhập địa chỉ giao hàng trước.'); return; }
+  if (loc !== 'HCM') { alert('Check phí Ahamove hiện chỉ hỗ trợ khu vực HCM.'); return; }
+  if (GAS_API_URL.indexOf('DÁN_LINK') === 0) { alert('Chưa gán link GAS_API_URL trong code — deploy Code.gs rồi dán link vào biến GAS_API_URL.'); return; }
+
+  const r = lastResult;
+  const effectiveKey = (upgradeKey && upgradeKey !== r.actKey) ? upgradeKey : r.actKey;
+  const loaiXe = VEHICLE_KEY_TO_LOAI_XE[effectiveKey];
+  if (!loaiXe) { alert('Loại xe này chưa hỗ trợ check Ahamove.'); return; }
+
+  const btn = document.getElementById('btnCheckAhamove');
+  const out = document.getElementById('ahamoveResult');
+  const btnLabel = '🔎 Check phí Ahamove thật (thay số km ước lượng)';
+  btn.disabled = true; btn.textContent = 'Đang check...';
+  out.textContent = '';
+
+  const params = new URLSearchParams({
+    action: 'checkPhi',
+    loaiXe: loaiXe,
+    tier: loaiXe === 'Xe Máy' ? (r.capXeMay || 'M') : '',
+    diaChiGiao: diaChi,
+    lat: ahamoveLat !== null ? ahamoveLat : '',
+    lng: ahamoveLng !== null ? ahamoveLng : ''
+  });
+
+  try {
+    const data = await jsonpRequest(GAS_API_URL, params);
+    btn.disabled = false; btn.textContent = btnLabel;
+
+    if (!data.ok) {
+      out.innerHTML = '<span style="color:#C0392B;">Lỗi: ' + esc(data.error) + '</span>';
+      return;
+    }
+
+    document.getElementById('distanceInput').value = data.khoangCach;
+    recalculate();
+
+    const { hoTro, khachTra } = tinhHoTroAhamoveThat(r, effectiveKey, data, loc);
+
+    // Đồng bộ với "Phí khách hàng hỗ trợ" bên phải: dùng đúng số thật này, khỏi hiện thêm giá dự kiến
+    ahamoveRealFee = khachTra;
+    renderResult();
+
+    out.innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;">
+        <div style="background:#F8F6F1;border:1px solid #E2DDD6;border-radius:8px;padding:9px 12px;">
+          <div style="font-size:10px;color:#999;text-transform:uppercase;letter-spacing:0.05em;">Khoảng cách thật</div>
+          <div style="font-size:16px;font-weight:700;color:#1a1a1a;margin-top:2px;">${data.khoangCach} km</div>
+        </div>
+        <div style="background:#F8F6F1;border:1px solid #E2DDD6;border-radius:8px;padding:9px 12px;">
+          <div style="font-size:10px;color:#999;text-transform:uppercase;letter-spacing:0.05em;">Công ty hỗ trợ</div>
+          <div style="font-size:16px;font-weight:700;color:#1D9E75;margin-top:2px;">${fmt(hoTro)}</div>
+        </div>
+        <div style="background:#F8F6F1;border:1px solid #E2DDD6;border-radius:8px;padding:9px 12px;">
+          <div style="font-size:10px;color:#999;text-transform:uppercase;letter-spacing:0.05em;">Phí Ahamove gốc</div>
+          <div style="font-size:16px;font-weight:700;color:#1a1a1a;margin-top:2px;">${fmtUp10k(data.phiGoc)}</div>
+        </div>
+        <div style="background:#F8F6F1;border:1px solid #E2DDD6;border-radius:8px;padding:9px 12px;">
+          <div style="font-size:10px;color:#999;text-transform:uppercase;letter-spacing:0.05em;">Sau giảm mặc định</div>
+          <div style="font-size:16px;font-weight:700;color:#1a1a1a;margin-top:2px;">${fmtUp10k(data.phiSauGiam)}</div>
+        </div>
+      </div>
+      <div class="ship-card" style="margin-top:8px;padding:14px 16px;">
+        <div class="ship-label">Khách trả thêm</div>
+        <div class="ship-val" style="color:#C5A059;">${fmtUp10k(khachTra)}</div>
+      </div>`;
+  } catch (err) {
+    btn.disabled = false; btn.textContent = btnLabel;
+    out.innerHTML = '<span style="color:#C0392B;">' + esc(err.message || String(err)) + '</span>';
+  }
+}
+
+// ===================== INIT =====================
+renderCats();
+filterAndRender();
+renderCart();
+renderResult();
+document.getElementById('ahamoveField').style.display = loc === 'HCM' ? 'block' : 'none'; // set đúng ngay lúc tải trang, không chờ bấm tab
+
+// ===================== TAB =====================
+function switchTab(tab) {
+  const tabs = ['calc', 'stock', 'images', 'assistant'];
+  tabs.forEach(t => {
+    const el = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1));
+    if (el) el.style.display = (t === tab) ? '' : 'none';
+  });
+  tabs.forEach(t => {
+    const btn = document.getElementById('tabBtn' + t.charAt(0).toUpperCase() + t.slice(1));
+    if (!btn) return;
+    btn.style.background = (t === tab) ? '#C5A059' : 'transparent';
+    btn.style.color      = (t === tab) ? 'white'   : '#94A3B8';
+  });
+  if (tab === 'stock' && stockData.length === 0) loadStock(false);
+  if (tab === 'images' && !_imgLoaded) loadImages();
+  if (tab === 'assistant') initAssistantTab();
+}
+
+// ─── postMessage listener (nhận lệnh từ nhac_truong.html) ───
+window.addEventListener('message', function(e) {
+  if (e.data && e.data.type === 'gomaTab') {
+    switchTab(e.data.tab);
+  }
+});
+
+// ===================== STOCK =====================
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbyWaf2nCoKQ9Y5V3n3MYlAUcX10S__R2jorfvUcQcMHEy4EmGOd9gpfXhTZfD2WrzEa/exec';
+
+let stockData = [];
+let stockLoaded = false;
+let stockLoading = false;
+let lastLoadTime = 0;
+
+async function loadStock(force) {
+  if (stockLoading) return;
+  const now = Date.now();
+  if (!force && stockLoaded && (now - lastLoadTime) < 30*60*1000) { renderStock(); return; }
+  stockLoading = true;
+  const grid = document.getElementById('stockGrid');
+  const btn = document.getElementById('refreshBtn');
+  grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#999;font-size:13px;">⏳ Đang tải dữ liệu kho...</div>';
+  btn.textContent = '⏳ Đang tải...';
+  btn.disabled = true;
+  try {
+    const res = await fetch(GAS_URL);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const rows = await res.json();
+    // rows is array of arrays: row[0] = headers, row[1..] = data
+    if (!Array.isArray(rows) || rows.length < 2) throw new Error('Dữ liệu trống');
+    const headers = rows[0]; // ["Mã hàng tồn kho", "Đơn vị tính", "Tồn cuối kỳ", "Loại hàng", "Quy cách", "Khối lượng", ...]
+    stockData = rows.slice(1).map(row => {
+      const obj = {};
+      headers.forEach((h, i) => { obj[h] = row[i] !== undefined ? String(row[i]) : ''; });
+      return obj;
+    }).filter(o => o['Mã hàng tồn kho'] && o['Mã hàng tồn kho'].trim());
+    stockLoaded = true;
+    lastLoadTime = Date.now();
+    renderStock();
+  } catch(e) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#C0392B;font-size:13px;">❌ Không thể tải dữ liệu. Kiểm tra kết nối mạng và thử lại.<br><small style="color:#999;margin-top:8px;display:block;">' + e.message + '</small></div>';
+  } finally {
+    stockLoading = false;
+    btn.textContent = '🔄 Làm mới';
+    btn.disabled = false;
+  }
+}
+
+function filterStock() {
+  renderStock();
+}
+
+function renderStock() {
+  const q = (document.getElementById('stockSearch').value || '').toLowerCase().trim();
+  let items = stockData.filter(item => {
+    const ma = (item['Mã hàng tồn kho'] || item['mã hàng'] || '').toLowerCase();
+    return !q || ma.includes(q);
+  });
+  // Sort by tồn cuối kỳ desc
+  items.sort((a, b) => {
+    const va = parseFloat(String(a['Tồn cuối kỳ'] || '0').replace(/[^0-9.]/g,'')) || 0;
+    const vb = parseFloat(String(b['Tồn cuối kỳ'] || '0').replace(/[^0-9.]/g,'')) || 0;
+    return vb - va;
+  });
+  const total = items.reduce((s, item) => {
+    return s + (parseFloat(String(item['Tồn cuối kỳ'] || '0').replace(/[^0-9.]/g,'')) || 0);
+  }, 0);
+  document.getElementById('stockTotal').textContent = `Tổng: ${total.toLocaleString('vi-VN', {maximumFractionDigits:2})} m²`;
+  const grid = document.getElementById('stockGrid');
+  if (items.length === 0) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#999;font-size:13px;">Không tìm thấy mã hàng</div>';
+    return;
+  }
+  grid.innerHTML = items.map(item => {
+    const ma = item['Mã hàng tồn kho'] || item['mã hàng'] || '';
+    const loai = item['Loại hàng'] || item['loại hàng'] || '';
+    const quycach = item['Quy cách'] || '';
+    const ton = item['Tồn cuối kỳ'] || '0';
+    const dvt = item['Đơn vị tính'] || item['đơn vị tính'] || 'm²';
+    const tonNum = parseFloat(String(ton).replace(/[^0-9.]/g,'')) || 0;
+    const colorClass = tonNum <= 0 ? 'color:#C0392B' : tonNum < 20 ? 'color:#B07C1E' : 'color:#0F172A';
+    return `<div style="background:#F8F6F1;border:1px solid #E2DDD6;border-radius:10px;padding:12px 14px;transition:border-color 0.15s;" onmouseover="this.style.borderColor='#C5A059'" onmouseout="this.style.borderColor='#E2DDD6'">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+        <div style="font-size:14px;font-weight:700;color:#1a1a1a;line-height:1.2;">${esc(ma)}</div>
+        ${loai ? `<span style="background:#C5A059;color:white;font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;white-space:nowrap;">${esc(loai)}</span>` : ''}
+      </div>
+      ${quycach ? `<div style="font-size:10px;color:#666;margin-bottom:8px;font-weight:500;">${esc(quycach)}</div>` : ''}
+      <div style="border-top:1px solid #E2DDD6;padding-top:8px;display:flex;align-items:flex-end;justify-content:space-between;">
+        <div>
+          <div style="font-size:9px;color:#C5A059;font-weight:700;text-transform:uppercase;margin-bottom:2px;">Tồn kho</div>
+          <div style="font-size:20px;font-weight:700;${colorClass};line-height:1;">${esc(ton)}</div>
+        </div>
+        <div style="font-size:10px;font-weight:600;color:#C5A059;background:#FEF9EE;border:1px solid #EF9F27;padding:3px 8px;border-radius:6px;">${esc(dvt)}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ===================== IMAGES =====================
+const GAS_IMG_URL = 'https://script.google.com/macros/s/AKfycbwuAiCSOId-jvaFReSAMukfG8DFhwRMza4Qt-pqcNPPrXvH4g1dW2XKXzrmtl8-sr2j/exec';
+
+let _imgData = [];
+let _imgLoaded = false;
+let _imgFiltered = [];
+let _curModalIdx = 0;
+let _curAnh = 0;
+
+function _parseGasRows(rows) {
+  if (!rows || rows.length < 2) return [];
+  const headers = rows[0].map(h => (h||'').toString().toLowerCase().trim());
+  const idx = k => headers.indexOf(k);
+  const iMa   = idx('mã hàng');
+  const iTT   = idx('thông tin hàng');
+  const iGia  = idx('giá tiền');
+  const iDV   = idx('đơn vị tính');
+  const iLoai = idx('loại hàng');
+  const iDac  = idx('đặc điểm nhận dạng');
+  const iLink = idx('link sản phẩm');
+  const anhIdxs = [];
+  for (let i = 0; i < headers.length; i++) {
+    if (/^ảnh \d+$/.test(headers[i])) anhIdxs.push(i);
+  }
+  return rows.slice(1).map(row => {
+    const anhs = anhIdxs.map(i => (row[i]||'').toString().trim()).filter(Boolean);
+    return {
+      ma_hang:   (iMa  >= 0 ? row[iMa]  : '')||'',
+      thong_tin: (iTT  >= 0 ? row[iTT]  : '')||'',
+      gia:       (iGia >= 0 ? row[iGia] : '')||'',
+      don_vi:    (iDV  >= 0 ? row[iDV]  : '')||'',
+      loai:      ((iLoai >= 0 ? row[iLoai] : '')||'').toString().toLowerCase(),
+      dac_diem:  (iDac >= 0 ? row[iDac] : '')||'',
+      link_sp:   (iLink >= 0 ? row[iLink]: '')||'',
+      anhs
+    };
+  }).filter(d => d.ma_hang.toString().trim());
+}
+
+async function loadImages(force) {
+  if (_imgLoaded && !force) { filterImages(); return; }
+  _imgLoaded = false;
+  const grid = document.getElementById('imgGrid');
+  const subtitle = document.getElementById('imgSubtitle');
+  grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#999;font-size:13px;">⏳ Đang tải dữ liệu sản phẩm...</div>';
+  try {
+    const res = await fetch(GAS_IMG_URL);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const rows = await res.json();
+    _imgData = _parseGasRows(rows);
+    _imgLoaded = true;
+    if (subtitle) subtitle.textContent = _imgData.length + ' mã hàng · ' + _imgData.filter(d=>d.anhs.length>0).length + ' có ảnh';
+    filterImages();
+  } catch(e) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#C0392B;font-size:13px;">❌ Không tải được dữ liệu.<br><small style="color:#999;margin-top:8px;display:block;">' + e.message + '</small></div>';
+  }
+}
+
+function filterImages() {
+  const q    = (document.getElementById('imgSearch').value||'').toLowerCase().trim();
+  const loai = (document.getElementById('imgFilterLoai').value||'').toLowerCase();
+  _imgFiltered = _imgData.filter(d => {
+    if (loai && !d.loai.includes(loai)) return false;
+    if (q && !d.ma_hang.toLowerCase().includes(q)
+          && !d.thong_tin.toLowerCase().includes(q)
+          && !d.dac_diem.toLowerCase().includes(q)) return false;
+    return true;
+  });
+  const grid = document.getElementById('imgGrid');
+  if (_imgFiltered.length === 0) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#999;font-size:13px;">Không tìm thấy sản phẩm</div>';
+    return;
+  }
+  grid.innerHTML = _imgFiltered.map((d, i) => {
+    const thumb = d.anhs[0] || '';
+    const imgEl = thumb
+      ? '<img src="' + escQ(thumb) + '" loading="lazy" style="width:100%;height:120px;object-fit:cover;border-radius:6px 6px 0 0;display:block;" onerror="imgFallback(this)">'
+      : '<div style="width:100%;height:120px;background:#F8F6F1;display:flex;align-items:center;justify-content:center;border-radius:6px 6px 0 0;color:#ccc;font-size:11px;border-bottom:1px solid #E2DDD6;">Chưa có ảnh</div>';
+    const giaFmt = fmtGia(d.gia, d.don_vi);
+    return '<div onclick="openImgDetail(' + i + ')" style="background:#fff;border:1px solid #E2DDD6;border-radius:8px;overflow:hidden;cursor:pointer;transition:box-shadow 0.15s,border-color 0.15s;" onmouseover="this.style.borderColor=\'#C5A059\';this.style.boxShadow=\'0 4px 16px rgba(197,160,89,0.18)\'" onmouseout="this.style.borderColor=\'#E2DDD6\';this.style.boxShadow=\'none\'">'
+      + imgEl
+      + '<div style="padding:8px 10px;">'
+      + '<div style="font-size:13px;font-weight:700;color:#1a1a1a;">' + esc(d.ma_hang) + '</div>'
+      + '<div style="font-size:10px;color:#C5A059;font-weight:600;margin:2px 0;">' + esc(d.loai) + (d.anhs.length > 1 ? ' · ' + d.anhs.length + ' ảnh' : '') + '</div>'
+      + (giaFmt ? '<div style="font-size:11px;font-weight:700;color:#1D9E75;margin-top:3px;">' + giaFmt + '/' + (d.don_vi||'m²') + '</div>' : '')
+      + '</div></div>';
+  }).join('');
+}
+
+function imgFallback(el) {
+  el.parentElement.innerHTML = '<div style="width:100%;height:120px;background:#f0f0f0;display:flex;align-items:center;justify-content:center;border-radius:6px 6px 0 0;color:#ccc;font-size:11px;">Không có ảnh</div>';
+}
+
+function escQ(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function fmtGia(gia, donVi) {
+  if (!gia) return '';
+  const raw = String(gia).trim();
+  const num = Number(raw.replace(/[,\.]/g, '').replace(/[^0-9]/g, ''));
+  // Nếu là số thuần → format đẹp
+  if (/^[\d,\.]+$/.test(raw) && !isNaN(num) && num > 0) {
+    return new Intl.NumberFormat('vi-VN').format(Number(raw.replace(/,/g,''))) + 'đ' + (donVi ? '/' + donVi : '/m²');
+  }
+  // Text (vd: thảm mỹ thuật có 2 mức giá) → hiển thị nguyên
+  return raw;
+}
+
+function copySku(sku) { navigator.clipboard.writeText(sku).catch(()=>{}); }
+
+function openImgDetail(i) {
+  _curModalIdx = i;
+  _curAnh = 0;
+  _renderImgModal();
+}
+
+function _renderImgModal() {
+  const d = _imgFiltered[_curModalIdx];
+  if (!d) return;
+  const existing = document.getElementById('imgDetailModal');
+  if (existing) existing.remove();
+
+  const giaFmt = fmtGia(d.gia, d.don_vi);
+  const anhs = d.anhs;
+  const total = anhs.length;
+  if (_curAnh >= total) _curAnh = Math.max(0, total-1);
+
+  const thumbStrip = total > 1
+    ? '<div style="display:flex;gap:6px;margin-top:8px;overflow-x:auto;padding-bottom:4px;">'
+      + anhs.map((url,j) => '<img src="' + escQ(url) + '" onclick="modalGoImg(' + j + ')" style="width:52px;height:40px;object-fit:cover;border-radius:5px;cursor:pointer;flex-shrink:0;border:2px solid ' + (j===_curAnh?'#C5A059':'transparent') + ';opacity:' + (j===_curAnh?'1':'0.6') + ';" onerror="this.style.display=\'none\'">').join('')
+      + '</div>'
+    : '';
+
+  const albumHtml = total > 0
+    ? '<div style="position:relative;background:#0F172A;border-radius:10px;overflow:hidden;min-height:200px;display:flex;align-items:center;justify-content:center;">'
+        + '<img id="modalMainImg" src="' + escQ(anhs[_curAnh]) + '" style="width:100%;max-height:320px;object-fit:contain;display:block;">'
+        + (total > 1
+          ? '<button onclick="modalPrevImg()" style="position:absolute;left:6px;top:50%;transform:translateY(-50%);background:rgba(0,0,0,0.55);border:none;color:#fff;font-size:22px;width:36px;height:36px;border-radius:50%;cursor:pointer;line-height:1;">‹</button>'
+            + '<button onclick="modalNextImg()" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:rgba(0,0,0,0.55);border:none;color:#fff;font-size:22px;width:36px;height:36px;border-radius:50%;cursor:pointer;line-height:1;">›</button>'
+          : '')
+        + '<div style="position:absolute;bottom:8px;right:10px;background:rgba(0,0,0,0.6);color:#fff;font-size:11px;padding:2px 8px;border-radius:10px;">' + (_curAnh+1) + '/' + total + '</div>'
+      + '</div>'
+      + thumbStrip
+      + '<div style="display:flex;gap:8px;margin-top:10px;">'
+        + '<button onclick="modalCopyImg()" style="flex:1;padding:9px;background:#1E293B;border:none;border-radius:8px;color:#C5A059;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">📋 Copy link ảnh này</button>'
+        + (total > 1 ? '<button onclick="modalCopyAllImgs()" style="flex:1;padding:9px;background:#1E293B;border:none;border-radius:8px;color:#94a3b8;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">📋 Copy tất cả (' + total + ')</button>' : '')
+      + '</div>'
+    : '<div style="padding:40px;text-align:center;color:#999;font-size:13px;background:#f8f6f1;border-radius:10px;">Chưa có ảnh sản phẩm</div>';
+
+  const infoHtml = [
+    ['Mã hàng',  d.ma_hang],
+    ['Loại hàng', d.loai],
+    ['Giá tiền',  giaFmt],
+    ['Đơn vị',   d.don_vi],
+  ].filter(r=>r[1]).map(([k,v]) =>
+    '<div style="margin-bottom:11px;">'
+    + '<div style="font-size:10px;font-weight:700;color:#C5A059;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px;">' + k + '</div>'
+    + '<div style="font-size:13px;color:#1a1a1a;font-weight:600;">' + esc(v) + '</div>'
+    + '</div>'
+  ).join('')
+  + (d.dac_diem ? '<div style="margin-bottom:11px;"><div style="font-size:10px;font-weight:700;color:#C5A059;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">Đặc điểm nhận dạng</div><div style="font-size:12px;color:#444;line-height:1.6;white-space:pre-line;">' + esc(d.dac_diem) + '</div></div>' : '')
+  + (d.thong_tin ? '<div style="margin-bottom:11px;"><div style="font-size:10px;font-weight:700;color:#C5A059;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">Thông tin hàng</div><div style="font-size:12px;color:#444;line-height:1.6;white-space:pre-line;">' + esc(d.thong_tin) + '</div></div>' : '')
+  + (d.link_sp ? '<a href="' + escQ(d.link_sp) + '" target="_blank" style="display:inline-flex;align-items:center;gap:6px;margin-top:6px;padding:8px 14px;background:#0F172A;color:#C5A059;border-radius:8px;font-size:12px;font-weight:700;text-decoration:none;">🔗 Xem sản phẩm</a>' : '');
+
+  const prevBtn = _curModalIdx > 0
+    ? '<button onclick="modalNavProduct(-1)" style="background:rgba(255,255,255,0.08);border:none;color:#94a3b8;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:13px;">◀ Trước</button>' : '';
+  const nextBtn = _curModalIdx < _imgFiltered.length-1
+    ? '<button onclick="modalNavProduct(1)" style="background:rgba(255,255,255,0.08);border:none;color:#94a3b8;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:13px;">Sau ▶</button>' : '';
+
+  const modal = document.createElement('div');
+  modal.id = 'imgDetailModal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.78);z-index:9999;display:flex;align-items:center;justify-content:center;padding:12px;';
+  modal.innerHTML =
+    '<div style="background:#fff;border-radius:14px;width:100%;max-width:860px;max-height:92vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,0.4);">'
+    + '<div style="background:#0F172A;padding:13px 18px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;gap:10px;">'
+      + '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">'
+        + prevBtn
+        + '<span style="color:#C5A059;font-weight:700;font-size:15px;">' + esc(d.ma_hang) + '</span>'
+        + '<span style="color:#475569;font-size:11px;">' + (_curModalIdx+1) + ' / ' + _imgFiltered.length + '</span>'
+        + nextBtn
+      + '</div>'
+      + '<button onclick="document.getElementById(\'imgDetailModal\').remove()" style="background:transparent;border:none;color:#94a3b8;font-size:22px;cursor:pointer;line-height:1;padding:0 4px;flex-shrink:0;">✕</button>'
+    + '</div>'
+    + '<div style="display:flex;flex:1;overflow:hidden;">'
+      + '<div style="width:320px;min-width:240px;overflow-y:auto;padding:18px;border-right:1px solid #E2DDD6;flex-shrink:0;">' + infoHtml + '</div>'
+      + '<div style="flex:1;overflow-y:auto;padding:18px;">' + albumHtml + '</div>'
+    + '</div>'
+  + '</div>';
+
+  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+  document.body.appendChild(modal);
+}
+
+function modalPrevImg()    { _curAnh = Math.max(0, _curAnh-1); _renderImgModal(); }
+function modalNextImg()    { const d=_imgFiltered[_curModalIdx]; _curAnh=Math.min(d.anhs.length-1,_curAnh+1); _renderImgModal(); }
+function modalGoImg(i)     { _curAnh = i; _renderImgModal(); }
+function modalNavProduct(dir) { _curModalIdx=Math.max(0,Math.min(_imgFiltered.length-1,_curModalIdx+dir)); _curAnh=0; _renderImgModal(); }
+
+async function modalCopyImg() {
+  const d = _imgFiltered[_curModalIdx];
+  if (!d || !d.anhs[_curAnh]) return;
+  const url = d.anhs[_curAnh];
+  const btn = document.querySelector('#imgDetailModal [onclick="modalCopyImg()"]');
+  const origText = btn ? btn.textContent : '';
+  if (btn) btn.textContent = '⏳ Đang copy ảnh...';
+  try {
+    const res = await fetch(url, {mode:'cors'});
+    if (!res.ok) throw new Error('fetch failed');
+    const blob = await res.blob();
+    const type = blob.type || 'image/jpeg';
+    await navigator.clipboard.write([new ClipboardItem({[type]: blob})]);
+    if (btn) { btn.textContent='✅ Đã copy ảnh!'; setTimeout(()=>btn.textContent=origText,2000); }
+  } catch(e) {
+    // CORS hoặc browser không hỗ trợ → mở ảnh tab mới để user tự copy
+    window.open(url, '_blank');
+    if (btn) { btn.textContent='🖼️ Đã mở → chuột phải Copy'; setTimeout(()=>btn.textContent=origText,3000); }
+  }
+}
+
+// ===================== TRỢ LÝ AI (GEMINI, function calling) =====================
+// Nguyên tắc: Gemini CHỈ làm việc đọc-hiểu câu nói + hỏi lại thiếu gì.
+// Mọi con số (giá, cân nặng, xe, phí ship) đều do tinhDonHangThuan() + tinhHoTroAhamoveThat()
+// tính ra — 2 hàm này CŨNG là hàm đang chạy thật cho UI, không viết công thức riêng cho chat.
+const GEMINI_MODEL = 'gemini-2.5-flash';
+let chatHistory = []; // mảng {role:'user'|'model', parts:[...]}  — gửi lại toàn bộ mỗi lần để "nhớ" hội thoại
+
+function getGeminiKey() { return localStorage.getItem('goma_gemini_key') || ''; }
+
+function initAssistantTab() {
+  const hasKey = !!getGeminiKey();
+  document.getElementById('geminiKeySetup').style.display = hasKey ? 'none' : 'block';
+  document.getElementById('chatBox').style.display = hasKey ? 'block' : 'none';
+  if (hasKey && chatHistory.length === 0) {
+    themTinNhan('model', 'Chào anh/chị, em có thể tính giá/cân nặng/xe/phí ship, tra thông số kỹ thuật, tra tồn kho và tra ảnh sản phẩm. Ví dụ: "67m2 mã 866 đi 727 Âu Cơ Tân Phú" hoặc "tồn kho mã C202 còn bao nhiêu".');
+  }
+}
+
+function saveGeminiKey() {
+  const v = document.getElementById('geminiKeyInput').value.trim();
+  if (!v) { alert('Dán API key trước đã.'); return; }
+  localStorage.setItem('goma_gemini_key', v);
+  initAssistantTab();
+}
+
+function doiGeminiKey() {
+  localStorage.removeItem('goma_gemini_key');
+  document.getElementById('geminiKeyInput').value = '';
+  initAssistantTab();
+}
+
+function xoaHoiThoai() {
+  chatHistory = [];
+  document.getElementById('chatMessages').innerHTML = '';
+  initAssistantTab();
+}
+
+function themTinNhan(role, text) {
+  const box = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  const isUser = role === 'user';
+  div.style.cssText = `max-width:85%;padding:9px 13px;border-radius:10px;font-size:13px;line-height:1.6;white-space:pre-wrap;align-self:${isUser?'flex-end':'flex-start'};background:${isUser?'#0F172A':'#F8F6F1'};color:${isUser?'#fff':'#1a1a1a'};`;
+  div.textContent = text;
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+}
+
+// Chuẩn hóa mã hàng: bỏ khoảng trắng/gạch ngang/gạch dưới, viết hoa — để "C202","C-202","c 202" là 1.
+function chuanHoaMa(s) { return String(s).toUpperCase().replace(/[\s\-_]/g, ''); }
+
+// Tra mã hàng: khớp đúng id/tên trước (đã chuẩn hóa định dạng), không thấy thì thử suy theo dải số ghi trong tên
+// (vd tên "Rainbow C201-C207" → mã "C202" thuộc dải này). Khớp quy tắc mở rộng mã đang dùng thủ công.
+function timSanPhamTheoMa(maNhap) {
+  const maChuan = chuanHoaMa(maNhap);
+  let p = PRODUCTS.find(x => chuanHoaMa(x.id) === maChuan);
+  if (p) return p;
+  p = PRODUCTS.find(x => chuanHoaMa(x.name).includes(maChuan));
+  if (p) return p;
+  const ma = maNhap.trim().toUpperCase();
+  const soTrongMa = ma.match(/\d+/);
+  if (soTrongMa) {
+    const soCanTim = parseInt(soTrongMa[0], 10);
+    const tuGoc = ma.replace(/[\d\s\-_]/g, '').trim(); // vd "C-202"/"C 202" → "C"
+    for (const prod of PRODUCTS) {
+      // Bắt dải kiểu "C201-C207", "C101-C106" — tiền tố chữ có thể lặp lại ở cả 2 đầu hoặc chỉ 1 đầu
+      const daiSo = [...prod.name.matchAll(/([A-Za-zÀ-ỹ]*)(\d+)\s*[-–]\s*([A-Za-zÀ-ỹ]*)(\d+)/g)];
+      for (const m of daiSo) {
+        const soBatDau = parseInt(m[2], 10), soKetThuc = parseInt(m[4], 10);
+        const tienTo = (m[1] || m[3] || '').toUpperCase();
+        if (soCanTim >= soBatDau && soCanTim <= soKetThuc) {
+          if (!tuGoc || tienTo === tuGoc || prod.id.toUpperCase().includes(tuGoc)) return prod;
+        }
+      }
+    }
+  }
+  return null;
+}
+
+function buildDanhMucHang() {
+  return PRODUCTS.map(p => `${p.id} | ${p.name} | ${p.price}đ/${p.unit}`).join('\n');
+}
+
+const TOOL_TINH_GIA_SHIP = {
+  name: 'tinh_gia_ship',
+  description: 'Tính khối lượng, tổng giá tiền, loại xe và (nếu có địa chỉ + đã xác nhận giá) phí ship Ahamove cho 1 đơn hàng thảm giao từ kho HCM.',
+  parameters: {
+    type: 'OBJECT',
+    properties: {
+      danh_sach_hang: {
+        type: 'ARRAY',
+        description: 'Danh sách từng mã hàng và số lượng m2 khách/sale nêu',
+        items: {
+          type: 'OBJECT',
+          properties: {
+            ma_hang: { type: 'STRING', description: "Mã hàng, vd '866', 'C202'" },
+            m2: { type: 'NUMBER', description: 'Số lượng m2' }
+          },
+          required: ['ma_hang', 'm2']
+        }
+      },
+      dia_chi_giao: { type: 'STRING', description: 'Địa chỉ giao hàng nếu khách đã cho, để trống nếu chưa có' },
+      xac_nhan_gia_niem_yet: { type: 'BOOLEAN', description: 'true nếu khách đã đồng ý dùng giá niêm yết do hệ thống tự tính' },
+      tong_bill_ghi_de: { type: 'NUMBER', description: 'Nếu khách cho 1 tổng bill khác giá niêm yết (chưa VAT), điền số này thay vì dùng giá niêm yết' }
+    },
+    required: ['danh_sach_hang']
+  }
+};
+
+// Thực thi tool — CHẠY THẬT bằng đúng hàm tinhDonHangThuan()/tinhHoTroAhamoveThat() của app, không tính tay.
+async function execTinhGiaShip(args) {
+  const items = [];
+  for (const dong of (args.danh_sach_hang || [])) {
+    const p = timSanPhamTheoMa(dong.ma_hang);
+    if (!p) return { loi: `Không tìm thấy mã hàng "${dong.ma_hang}" trong danh mục. Nhờ khách/sale kiểm tra lại mã.` };
+    items.push({ product: p, quantity: dong.m2, price: p.price });
+  }
+  if (items.length === 0) return { loi: 'Chưa có mã hàng nào để tính.' };
+
+  const giaNiemYet = items.reduce((s, it) => s + it.quantity * it.price, 0);
+  const chiTietGia = items.map(it => `${it.quantity}m² ${it.product.name} = ${fmt(it.quantity*it.price)}đ`);
+
+  const coGhiDe = typeof args.tong_bill_ghi_de === 'number' && args.tong_bill_ghi_de > 0;
+  const daXacNhan = args.xac_nhan_gia_niem_yet === true;
+
+  if (!coGhiDe && !daXacNhan) {
+    // Chưa chốt tổng bill → trả về để model hỏi lại khách, CHƯA tính xe/ship
+    return {
+      can_xac_nhan_gia: true,
+      chi_tiet: chiTietGia,
+      gia_niem_yet_chua_vat: giaNiemYet,
+      huong_dan: 'Đọc chi_tiet và gia_niem_yet_chua_vat cho khách nghe, hỏi khách có muốn dùng giá này không. Nếu khách đồng ý, gọi lại tool này với xac_nhan_gia_niem_yet=true. Nếu khách cho số khác, gọi lại với tong_bill_ghi_de = số khách cho.'
+    };
+  }
+
+  const tongBillDung = coGhiDe ? args.tong_bill_ghi_de : giaNiemYet;
+  // Dựng cart tạm với price đã quy đổi để tinhDonHangThuan() ra đúng totalValue = tongBillDung
+  // (giữ nguyên tỷ lệ m2 giữa các dòng nếu ghi đè tổng, để không sai khối lượng)
+  const tiLe = giaNiemYet > 0 ? tongBillDung / giaNiemYet : 1;
+  const cartTam = items.map(it => ({ product: it.product, quantity: it.quantity, price: it.price * tiLe }));
+
+  const r = tinhDonHangThuan(cartTam, 0, 'HCM'); // distance=0: chỉ cần xe/khối lượng/giá trị ở bước này
+  if (!r) return { loi: 'Không tính được đơn hàng.' };
+
+  const ketQua = {
+    xe: r.actLabel,
+    khoi_luong_kg: Math.round(r.totalWeight * 10) / 10,
+    tong_bill_chua_vat: tongBillDung,
+    tong_bill_co_vat: Math.round(tongBillDung * 1.08)
+  };
+
+  if (!args.dia_chi_giao) {
+    ketQua.huong_dan = 'Chưa có địa chỉ giao nên chưa tính được phí ship thật. Đọc kết quả trên cho khách, hỏi thêm địa chỉ giao hàng nếu cần phí ship.';
+    return ketQua;
+  }
+
+  // Có địa chỉ → check Ahamove thật (dùng đúng GAS_API_URL + jsonpRequest đang chạy cho UI)
+  const loaiXe = VEHICLE_KEY_TO_LOAI_XE[r.actKey];
+  if (!loaiXe) {
+    ketQua.huong_dan = `Xe "${r.actLabel}" hiện chưa hỗ trợ check phí Ahamove tự động — báo khách cần bộ phận vận chuyển báo giá thủ công.`;
+    return ketQua;
+  }
+  try {
+    const params = new URLSearchParams({
+      action: 'checkPhi', loaiXe, tier: loaiXe === 'Xe Máy' ? (r.capXeMay || 'M') : '', diaChiGiao: args.dia_chi_giao
+    });
+    const data = await jsonpRequest(GAS_API_URL, params);
+    if (!data.ok) {
+      ketQua.dia_chi_loi = args.dia_chi_giao;
+      ketQua.huong_dan = `Ahamove không nhận diện được địa chỉ này (lỗi gốc: ${data.error}). Nói với khách theo đúng tinh thần: "Địa chỉ chưa đúng chuẩn rồi bạn ơi, bạn search trên Google Maps rồi copy y nguyên địa chỉ đó dán lại cho mình nhé, sẽ chuẩn hơn." Nếu bạn nhận ra địa chỉ khách đưa gần giống 1 địa chỉ quen thuộc/nổi tiếng nào đó, có thể gợi ý thêm kiểu: "Bạn xem có phải là [địa chỉ gợi ý] không, mình thấy khá giống nè" — rồi chờ khách xác nhận/sửa lại trước khi gọi lại tool.`;
+      return ketQua;
+    }
+    const { hoTro, khachTra } = tinhHoTroAhamoveThat(r, r.actKey, data, 'HCM');
+    ketQua.khoang_cach_km = data.khoangCach;
+    ketQua.phi_ahamove_goc = data.phiGoc;
+    ketQua.cong_ty_ho_tro = Math.round(hoTro);
+    ketQua.khach_bu_them = Math.round(khachTra);
+  } catch (e) {
+    ketQua.dia_chi_loi = args.dia_chi_giao;
+    ketQua.huong_dan = `Không check được phí Ahamove với địa chỉ này (có thể do lỗi mạng hoặc địa chỉ chưa chuẩn). Nói với khách theo đúng tinh thần: "Địa chỉ chưa đúng chuẩn rồi bạn ơi, bạn search trên Google Maps rồi copy y nguyên địa chỉ đó dán lại cho mình nhé, sẽ chuẩn hơn." Nếu nhận ra địa chỉ gần giống 1 nơi quen thuộc, gợi ý thêm rồi chờ khách xác nhận trước khi gọi lại tool.`;
+  }
+  return ketQua;
+}
+
+const TOOL_TRA_THONG_SO = {
+  name: 'tra_thong_so',
+  description: 'Tra thông số kỹ thuật (loại hàng, giá, đơn vị, khổ, độ dày, quy cách hộp...) của 1 mã hàng.',
+  parameters: {
+    type: 'OBJECT',
+    properties: { ma_hang: { type: 'STRING', description: "Mã hàng cần tra, vd '866', 'C202'" } },
+    required: ['ma_hang']
+  }
+};
+
+const TOOL_TRA_TON_KHO = {
+  name: 'tra_ton_kho',
+  description: 'Tra số lượng tồn kho HCM hiện tại của 1 mã hàng (có thể ra nhiều dòng nếu mã hàng có nhiều màu/biến thể).',
+  parameters: {
+    type: 'OBJECT',
+    properties: { ma_hang: { type: 'STRING', description: "Mã hàng cần tra tồn kho, vd '866', 'C101'" } },
+    required: ['ma_hang']
+  }
+};
+
+const TOOL_TRA_ANH = {
+  name: 'tra_anh',
+  description: 'Tra ảnh sản phẩm, đặc điểm nhận dạng và link sản phẩm của 1 mã hàng.',
+  parameters: {
+    type: 'OBJECT',
+    properties: { ma_hang: { type: 'STRING', description: "Mã hàng cần tra ảnh, vd '866', 'C202'" } },
+    required: ['ma_hang']
+  }
+};
+
+function execTraThongSo(args) {
+  const p = timSanPhamTheoMa(args.ma_hang);
+  if (!p) return { loi: `Không tìm thấy mã hàng "${args.ma_hang}" trong danh mục.` };
+  const ketQua = {
+    ma_hang: p.id, ten: p.name, loai: p.type, gia: p.price, don_vi: p.unit
+  };
+  if (p.width) ketQua.kho_m = p.width;
+  if (p.thick) ketQua.do_day_m = p.thick;
+  if (p.wpu) ketQua.trong_luong_kg_tren_m2 = p.wpu;
+  if (p.boxSize) { ketQua.quy_cach_hop = `${p.boxSize} m²/thùng`; ketQua.loai_hop = p.boxType || ''; }
+  return ketQua;
+}
+
+async function execTraTonKho(args) {
+  if (stockData.length === 0) { try { await loadStock(false); } catch(e) {} }
+  const maChuan = chuanHoaMa(args.ma_hang);
+  const matches = stockData.filter(item => {
+    const ma = chuanHoaMa(item['Mã hàng tồn kho'] || '');
+    return ma.includes(maChuan) || maChuan.includes(ma);
+  });
+  if (matches.length === 0) return { loi: `Không tìm thấy tồn kho cho mã "${args.ma_hang}". Có thể mã chưa đúng hoặc chưa có trong kho HCM.` };
+  return {
+    so_dong_tim_thay: matches.length,
+    chi_tiet: matches.slice(0, 15).map(m => ({
+      ma: m['Mã hàng tồn kho'], loai: m['Loại hàng'] || '', quy_cach: m['Quy cách'] || '',
+      ton: m['Tồn cuối kỳ'] || '0', don_vi: m['Đơn vị tính'] || 'm²'
+    }))
+  };
+}
+
+async function execTraAnh(args) {
+  if (!_imgLoaded) { try { await loadImages(false); } catch(e) {} }
+  const maChuan = chuanHoaMa(args.ma_hang);
+  const matches = _imgData.filter(d => {
+    const ma = chuanHoaMa(d.ma_hang || '');
+    return ma.includes(maChuan) || maChuan.includes(ma);
+  });
+  if (matches.length === 0) return { loi: `Không tìm thấy ảnh cho mã "${args.ma_hang}".` };
+  return {
+    so_dong_tim_thay: matches.length,
+    chi_tiet: matches.slice(0, 5).map(d => ({
+      ma_hang: d.ma_hang, gia: d.gia, don_vi: d.don_vi, dac_diem: d.dac_diem,
+      so_luong_anh: d.anhs.length, link_anh_dau_tien: d.anhs[0] || '', link_san_pham: d.link_sp || ''
+    }))
+  };
+}
+
+async function guiChat() {
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if (!text) return;
+  const key = getGeminiKey();
+  if (!key) { alert('Chưa có API key.'); return; }
+
+  themTinNhan('user', text);
+  chatHistory.push({ role: 'user', parts: [{ text }] });
+  input.value = '';
+  const btn = document.getElementById('btnGuiChat');
+  btn.disabled = true; btn.textContent = '...';
+
+  try {
+    await goiGeminiVaXuLy(key);
+  } catch (e) {
+    themTinNhan('model', 'Có lỗi khi gọi trợ lý: ' + (e.message || e));
+  } finally {
+    btn.disabled = false; btn.textContent = 'Gửi';
+  }
+}
+
+async function goiGeminiVaXuLy(key) {
+  const systemInstruction = {
+    parts: [{ text:
+      'Bạn là trợ lý sale nội bộ của Goma Carpet, kho HCM. Bạn có 4 tool: ' +
+      '- tinh_gia_ship: tính giá/cân nặng/xe/phí ship cho 1 đơn hàng; ' +
+      '- tra_thong_so: tra thông số kỹ thuật 1 mã hàng (giá, khổ, độ dày...); ' +
+      '- tra_ton_kho: tra số lượng tồn kho HCM của 1 mã hàng; ' +
+      '- tra_anh: tra ảnh + đặc điểm nhận dạng của 1 mã hàng. ' +
+      'Nhiệm vụ của bạn: ' +
+      '(1) đọc hiểu câu khách/sale nói để xác định họ đang cần tool nào và tách đúng thông tin cần (mã hàng, m2, địa chỉ...); ' +
+      '(2) nếu thiếu thông tin bắt buộc của tool đó, hỏi lại trước khi gọi tool; ' +
+      '(3) TUYỆT ĐỐI KHÔNG tự tính giá/cân nặng/phí ship/tồn kho bằng suy luận của bạn — luôn gọi đúng tool để lấy số liệu thật; ' +
+      '(4) với tinh_gia_ship, nếu tool trả về can_xac_nhan_gia=true, đọc chi tiết giá cho khách và hỏi khách có đồng ý dùng giá niêm yết không, rồi gọi lại tool theo đúng hướng dẫn trong "huong_dan"; ' +
+      '(5) với tra_ton_kho/tra_anh, nếu tool trả về nhiều dòng (chi_tiet có nhiều phần tử vì mã hàng có nhiều màu/biến thể), liệt kê ngắn gọn từng dòng cho khách chọn thay vì tự chọn 1 dòng; ' +
+      '(6) trình bày kết quả cuối cùng ngắn gọn, đúng số liệu tool trả về, không thêm số liệu tự bịa; ' +
+      '(7) nếu tool báo lỗi địa chỉ (có trường dia_chi_loi), LUÔN theo đúng hướng dẫn trong "huong_dan" — nói với khách bằng giọng thân thiện rằng địa chỉ chưa đúng chuẩn, nhờ khách search Google Maps rồi copy lại y nguyên; nếu bạn tự nhận ra địa chỉ gần giống 1 nơi quen thuộc thì gợi ý luôn kiểu "có phải là ... không, thấy khá giống nè" rồi chờ khách xác nhận, không tự ý gọi lại tool với địa chỉ đoán khi chưa được khách xác nhận. ' +
+      'Danh mục mã hàng tham khảo để nhận diện mã khách nói (không dùng để tự tính giá):\n' + buildDanhMucHang()
+    }]
+  };
+
+  const body = {
+    system_instruction: systemInstruction,
+    contents: chatHistory,
+    tools: [{ function_declarations: [TOOL_TINH_GIA_SHIP, TOOL_TRA_THONG_SO, TOOL_TRA_TON_KHO, TOOL_TRA_ANH] }]
+  };
+
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
+    body: JSON.stringify(body)
+  });
+  const data = await res.json();
+  if (data.error) { themTinNhan('model', 'Lỗi Gemini API: ' + data.error.message); return; }
+
+  const candidate = data.candidates && data.candidates[0];
+  const parts = candidate && candidate.content && candidate.content.parts || [];
+  const goiHam = parts.find(p => p.functionCall);
+
+  if (goiHam) {
+    chatHistory.push({ role: 'model', parts });
+    const tenTool = goiHam.functionCall.name;
+    const doiSo = goiHam.functionCall.args || {};
+    let ketQua;
+    switch (tenTool) {
+      case 'tinh_gia_ship': ketQua = await execTinhGiaShip(doiSo); break;
+      case 'tra_thong_so':  ketQua = execTraThongSo(doiSo); break;
+      case 'tra_ton_kho':   ketQua = await execTraTonKho(doiSo); break;
+      case 'tra_anh':       ketQua = await execTraAnh(doiSo); break;
+      default: ketQua = { loi: `Tool "${tenTool}" không tồn tại.` };
+    }
+    chatHistory.push({ role: 'user', parts: [{ functionResponse: { name: tenTool, response: ketQua } }] });
+    // Gọi lại Gemini để nó đọc kết quả tool và trả lời khách bằng lời — vòng lặp cho tới khi model trả lời text (không gọi tool nữa)
+    await goiGeminiVaXuLy(key);
+    return;
+  }
+
+  const textPart = parts.find(p => p.text);
+  const reply = textPart ? textPart.text : '(Không có phản hồi)';
+  chatHistory.push({ role: 'model', parts: [{ text: reply }] });
+  themTinNhan('model', reply);
+}
+
+async function modalCopyAllImgs() {
+  const d = _imgFiltered[_curModalIdx];
+  if (!d || !d.anhs.length) return;
+  const btn = document.querySelector('#imgDetailModal [onclick="modalCopyAllImgs()"]');
+  const origText = btn ? btn.textContent : '';
+  if (btn) btn.textContent = '⏳ Đang xử lý...';
+  // Thử copy từng ảnh tuần tự qua ClipboardItem (chỉ có thể 1 ảnh tại 1 thời điểm)
+  // → mở tất cả ảnh trong tab mới nếu nhiều hơn 1, hoặc copy ảnh nếu chỉ 1
+  if (d.anhs.length === 1) {
+    return modalCopyImg();
+  }
+  // Nhiều ảnh: copy tất cả link và mở tab để user tự lấy
+  try {
+    await navigator.clipboard.writeText(d.anhs.join('\n'));
+    if (btn) { btn.textContent='✅ Đã copy ' + d.anhs.length + ' link ảnh!'; setTimeout(()=>btn.textContent=origText,2500); }
+  } catch(e) {
+    if (btn) { btn.textContent='❌ Không copy được'; setTimeout(()=>btn.textContent=origText,2000); }
+  }
+}
+
+initAssistantTab(); // tab mặc định là Trợ lý — đặt CUỐI script để mọi let/const (chatHistory, stockData...) đã chạy xong trước khi gọi
+
+</script>
+</body>
+</html>
